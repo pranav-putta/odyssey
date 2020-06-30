@@ -2,12 +2,17 @@ package main
 
 // TODO: classify actions
 // TODO: label as refresh or no refresh : "public act" or "effective date" or "governor approved"
-// TODO: add urls for documents in bill json file
+// TODO: voting
+// TODO: Bill title "-tech" no good
 
 import (
+
 	//"context"
+
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"regexp"
 	"strconv"
@@ -16,30 +21,24 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gocolly/colly"
+	"github.com/ledongthuc/pdf"
 	//"go.mongodb.org/mongo-driver/bson"
 	//"go.mongodb.org/mongo-driver/mongo"
 	//"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// temporary for tracking purposes
-// TODO: delete this
-type Progress struct {
-	a int
-	b int
-	c int
-	d int
-	e int
-}
-
-var p = Progress{0, 0, 0, 0, 0}
-
 // types
+
+// bill container class, contains details, sponsor list, and action list
 type BillDocument struct {
-	Details  *BillDetails
-	Sponsors *[]Sponsor
-	Actions  *[]Action
+	Details     *BillDetails
+	Sponsors    *[]Sponsor
+	Actions     *[]Action
+	FullTextURL string
+	Votes       *VotingEvent
 }
 
+// specifications of the bill number, title, summary, etc.
 type BillDetails struct {
 	Identifier string
 	Chamber    string
@@ -50,6 +49,7 @@ type BillDetails struct {
 	Source     string
 }
 
+// sponsor detail
 type Sponsor struct {
 	Name     string
 	Spontype string
@@ -57,22 +57,20 @@ type Sponsor struct {
 	Id       string
 }
 
+// action detail
 type Action struct {
 	Date    int64
 	Chamber string
 	Action  string
 }
 
+// summary of a bill
 type Summary struct {
 	Short        string
 	FullAbstract string
 }
 
-// constants
-const document_url = "http://www.ilga.gov/legislation/101/%s/10100%s%04d.htm"
-
-func OnVisitLink(r *colly.Request) {
-	fmt.Println("Visiting", r.URL.String())
+type VotingEvent struct {
 }
 
 // generate bill details
@@ -198,6 +196,10 @@ func BuildActions(doc *goquery.Selection) []Action {
 	return action_list
 }
 
+func BuildVoting(doc *goquery.Selection) VotingEvent {
+	return VotingEvent{}
+}
+
 // aggregates bill details, sponsor list, and actions into one json
 func BuildBillDocument(e *colly.HTMLElement) (*BillDocument, error) {
 	// initialize document pointer
@@ -210,8 +212,15 @@ func BuildBillDocument(e *colly.HTMLElement) (*BillDocument, error) {
 	// scrape actions table
 	actions := BuildActions(e.DOM)
 
+	// gather full text
+	full_text := fmt.Sprintf("http://www.ilga.gov/legislation/101/%s/10100%s%04d.htm",
+		bill_details.Chamber, bill_details.Chamber, bill_details.Number)
+
+	// get voting events
+	voting := BuildVoting(e.DOM)
+
 	// aggregate into one struct
-	document = &BillDocument{&bill_details, &sponsor_list, &actions}
+	document = &BillDocument{&bill_details, &sponsor_list, &actions, full_text, &voting}
 
 	// conver to json
 	elem, err := json.MarshalIndent(document, "", "")
@@ -224,6 +233,103 @@ func BuildBillDocument(e *colly.HTMLElement) (*BillDocument, error) {
 	return document, nil
 }
 
+func findLastLine(buf []byte, s string) int {
+	bs := []byte(s)
+	max := len(buf)
+	for {
+		i := bytes.LastIndex(buf[:max], bs)
+		if i <= 0 || i+len(bs) >= len(buf) {
+			return -1
+		}
+		if (buf[i-1] == '\n' || buf[i-1] == '\r') && (buf[i+len(bs)] == '\n' || buf[i+len(bs)] == '\r') {
+			return i
+		}
+		max = i
+	}
+}
+
+func FakeReader(buf []byte) (*pdf.Reader, error) {
+	if !bytes.HasPrefix(buf, []byte("%PDF-1.")) || buf[7] < '0' || buf[7] > '7' || buf[8] != '\r' && buf[8] != '\n' {
+		return nil, fmt.Errorf("not a PDF file: invalid header")
+	}
+	end := len(buf)
+	const endChunk = 100
+	buf = buf[endChunk:end]
+	for len(buf) > 0 && buf[len(buf)-1] == '\n' || buf[len(buf)-1] == '\r' {
+		buf = buf[:len(buf)-1]
+	}
+	buf = bytes.TrimRight(buf, "\r\n\t ")
+	if !bytes.HasSuffix(buf, []byte("%%EOF")) {
+		return nil, fmt.Errorf("not a PDF file: missing %%%%EOF")
+	}
+	i := findLastLine(buf, "startxref")
+	if i < 0 {
+		return nil, fmt.Errorf("malformed PDF file: missing final startxref")
+	}
+
+	r := &pdf.Reader{
+		end: end,
+	}
+	pos := end - endChunk + int64(i)
+	b := newBuffer(io.NewSectionReader(f, pos, end-pos), pos)
+	if b.readToken() != keyword("startxref") {
+		return nil, fmt.Errorf("malformed PDF file: missing startxref")
+	}
+	startxref, ok := b.readToken().(int64)
+	if !ok {
+		return nil, fmt.Errorf("malformed PDF file: startxref not followed by integer")
+	}
+	b = newBuffer(io.NewSectionReader(r.f, startxref, r.end-startxref), startxref)
+	xref, trailerptr, trailer, err := readXref(r, b)
+	if err != nil {
+		return nil, err
+	}
+	r.xref = xref
+	r.trailer = trailer
+	r.trailerptr = trailerptr
+	if trailer["Encrypt"] == nil {
+		return r, nil
+	}
+	err = r.initEncrypt("")
+	if err == nil {
+		return r, nil
+	}
+	if pw == nil || err != ErrInvalidPassword {
+		return nil, err
+	}
+	for {
+		next := pw()
+		if next == "" {
+			break
+		}
+		if r.initEncrypt(next) == nil {
+			return r, nil
+		}
+	}
+	return nil, err
+}
+
+func readPdf(path string) (string, error) {
+
+	/*totalPage := r.NumPage()
+
+	for pageIndex := 1; pageIndex <= totalPage; pageIndex++ {
+		p := r.Page(pageIndex)
+		if p.V.IsNull() {
+			continue
+		}
+
+		rows, _ := p.GetTextByRow()
+		for _, row := range rows {
+			println(">>>> row: ", row.Position)
+			for _, word := range row.Content {
+				fmt.Println(word.S)
+			}
+		}
+	}
+	return "", nil*/
+}
+
 // scrape the full text
 func ScrapeFullText(e *colly.HTMLElement) {
 	p.c += 1
@@ -233,15 +339,27 @@ func ScrapeFullText(e *colly.HTMLElement) {
 }
 
 // scrape votes : element passed in is the pdf document
-func ScrapeVotes(e *colly.HTMLElement) {
-	p.e += 1
-	fmt.Println(p)
-
-	// TODO: grab the actual vote results
+func ScrapeVotes(r *colly.Response) (string, error) {
+	r, err := FakeReader(r.Body)
+	if err != nil {
+		return "", err
+	}
 }
 
 func main() {
 	startTime := time.Now()
+
+	var urls [10]string
+	urls[0] = "http://www.ilga.gov/legislation/grplist.asp?num1=1&num2=10000&DocTypeID=SB&GA=101&SessionId=108"
+	urls[1] = "http://www.ilga.gov/legislation/grplist.asp?num1=1&num2=10000&DocTypeID=HB&GA=101&SessionId=108"
+	urls[2] = "http://www.ilga.gov/legislation/grplist.asp?num1=1&num2=10000&DocTypeID=SR&GA=101&SessionId=108"
+	urls[3] = "http://www.ilga.gov/legislation/grplist.asp?num1=1&num2=10000&DocTypeID=HR&GA=101&SessionId=108"
+	urls[4] = "http://www.ilga.gov/legislation/grplist.asp?num1=1&num2=10000&DocTypeID=SJR&GA=101&SessionId=108"
+	urls[5] = "http://www.ilga.gov/legislation/grplist.asp?num1=1&num2=10000&DocTypeID=HJR&GA=101&SessionId=108"
+	urls[6] = "http://www.ilga.gov/legislation/grplist.asp?num1=1&num2=10000&DocTypeID=SJRCA&GA=101&SessionId=108"
+	urls[7] = "http://www.ilga.gov/legislation/grplist.asp?num1=1&num2=10000&DocTypeID=HJRCA&GA=101&SessionId=108"
+	urls[8] = "http://www.ilga.gov/legislation/grplist.asp?num1=1&num2=10000&DocTypeID=EO&GA=101&SessionId=108"
+	urls[9] = "http://www.ilga.gov/legislation/grplist.asp?num1=1&num2=1000400047&DocTypeID=AM&GA=101&SessionId=108"
 
 	pc := colly.NewCollector(colly.Async(true))
 	bc := pc.Clone()
@@ -256,6 +374,9 @@ func main() {
 	vc.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: 4})
 	vc_pdf.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: 4})
 
+	pc.OnResponse(func(e *colly.Response) {
+		fmt.Println(e.Body)
+	})
 	// callback for when link page is accessed
 	pc.OnHTML("li", func(e *colly.HTMLElement) {
 		p.a += 1
@@ -284,8 +405,8 @@ func main() {
 		//dc.Visit(e.Request.AbsoluteURL(doc_url))
 
 		// scrape votes
-		//votes_url := e.ChildAttr(`a:contains("Votes")`, "href")
-		//vc.Visit(e.Request.AbsoluteURL(votes_url))
+		votes_url := e.ChildAttr(`a:contains("Votes")`, "href")
+		vc.Visit(e.Request.AbsoluteURL(votes_url))
 	})
 	dc.OnHTML("", func(e *colly.HTMLElement) {
 		p.c += 1
@@ -298,13 +419,13 @@ func main() {
 		href := e.Attr("href")
 
 		// if the string actually contains voting history
-		if strings.Contains(href, "votinghistory") {
+		if strings.Contains(href, "votinghistory") && strings.Contains(href, "pdf") {
 			vc_pdf.Visit(e.Request.AbsoluteURL(href))
 		}
 	})
-	vc_pdf.OnHTML("", ScrapeVotes)
+	vc_pdf.OnResponse(ScrapeVotes)
 
-	pc.Visit("http://www.ilga.gov/legislation/grplist.asp?num1=1&num2=100000&DocTypeID=SB&GA=101&SessionId=108")
+	vc_pdf.Visit("http://www.ilga.gov/legislation/votehistory/101/house/committeevotes/10100SB0001_23366.pdf")
 	pc.Wait()
 	bc.Wait()
 	dc.Wait()
