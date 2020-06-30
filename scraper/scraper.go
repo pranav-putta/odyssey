@@ -9,10 +9,8 @@ import (
 
 	//"context"
 
-	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"regexp"
 	"strconv"
@@ -21,13 +19,12 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gocolly/colly"
-	"github.com/ledongthuc/pdf"
 	//"go.mongodb.org/mongo-driver/bson"
 	//"go.mongodb.org/mongo-driver/mongo"
 	//"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// types
+// data structures
 
 // bill container class, contains details, sponsor list, and action list
 type BillDocument struct {
@@ -228,122 +225,15 @@ func BuildBillDocument(e *colly.HTMLElement) (*BillDocument, error) {
 		return document, err
 	}
 
+	// save file
 	file_name := fmt.Sprintf("data/bill_%s.json", bill_details.Identifier)
 	_ = ioutil.WriteFile(file_name, elem, 0644)
 	return document, nil
 }
 
-func findLastLine(buf []byte, s string) int {
-	bs := []byte(s)
-	max := len(buf)
-	for {
-		i := bytes.LastIndex(buf[:max], bs)
-		if i <= 0 || i+len(bs) >= len(buf) {
-			return -1
-		}
-		if (buf[i-1] == '\n' || buf[i-1] == '\r') && (buf[i+len(bs)] == '\n' || buf[i+len(bs)] == '\r') {
-			return i
-		}
-		max = i
-	}
-}
-
-func FakeReader(buf []byte) (*pdf.Reader, error) {
-	if !bytes.HasPrefix(buf, []byte("%PDF-1.")) || buf[7] < '0' || buf[7] > '7' || buf[8] != '\r' && buf[8] != '\n' {
-		return nil, fmt.Errorf("not a PDF file: invalid header")
-	}
-	end := len(buf)
-	const endChunk = 100
-	buf = buf[endChunk:end]
-	for len(buf) > 0 && buf[len(buf)-1] == '\n' || buf[len(buf)-1] == '\r' {
-		buf = buf[:len(buf)-1]
-	}
-	buf = bytes.TrimRight(buf, "\r\n\t ")
-	if !bytes.HasSuffix(buf, []byte("%%EOF")) {
-		return nil, fmt.Errorf("not a PDF file: missing %%%%EOF")
-	}
-	i := findLastLine(buf, "startxref")
-	if i < 0 {
-		return nil, fmt.Errorf("malformed PDF file: missing final startxref")
-	}
-
-	r := &pdf.Reader{
-		end: end,
-	}
-	pos := end - endChunk + int64(i)
-	b := newBuffer(io.NewSectionReader(f, pos, end-pos), pos)
-	if b.readToken() != keyword("startxref") {
-		return nil, fmt.Errorf("malformed PDF file: missing startxref")
-	}
-	startxref, ok := b.readToken().(int64)
-	if !ok {
-		return nil, fmt.Errorf("malformed PDF file: startxref not followed by integer")
-	}
-	b = newBuffer(io.NewSectionReader(r.f, startxref, r.end-startxref), startxref)
-	xref, trailerptr, trailer, err := readXref(r, b)
-	if err != nil {
-		return nil, err
-	}
-	r.xref = xref
-	r.trailer = trailer
-	r.trailerptr = trailerptr
-	if trailer["Encrypt"] == nil {
-		return r, nil
-	}
-	err = r.initEncrypt("")
-	if err == nil {
-		return r, nil
-	}
-	if pw == nil || err != ErrInvalidPassword {
-		return nil, err
-	}
-	for {
-		next := pw()
-		if next == "" {
-			break
-		}
-		if r.initEncrypt(next) == nil {
-			return r, nil
-		}
-	}
-	return nil, err
-}
-
-func readPdf(path string) (string, error) {
-
-	/*totalPage := r.NumPage()
-
-	for pageIndex := 1; pageIndex <= totalPage; pageIndex++ {
-		p := r.Page(pageIndex)
-		if p.V.IsNull() {
-			continue
-		}
-
-		rows, _ := p.GetTextByRow()
-		for _, row := range rows {
-			println(">>>> row: ", row.Position)
-			for _, word := range row.Content {
-				fmt.Println(word.S)
-			}
-		}
-	}
-	return "", nil*/
-}
-
-// scrape the full text
-func ScrapeFullText(e *colly.HTMLElement) {
-	p.c += 1
-	fmt.Println(p)
-
-	// TODO: Finish this, store data somehow
-}
-
 // scrape votes : element passed in is the pdf document
-func ScrapeVotes(r *colly.Response) (string, error) {
-	r, err := FakeReader(r.Body)
-	if err != nil {
-		return "", err
-	}
+func ScrapeVotes(r *colly.Response) {
+
 }
 
 func main() {
@@ -361,7 +251,9 @@ func main() {
 	urls[8] = "http://www.ilga.gov/legislation/grplist.asp?num1=1&num2=10000&DocTypeID=EO&GA=101&SessionId=108"
 	urls[9] = "http://www.ilga.gov/legislation/grplist.asp?num1=1&num2=1000400047&DocTypeID=AM&GA=101&SessionId=108"
 
+	// collector for big page with all links to bills
 	pc := colly.NewCollector(colly.Async(true))
+	// collector for a specific bill
 	bc := pc.Clone()
 	dc := pc.Clone()
 	vc := pc.Clone()
@@ -374,23 +266,15 @@ func main() {
 	vc.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: 4})
 	vc_pdf.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: 4})
 
-	pc.OnResponse(func(e *colly.Response) {
-		fmt.Println(e.Body)
-	})
 	// callback for when link page is accessed
 	pc.OnHTML("li", func(e *colly.HTMLElement) {
-		p.a += 1
-		//fmt.Println(p)
-
+		// access each bill link and visit
 		link := e.ChildAttr("a", "href")
 		bc.Visit(e.Request.AbsoluteURL(link))
 	})
 
 	// callback for when bill link is accessed
 	bc.OnHTML("body", func(e *colly.HTMLElement) {
-		p.b += 1
-		//fmt.Println(p)
-
 		// scrape the bill details
 		bill_doc, err := BuildBillDocument(e)
 
@@ -405,17 +289,13 @@ func main() {
 		//dc.Visit(e.Request.AbsoluteURL(doc_url))
 
 		// scrape votes
-		votes_url := e.ChildAttr(`a:contains("Votes")`, "href")
-		vc.Visit(e.Request.AbsoluteURL(votes_url))
+		//votes_url := e.ChildAttr(`a:contains("Votes")`, "href")
+		//vc.Visit(e.Request.AbsoluteURL(votes_url))
 	})
 	dc.OnHTML("", func(e *colly.HTMLElement) {
-		p.c += 1
-		//fmt.Println(p)
 	})
+	// callback when voting html comes back
 	vc.OnHTML("a[href]", func(e *colly.HTMLElement) {
-		p.d += 1
-		//fmt.Println(p)
-
 		href := e.Attr("href")
 
 		// if the string actually contains voting history
@@ -423,9 +303,10 @@ func main() {
 			vc_pdf.Visit(e.Request.AbsoluteURL(href))
 		}
 	})
+	// callback when voting pdf comes back
 	vc_pdf.OnResponse(ScrapeVotes)
 
-	vc_pdf.Visit("http://www.ilga.gov/legislation/votehistory/101/house/committeevotes/10100SB0001_23366.pdf")
+	pc.Visit(urls[0])
 	pc.Wait()
 	bc.Wait()
 	dc.Wait()
