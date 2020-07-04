@@ -1,9 +1,30 @@
 package models
 
+import (
+	"database/sql/driver"
+	"encoding/json"
+	"errors"
+)
+
+// Value is an implemented method from database/sql/driver which converts Contact into jsonb
+func (c Contact) Value() (driver.Value, error) {
+	return json.Marshal(c)
+}
+
+// Scan is an implemented method from database/sql/driver which converts jsonb into Contact
+func (c *Contact) Scan(value interface{}) error {
+	b, ok := value.([]byte)
+	if !ok {
+		return errors.New("type assertion to []byte failed")
+	}
+
+	return json.Unmarshal(b, &c)
+}
+
 // Contact encodes a specific office contact information
 type Contact struct {
-	Address     string
-	PhoneNumber string
+	Address     string `json:"address,omitempty"`
+	PhoneNumber string `json:"phoneNumber,omitempty"`
 }
 
 // Person encodes all senate and hosue members in the Illinois General Assembly

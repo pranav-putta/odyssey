@@ -23,7 +23,7 @@ type PersonCallback func(models.Person, error)
 
 // RefreshDatabase will scrape all senate and house data and upload all data to database
 func RefreshDatabase(assembly string) {
-	Scrape(assembly, func(p models.Person, err error) {
+	ScrapePeople(assembly, func(p models.Person, err error) {
 		e := db.InsertMember(p)
 		if e != nil {
 			fmt.Println(e)
@@ -33,8 +33,8 @@ func RefreshDatabase(assembly string) {
 	})
 }
 
-// Scrape scrapes all senate and house data for the given general assembly
-func Scrape(assembly string, callback PersonCallback) {
+// ScrapePeople scrapes all senate and house data for the given general assembly
+func ScrapePeople(assembly string, callback PersonCallback) {
 	// collector for page with a list of all members
 	peopleCollector := colly.NewCollector(colly.Async(true), colly.DetectCharset())
 	personDetailCollector := colly.NewCollector(colly.Async(true), colly.DetectCharset())
