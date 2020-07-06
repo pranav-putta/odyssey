@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"time"
 
 	"cloud.google.com/go/firestore"
 	firebase "firebase.google.com/go"
@@ -165,8 +166,9 @@ func InsertBill(b models.Bill) error {
 		var client = postgreSQLClient()
 
 		sql := `INSERT INTO bills (assembly, chamber, number, title, short_summary, full_summary,
-			sponsor_ids, house_primary_sponsor, senate_primary_sponsor, chief_sponsor, actions, actions_hash)
-				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+			sponsor_ids, house_primary_sponsor, senate_primary_sponsor, chief_sponsor, actions, 
+			actions_hash, url, last_updated, bill_text)
+				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
 				ON CONFLICT (assembly, chamber, number) DO UPDATE
 					SET assembly = $1,
 						chamber = $2,
@@ -179,10 +181,13 @@ func InsertBill(b models.Bill) error {
 						senate_primary_sponsor = $9,
 						chief_sponsor = $10,
 						actions = $11,
-						actions_hash = $12;`
+						actions_hash = $12,
+						url = $13,
+						last_updated = $14,
+						bill_text = $15;`
 		_, err := client.Exec(sql, b.Metadata.Assembly, b.Metadata.Chamber, b.Metadata.Number,
 			b.Title, b.ShortSummary, b.FullSummary, pq.Array(b.SponsorIDs), b.HousePrimarySponsor,
-			b.SenatePrimarySponsor, b.ChiefSponsor, pq.Array(b.Actions), b.ActionsHash)
+			b.SenatePrimarySponsor, b.ChiefSponsor, pq.Array(b.Actions), b.ActionsHash, b.Metadata.URL, time.Now().UnixNano()/1000000, b.BillText)
 		return err
 	} else {
 		return nil
@@ -232,13 +237,13 @@ func GetBill(md models.BillMetadata) (bill models.Bill, err error) {
 	// get client
 	var client = postgreSQLClient()
 	query := `select assembly, chamber, number, title, short_summary, full_summary,
-	 house_primary_sponsor, senate_primary_sponsor, chief_sponsor, actions, actions_hash
+	 house_primary_sponsor, senate_primary_sponsor, chief_sponsor, actions, actions_hash, url, bill_text
 	 from public.bills where assembly=$1 and chamber=$2 and number=$3`
 	row := client.QueryRow(query, md.Assembly, md.Chamber, md.Number)
 
 	switch err := row.Scan(&bill.Metadata.Assembly, &bill.Metadata.Chamber, &bill.Metadata.Number, &bill.Title, &bill.ShortSummary, &bill.FullSummary,
 		&bill.HousePrimarySponsor, &bill.SenatePrimarySponsor, &bill.ChiefSponsor,
-		pq.Array(&bill.Actions), &bill.ActionsHash); err {
+		pq.Array(&bill.Actions), &bill.ActionsHash, &bill.Metadata.URL, &bill.BillText); err {
 	case sql.ErrNoRows:
 		return bill, errors.New("no rows found")
 	case nil:

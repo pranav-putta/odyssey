@@ -6,6 +6,46 @@ import (
 	"errors"
 )
 
+// Tag type
+type Tag int
+
+const (
+	// Assigned - "bill assigned to specific committee"
+	Assigned Tag = iota
+	// EffectiveDate - "bill becomes law"
+	EffectiveDate
+	// ArrivalInSenate - "Passed in house, passed to senate"
+	ArrivalInSenate
+	// ArrivalInHouse - "Passed in senate, passed to house"
+	ArrivalInHouse
+	// CoSponsor - "Added Co-Sponsosr"
+	CoSponsor
+	// ThirdReadingVote - "Final reading right before vote"
+	ThirdReadingVote
+	// CommitteeDebate - "Recommendation by committee of sending bill to house/senate to vote on"
+	CommitteeDebate
+	// SponsorRemoved - "Representative/Senator backed out "
+	SponsorRemoved
+	// FiscalRequest - "Request how much a bill costs"
+	FiscalRequest
+	// DualPassed - "Passed in both houses"
+	DualPassed
+	// SentToGovernor - "In transit to governor"
+	SentToGovernor
+	// GovernorApproved - "Governor signature"
+	GovernorApproved
+	// PublicAct - "Official Law"
+	PublicAct
+	// BillVotePass - "Bill voted and passed in chamber"
+	BillVotePass
+	// BillVoteFail - "Bill voted and failed in chamber"
+	BillVoteFail
+	// Amended - "bill ammended and updated"
+	Amended
+	// Other - "any other"
+	Other
+)
+
 // Bill container
 type Bill struct {
 	Metadata             BillMetadata
@@ -18,12 +58,8 @@ type Bill struct {
 	ChiefSponsor         int
 	Actions              []BillAction
 	ActionsHash          string
-
-	BillText struct {
-		URL      string
-		FullText string
-	}
-	VoteEvents []BillVoteEvent
+	BillText             BillFullText
+	VoteEvents           []BillVoteEvent
 }
 
 // BillMetadata stores bill number, general assembly number, and chamber
@@ -34,12 +70,17 @@ type BillMetadata struct {
 	URL      string
 }
 
+type BillFullText struct {
+	URL      string `json:"url,omitempty"`
+	FullText string `json:"fullText,omitempty"`
+}
+
 // BillAction stores a single action event data
 type BillAction struct {
 	Date        int64
 	Chamber     string
 	Description string
-	Tag         string
+	Tag         Tag
 }
 
 // Value is an implemented method from database/sql/driver which converts Contact into jsonb
@@ -47,14 +88,29 @@ func (ba BillAction) Value() (driver.Value, error) {
 	return json.Marshal(ba)
 }
 
-// Scan is an implemented method from database/sql/driver which converts jsonb into Contact
-func (c *BillAction) Scan(value interface{}) error {
+// Value converts BillFullText into a json format
+func (bft BillFullText) Value() (driver.Value, error) {
+	return json.Marshal(bft)
+}
+
+// Scan converts BillFullText from json into a struct
+func (bft *BillFullText) Scan(value interface{}) error {
 	b, ok := value.([]byte)
 	if !ok {
 		return errors.New("type assertion to []byte failed")
 	}
 
-	return json.Unmarshal(b, &c)
+	return json.Unmarshal(b, &bft)
+}
+
+// Scan is an implemented method from database/sql/driver which converts jsonb into Contact
+func (ba *BillAction) Scan(value interface{}) error {
+	b, ok := value.([]byte)
+	if !ok {
+		return errors.New("type assertion to []byte failed")
+	}
+
+	return json.Unmarshal(b, &ba)
 }
 
 type BillVoteEvent struct {

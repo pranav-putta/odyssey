@@ -17,6 +17,8 @@ import (
 	"github.com/pranavputta22/voice/models"
 )
 
+var x int
+
 // BillCallback is a function to be called when bill information is retrieved
 type BillCallback func(models.Bill, error)
 
@@ -26,8 +28,8 @@ func RefreshBills(url string, ga string) {
 		if e != nil {
 			fmt.Println(e)
 		}
-
-		fmt.Printf("Done: Bill #%d\n", b.Metadata.Number)
+		x++
+		fmt.Printf("Done: Bill #%d, (%d)\n", b.Metadata.Number, x)
 	})
 }
 
@@ -72,7 +74,7 @@ func ScrapeBills(url string, ga string, callback BillCallback) error {
 // callback for when bill details collector respond
 func onBillDetailsResponse(e *colly.HTMLElement, callback BillCallback) {
 	doc := e.DOM
-	shouldUpdate := false
+	shouldUpdateActions, shouldUpdateAll := false, false
 
 	// get metadata to retrieve from database
 	md, err := buildBillMetadata(e)
@@ -84,6 +86,15 @@ func onBillDetailsResponse(e *colly.HTMLElement, callback BillCallback) {
 
 	// get row from database
 	bill, err := db.GetBill(md)
+	hash := ""
+
+	if err != nil {
+		shouldUpdateAll = true
+
+	}
+	// bill actions
+	hash = hashActions(doc)
+	shouldUpdateActions = bill.ActionsHash != hash
 
 	// always update bill metadata, title, summary, and sponsors
 	// bill metadata
@@ -99,24 +110,32 @@ func onBillDetailsResponse(e *colly.HTMLElement, callback BillCallback) {
 	// bill sponsors
 	bill.SponsorIDs, bill.HousePrimarySponsor, bill.SenatePrimarySponsor, bill.ChiefSponsor = buildSponsors(doc)
 
-	// bill actions
-	newActions := buildActions(doc)
-	hash := ""
-	shouldUpdate = bill.ActionsHash == hash
-	// TODO: figure out hash of actions and compare here
-
 	// if actions are different, update actions as well and decide whether to update votes and full text
-	if shouldUpdate {
+	if shouldUpdateActions || shouldUpdateAll {
 		// bill actions
-		updateText, updateVotes := checkActionsForUpdates(newActions)
-		bill.Actions = newActions
+		actionsTemp := buildActions(doc)
+		updateText, updateVotes := checkActionsForUpdates(actionsTemp, bill.Actions)
+
+		// update actions into bill doc
+		bill.Actions = actionsTemp
 		bill.ActionsHash = hash
 
-		if updateText {
-			// scoop text data
+		if updateText || shouldUpdateAll {
+			// create the url for full text
+			fullTextURL := fmt.Sprintf("http://www.ilga.gov/legislation/101/%s/10100%s%04d.htm",
+				bill.Metadata.Chamber, bill.Metadata.Chamber, bill.Metadata.Number)
+
+			newDoc, err := goquery.NewDocument(fullTextURL)
+			fullText := ""
+			if err == nil {
+				fullText = buildFullText(newDoc.Find("html"))
+			}
+
+			bill.BillText.URL = fullTextURL
+			bill.BillText.FullText = fullText
 		}
 
-		if updateVotes {
+		if updateVotes || shouldUpdateAll {
 			// scoop voting data
 		}
 	}
@@ -124,16 +143,13 @@ func onBillDetailsResponse(e *colly.HTMLElement, callback BillCallback) {
 }
 
 // hash the actions table for comparison
-func hashActions(doc *goquery.Selection) (string, error) {
+func hashActions(doc *goquery.Selection) string {
 	// find actions table
-	actionsHTML, err := doc.Find(`a[name="actions"] ~ table`).First().Html()
-	if err != nil {
-		return "", err
-	}
+	actions := doc.Find(`a[name="actions"] ~ table`).First().Text()
 
 	// hash the html and compare
-	hash := md5.Sum([]byte(actionsHTML))
-	return hex.EncodeToString(hash[:]), nil
+	hash := md5.Sum([]byte(actions))
+	return hex.EncodeToString(hash[:])
 }
 
 // build bill metadata
@@ -242,7 +258,6 @@ func buildSponsors(doc *goquery.Selection) (sponsors []int, housePrimaryID int, 
 }
 
 // generate the list of actions for this bill
-// TODO: generate action labels
 func buildActions(doc *goquery.Selection) (actions []models.BillAction) {
 	actionsTable := doc.Find(`a[name="actions"] ~ table`).First().Find("tr")
 	actionsTable.Each(func(i int, s *goquery.Selection) {
@@ -262,17 +277,89 @@ func buildActions(doc *goquery.Selection) (actions []models.BillAction) {
 			action := td.Eq(2).Text()
 
 			// append to list
-			actions = append(actions, models.BillAction{millis, chamber, action, ""})
+			actions = append(actions, models.BillAction{
+				Date:        millis,
+				Chamber:     chamber,
+				Description: action,
+				Tag:         tagAction(action)})
 		}
 	})
 	// TODO: match sponsors with actions in the future
 	return actions
 }
 
+// scrape data from full bill text html
+func buildFullText(doc *goquery.Selection) string {
+	fullText := ""
+	// find all tr elements with a td element with xsl class
+	doc.Find("tr").Has(".xsl").Each(func(_ int, sel *goquery.Selection) {
+		// if the number column exists
+		if len(sel.Find("td.number").Text()) > 0 {
+			fullText += sel.Find("td.xsl").Text()
+		}
+	})
+
+	return fullText
+}
+
+// returns tag associated with action description
+func tagAction(action string) models.Tag {
+	if strings.Contains(action, "Assigned to") {
+		return models.Assigned
+	} else if strings.Contains(action, "Effective Date") {
+		return models.EffectiveDate
+	} else if strings.Contains(action, "Arrived in") {
+		if strings.Contains(action, "House") {
+			return models.ArrivalInHouse
+		} else if strings.Contains(action, "Senate") {
+			return models.ArrivalInSenate
+		}
+	} else if strings.Contains(action, "Added as") && strings.Contains(action, "Sponsor") {
+		return models.CoSponsor
+	} else if strings.Contains(action, "Placed on Calendar Order of 3rd Reading") {
+		return models.ThirdReadingVote
+	} else if strings.Contains(action, "Do Pass") {
+		return models.CommitteeDebate
+	} else if strings.Contains(action, "Alternate Chief") {
+		return models.SponsorRemoved
+	} else if strings.Contains(action, "Fiscal Note Requested") {
+		return models.FiscalRequest
+	} else if strings.Contains(action, "Passed Both Houses") {
+		return models.DualPassed
+	} else if strings.Contains(action, "Sent to Governor") {
+		return models.SentToGovernor
+	} else if strings.Contains(action, "Governor Approved") {
+		return models.GovernorApproved
+	} else if strings.Contains(action, "Public Act") {
+		return models.PublicAct
+	} else if strings.Contains(action, "Third Reading") {
+		if strings.Contains(action, "Passed") {
+			return models.BillVotePass
+		} else if strings.Contains(action, "Failed") {
+			return models.BillVoteFail
+		}
+	} else if strings.Contains(action, "Amendment") && strings.Contains(action, "Adopted") {
+		return models.Amended
+	}
+	return models.Other
+}
+
 // check action labels for indication that a vote or ammendment may have happened
-func checkActionsForUpdates(actions []models.BillAction) (updateText bool, updateVotes bool) {
-	// TODO: complete this function
-	return false, false
+func checkActionsForUpdates(old []models.BillAction, new []models.BillAction) (updateText bool, updateVotes bool) {
+	start := len(old)
+	updateText, updateVotes = false, false
+
+	// loop through each new element
+	for i := start; i < len(new); i++ {
+		if new[i].Tag == models.Amended {
+			updateText = true
+		}
+		if new[i].Tag == models.BillVotePass || new[i].Tag == models.BillVoteFail {
+			updateVotes = false
+		}
+	}
+
+	return updateText, updateVotes
 }
 
 // takes url and prepends root url
