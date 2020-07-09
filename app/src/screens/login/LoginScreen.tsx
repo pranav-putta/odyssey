@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {
   StyleSheet,
   View,
@@ -16,34 +16,43 @@ import {colors, globalStyles, texts} from '../../assets';
 import {Icon} from 'react-native-elements';
 import auth, {FirebaseAuthTypes} from '@react-native-firebase/auth';
 import ViewPager from '@react-native-community/viewpager';
-import CodeInput from 'react-native-confirmation-code-input';
 
+// state type definitions
 type State = {
+  // progress of animation [0, 1], used by other animation handlers to update different components
   animation: Animated.Value;
-  hasLoginStarted: boolean;
+  // phone number text
   phoneNumber: string;
+  // verification code as string array of size 6
   verification: string[];
+  // verification text input data as string
   verificationText: string;
-  currentPageProgress: number;
+  // age text input data
   age: string;
+  // zip code text input data
   zipCode: string;
+  // name text input data
   name: string;
+  // current login progress
+  currentPageProgress: number;
+  // is login screen open and visible
+  hasLoginStarted: boolean;
 };
 
 class LoginScreen extends React.Component<any, State> {
-  // variables
+  // animation variables
   loginContainerHeight: Animated.AnimatedInterpolation;
   loginContainerMarginTop: Animated.AnimatedInterpolation;
   phoneNumberInputHeight: Animated.AnimatedInterpolation;
   continueOpacity: Animated.AnimatedInterpolation;
 
-  // animated views
+  // generated animated views
   AnimatableAnimatedView: Animatable.AnimatableComponent<any, any>;
   AnimatableImage: Animatable.AnimatableComponent<any, any>;
   AnimatedTouchableOpacity: Animated.AnimatedComponent<any>;
   AnimatedViewPager: Animated.AnimatedComponent<any>;
 
-  // refs
+  // component references
   private phoneNumberTextInput = React.createRef<TextInput>();
   private viewPager = React.createRef<ViewPager>();
   private verificationBoxes = Array(6).fill(React.createRef<Text>());
@@ -52,10 +61,11 @@ class LoginScreen extends React.Component<any, State> {
   // instance variables
   private phoneVerificationResult: FirebaseAuthTypes.ConfirmationResult | null = null;
 
+  // called when LoginScreen is opened
   constructor(props: any) {
     super(props);
 
-    // set state
+    // generate initial state values
     this.state = {
       animation: new Animated.Value(0),
       hasLoginStarted: false,
@@ -85,6 +95,8 @@ class LoginScreen extends React.Component<any, State> {
       inputRange: [0, 1],
       outputRange: [0, 1],
     });
+
+    // generate custom animated views
     this.AnimatableAnimatedView = Animatable.createAnimatableComponent(
       Animated.View,
     );
@@ -95,35 +107,22 @@ class LoginScreen extends React.Component<any, State> {
     this.AnimatedViewPager = Animated.createAnimatedComponent(ViewPager);
   }
 
+  // open up login screen
   startLoginAnimation = () => {
+    // start opening animation
     Animated.timing(this.state.animation, {
       toValue: 1,
       useNativeDriver: false,
       duration: 500,
     }).start(() => {
+      // tells program that login page is now open
       this.setState({hasLoginStarted: true});
+      // open the keyboard up
       this.phoneNumberTextInput.current?.focus();
     });
   };
 
-  // progress to next page in login form
-  nextLoginFormPage = () => {
-    const n = this.state.currentPageProgress + 1;
-    this.setState({currentPageProgress: n});
-    this.viewPager.current?.setPage(n);
-  };
-
-  // go to previous page in login form
-  prevLoginFormPage = () => {
-    const n = this.state.currentPageProgress - 1;
-    if (n >= 0) {
-      this.setState({currentPageProgress: n});
-      this.viewPager.current?.setPage(n);
-    } else {
-      this.resetLoginAnimation();
-    }
-  };
-
+  // go back to home login screen
   resetLoginAnimation = () => {
     this.setState({hasLoginStarted: false});
     Keyboard.dismiss();
@@ -134,6 +133,28 @@ class LoginScreen extends React.Component<any, State> {
     }).start();
   };
 
+  // progress to next page in login form
+  nextLoginFormPage = () => {
+    // incremenet page count and update states
+    const newPage = this.state.currentPageProgress + 1;
+    this.setState({currentPageProgress: newPage});
+    this.viewPager.current?.setPage(newPage);
+  };
+
+  // go to previous page in login form
+  prevLoginFormPage = () => {
+    // decrement page count and update states
+    const newPage = this.state.currentPageProgress - 1;
+    // if selected page is back to original, reset animations
+    if (newPage >= 0) {
+      this.setState({currentPageProgress: newPage});
+      this.viewPager.current?.setPage(newPage);
+    } else {
+      this.resetLoginAnimation();
+    }
+  };
+
+  // call sign in with phone number
   handleSignIn = () => {
     auth()
       .signInWithPhoneNumber('+1' + this.state.phoneNumber)
@@ -146,6 +167,7 @@ class LoginScreen extends React.Component<any, State> {
       });
   };
 
+  // check if OTP code is valid
   handleVerification = () => {
     // check if verification text is legal
     if (this.state.verificationText.length != 6) {
@@ -166,6 +188,7 @@ class LoginScreen extends React.Component<any, State> {
       });
   };
 
+  // generate back button
   backButton = () => {
     if (this.state.hasLoginStarted) {
       return (
@@ -185,6 +208,7 @@ class LoginScreen extends React.Component<any, State> {
     }
   };
 
+  // generate progress counter
   progressCounter = () => {
     return (
       <Animated.View
@@ -196,6 +220,7 @@ class LoginScreen extends React.Component<any, State> {
     );
   };
 
+  // TODO: fix weird button graphics and make button stick on top of keyboard
   continueButton = (callback: () => void) => {
     return (
       <Animated.View
@@ -213,6 +238,7 @@ class LoginScreen extends React.Component<any, State> {
     );
   };
 
+  // enter phone number form
   phoneNumberPage = () => {
     return (
       <Animated.View style={{padding: '10%'}}>
@@ -241,14 +267,10 @@ class LoginScreen extends React.Component<any, State> {
     );
   };
 
+  // generate boxes for verification enter
   phoneNumberVerificationBoxes = () => {
     return (
-      <View
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          marginTop: '5%',
-        }}>
+      <View style={styles.verificationBoxContainer}>
         {this.verificationBoxes.map((value, index) => {
           return (
             <View
@@ -256,15 +278,7 @@ class LoginScreen extends React.Component<any, State> {
               onTouchEnd={() => {
                 this.verificationTextInput.current?.focus();
               }}
-              style={{
-                justifyContent: 'center',
-                alignItems: 'center',
-                backgroundColor: colors.textInputBackground,
-                height: 60,
-                width: 40,
-                borderRadius: 10,
-                flexDirection: 'row',
-              }}>
+              style={styles.verificationBox}>
               <Text
                 ref={value}
                 style={{
@@ -279,6 +293,7 @@ class LoginScreen extends React.Component<any, State> {
     );
   };
 
+  // enter verification code form
   phoneNumberVerificationPage = () => {
     return (
       <Animated.View style={{flex: 1, padding: '10%'}}>
@@ -306,6 +321,7 @@ class LoginScreen extends React.Component<any, State> {
     );
   };
 
+  // enter name form
   namePage = () => {
     return (
       <Animated.View style={{padding: '10%'}}>
@@ -331,6 +347,7 @@ class LoginScreen extends React.Component<any, State> {
     );
   };
 
+  // enter age form
   agePage = () => {
     return (
       <Animated.View style={{padding: '10%'}}>
@@ -362,6 +379,7 @@ class LoginScreen extends React.Component<any, State> {
     );
   };
 
+  // enter zipcodeform
   zipPage = () => {
     return (
       <Animated.View style={{padding: '10%'}}>
@@ -553,6 +571,20 @@ const styles = StyleSheet.create({
     fontSize: 15,
     marginTop: '2.5%',
     color: 'gray',
+  },
+  verificationBox: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.textInputBackground,
+    height: 60,
+    width: 40,
+    borderRadius: 10,
+    flexDirection: 'row',
+  },
+  verificationBoxContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: '5%',
   },
 });
 
