@@ -13,9 +13,12 @@ class LaunchScreen extends React.Component<Props> {
   componentDidMount() {
     const {navigation} = this.props;
     // listen for firebase authentication state
+
     auth().onAuthStateChanged(function (user) {
       if (user) {
-        Alert.alert('user signed in!');
+        auth().signOut();
+        navigation.navigate(routes.login);
+        Alert.alert('user signed in');
       } else {
         navigation.navigate(routes.login);
       }

@@ -5,5 +5,7 @@ export default {
   white: '#fff',
   dominoTextColor: '#c6e2e9',
   dominoCaptionColor: '#90A7AE',
-  textInputBackground: '#eceff1'
+  textInputBackground: '#eceff1',
+  darkGray: '#9e9e9e',
+  continueColor: '#69f0ae',
 };
