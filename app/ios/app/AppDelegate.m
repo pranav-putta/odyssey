@@ -4,13 +4,21 @@
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTRootView.h>
 
+<<<<<<< Updated upstream
 #if DEBUG
+=======
+#ifdef FB_SONARKIT_ENABLED
+>>>>>>> Stashed changes
 #import <FlipperKit/FlipperClient.h>
 #import <FlipperKitLayoutPlugin/FlipperKitLayoutPlugin.h>
 #import <FlipperKitUserDefaultsPlugin/FKUserDefaultsPlugin.h>
 #import <FlipperKitNetworkPlugin/FlipperKitNetworkPlugin.h>
 #import <SKIOSNetworkPlugin/SKIOSNetworkAdapter.h>
 #import <FlipperKitReactPlugin/FlipperKitReactPlugin.h>
+<<<<<<< Updated upstream
+=======
+#import <Firebase.h>
+>>>>>>> Stashed changes
 
 static void InitializeFlipper(UIApplication *application) {
   FlipperClient *client = [FlipperClient sharedClient];
@@ -27,7 +35,14 @@ static void InitializeFlipper(UIApplication *application) {
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+<<<<<<< Updated upstream
 #if DEBUG
+=======
+  if ([FIRApp defaultApp] == nil) {
+    [FIRApp configure];
+  }
+#ifdef FB_SONARKIT_ENABLED
+>>>>>>> Stashed changes
   InitializeFlipper(application);
 #endif
 

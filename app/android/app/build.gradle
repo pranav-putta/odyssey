@@ -20,7 +20,11 @@ import com.android.build.OutputFile
  *   // default. Can be overridden with ENTRY_FILE environment variable.
  *   entryFile: "index.android.js",
  *
+<<<<<<< Updated upstream
  *   // https://facebook.github.io/react-native/docs/performance#enable-the-ram-format
+=======
+ *   // https://reactnative.dev/docs/performance#enable-the-ram-format
+>>>>>>> Stashed changes
  *   bundleCommand: "ram-bundle",
  *
  *   // whether to bundle JS and assets in debug mode
@@ -157,13 +161,18 @@ android {
         }
         release {
             // Caution! In production, you need to generate your own keystore file.
+<<<<<<< Updated upstream
             // see https://facebook.github.io/react-native/docs/signed-apk-android.
+=======
+            // see https://reactnative.dev/docs/signed-apk-android.
+>>>>>>> Stashed changes
             signingConfig signingConfigs.debug
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
     }
 
+<<<<<<< Updated upstream
     packagingOptions {
         pickFirst "lib/armeabi-v7a/libc++_shared.so"
         pickFirst "lib/arm64-v8a/libc++_shared.so"
@@ -171,6 +180,8 @@ android {
         pickFirst "lib/x86_64/libc++_shared.so"
     }
 
+=======
+>>>>>>> Stashed changes
     // applicationVariants are e.g. debug, release
     applicationVariants.all { variant ->
         variant.outputs.each { output ->
