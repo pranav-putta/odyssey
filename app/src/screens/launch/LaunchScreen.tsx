@@ -1,9 +1,9 @@
 import React from 'react';
 import {StyleSheet, View, Text, Alert} from 'react-native';
 import {StackNavigationProp} from '@react-navigation/stack';
-import auth from '@react-native-firebase/auth';
-import globalStyles from '../../assets/styles';
-import {routes} from '../../App';
+import AsyncStorage from '@react-native-community/async-storage';
+import {globalStyles, storage} from '../../assets';
+import routes from '../../routes/routes';
 
 type Props = {
   navigation: StackNavigationProp<any, any>;
@@ -12,14 +12,13 @@ type Props = {
 class LaunchScreen extends React.Component<Props> {
   componentDidMount() {
     const {navigation} = this.props;
-    // listen for firebase authentication state
-
-    auth().onAuthStateChanged(function (user) {
-      if (user) {
-        auth().signOut();
-        navigation.navigate(routes.login);
-        Alert.alert('user signed in');
+    // check if user is signed in
+    AsyncStorage.getItem(storage.userSignedIn).then((signedIn) => {
+      if (signedIn && signedIn == 'true') {
+        // user is signed in
+        navigation.navigate(routes.home);
       } else {
+        // user is not signed in
         navigation.navigate(routes.login);
       }
     });

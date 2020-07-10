@@ -16,6 +16,9 @@ PODS:
     - FirebaseAuth (~> 6.6.0)
   - Firebase/CoreOnly (6.27.1):
     - FirebaseCore (= 6.8.1)
+  - Firebase/Functions (6.27.1):
+    - Firebase/CoreOnly
+    - FirebaseFunctions (~> 2.6.0)
   - FirebaseAuth (6.6.0):
     - FirebaseCore (~> 6.8)
     - GoogleUtilities/AppDelegateSwizzler (~> 6.5)
@@ -30,6 +33,9 @@ PODS:
     - GoogleUtilities/Environment (~> 6.5)
     - GoogleUtilities/Logger (~> 6.5)
     - nanopb (~> 1.30905.0)
+  - FirebaseFunctions (2.6.0):
+    - FirebaseCore (~> 6.8)
+    - GTMSessionFetcher/Core (~> 1.1)
   - Flipper (0.41.5):
     - Flipper-Folly (~> 2.2)
     - Flipper-RSocket (~> 1.1)
@@ -345,13 +351,19 @@ PODS:
     - React-Core (= 0.63.0)
     - React-cxxreact (= 0.63.0)
     - React-jsi (= 0.63.0)
+  - RNCAsyncStorage (1.11.0):
+    - React
   - RNCMaskedView (0.1.10):
     - React
-  - RNFBApp (8.1.0):
+  - RNFBApp (8.2.0):
     - Firebase/CoreOnly (~> 6.27.0)
     - React
-  - RNFBAuth (8.1.1):
+  - RNFBAuth (8.1.2):
     - Firebase/Auth (~> 6.27.0)
+    - React
+    - RNFBApp
+  - RNFBFunctions (7.2.2):
+    - Firebase/Functions (~> 6.27.0)
     - React
     - RNFBApp
   - RNGestureHandler (1.6.1):
@@ -413,9 +425,11 @@ DEPENDENCIES:
   - React-RCTText (from `../node_modules/react-native/Libraries/Text`)
   - React-RCTVibration (from `../node_modules/react-native/Libraries/Vibration`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
+  - "RNCAsyncStorage (from `../node_modules/@react-native-community/async-storage`)"
   - "RNCMaskedView (from `../node_modules/@react-native-community/masked-view`)"
   - "RNFBApp (from `../node_modules/@react-native-firebase/app`)"
   - "RNFBAuth (from `../node_modules/@react-native-firebase/auth`)"
+  - "RNFBFunctions (from `../node_modules/@react-native-firebase/functions`)"
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNScreens (from `../node_modules/react-native-screens`)
   - RNVectorIcons (from `../node_modules/react-native-vector-icons`)
@@ -430,6 +444,7 @@ SPEC REPOS:
     - FirebaseAuth
     - FirebaseCore
     - FirebaseCoreDiagnostics
+    - FirebaseFunctions
     - Flipper
     - Flipper-DoubleConversion
     - Flipper-Folly
@@ -501,12 +516,16 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/Libraries/Vibration"
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
+  RNCAsyncStorage:
+    :path: "../node_modules/@react-native-community/async-storage"
   RNCMaskedView:
     :path: "../node_modules/@react-native-community/masked-view"
   RNFBApp:
     :path: "../node_modules/@react-native-firebase/app"
   RNFBAuth:
     :path: "../node_modules/@react-native-firebase/auth"
+  RNFBFunctions:
+    :path: "../node_modules/@react-native-firebase/functions"
   RNGestureHandler:
     :path: "../node_modules/react-native-gesture-handler"
   RNScreens:
@@ -527,6 +546,7 @@ SPEC CHECKSUMS:
   FirebaseAuth: b85c064e0ac60f82486728d50a4803f235687302
   FirebaseCore: 8cd4f8ea22075e0ee582849b1cf79d8816506085
   FirebaseCoreDiagnostics: 4505e4d4009b1d93f605088ee7d7764d5f0d1c84
+  FirebaseFunctions: 55c11559aaef04038a066c07a7288094823ad3fb
   Flipper: 33585e2d9810fe5528346be33bcf71b37bb7ae13
   Flipper-DoubleConversion: 38631e41ef4f9b12861c67d17cb5518d06badc41
   Flipper-Folly: c12092ea368353b58e992843a990a3225d4533c3
@@ -565,9 +585,11 @@ SPEC CHECKSUMS:
   React-RCTText: ba503bf4cce41881ca258ba789c33e017955efdd
   React-RCTVibration: 77ab1cf4a5eb854b88ad5ed3e9d8509ed124525e
   ReactCommon: f63556ee9e41e9802257228237e5e660451a03cf
+  RNCAsyncStorage: d059c3ee71738c39834a627476322a5a8cd5bf36
   RNCMaskedView: 5a8ec07677aa885546a0d98da336457e2bea557f
-  RNFBApp: 5d3900b676c2d07a20afc5a7075caff109cf8520
-  RNFBAuth: 950bcf50ab5a8b9a2857ad98a9b3959e88158c11
+  RNFBApp: 6fd8a7e757135d4168bf033a8812c241af7363a0
+  RNFBAuth: 62103c9f50d44080d02ea2021e04baba5d97a46e
+  RNFBFunctions: 51a40f7f67f5baf9c811c1aba713c530a159b358
   RNGestureHandler: 8f09cd560f8d533eb36da5a6c5a843af9f056b38
   RNScreens: c526239bbe0e957b988dacc8d75ac94ec9cb19da
   RNVectorIcons: da6fe858f5a65d7bbc3379540a889b0b12aa5976

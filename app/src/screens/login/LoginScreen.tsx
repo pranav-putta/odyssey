@@ -14,10 +14,15 @@ import {
   EmitterSubscription,
 } from 'react-native';
 import * as Animatable from 'react-native-animatable';
-import {colors, globalStyles, texts} from '../../assets';
+import {colors, globalStyles, texts, storage} from '../../assets';
 import {Icon} from 'react-native-elements';
 import auth, {FirebaseAuthTypes} from '@react-native-firebase/auth';
+import functions from '@react-native-firebase/functions';
 import ViewPager from '@react-native-community/viewpager';
+import {StackNavigationProp} from '@react-navigation/stack';
+import ProgressHUD from '../../components/ProgressHUD';
+import routes from '../../routes/routes';
+import AsyncStorage from '@react-native-community/async-storage';
 
 // state type definitions
 type State = {
@@ -27,6 +32,8 @@ type State = {
   continueButtonY: Animated.Value;
   // phone number text
   phoneNumber: string;
+  // formatted phone number text
+  phoneNumberFormatted: string;
   // verification code as string array of size 6
   verification: string[];
   // verification text input data as string
@@ -41,9 +48,17 @@ type State = {
   currentPageProgress: number;
   // is login screen open and visible
   hasLoginStarted: boolean;
+  // user identification code
+  uid: string;
+  // show progress dialog
+  showProgress: boolean;
 };
 
-class LoginScreen extends React.Component<any, State> {
+type Props = {
+  navigation: StackNavigationProp<any, any>;
+};
+
+class LoginScreen extends React.Component<Props, State> {
   // animation variables
   loginContainerHeight: Animated.AnimatedInterpolation;
   loginContainerMarginTop: Animated.AnimatedInterpolation;
@@ -81,13 +96,16 @@ class LoginScreen extends React.Component<any, State> {
       animation: new Animated.Value(0),
       hasLoginStarted: false,
       phoneNumber: '',
+      phoneNumberFormatted: '',
       verification: Array(6).fill('-'),
       verificationText: '',
       currentPageProgress: 0,
       age: '',
       zipCode: '',
       name: '',
+      uid: '',
       continueButtonY: new Animated.Value(this.CONTINUE_HEIGHT),
+      showProgress: false,
     };
 
     // assign animation interpolations
@@ -159,6 +177,10 @@ class LoginScreen extends React.Component<any, State> {
     }).start();
   };
 
+  toggleProgress = (show: boolean) => {
+    this.setState({showProgress: show});
+  };
+
   // open up login screen
   startLoginAnimation = () => {
     // tells program that login page is now open
@@ -211,6 +233,10 @@ class LoginScreen extends React.Component<any, State> {
 
   // call sign in with phone number
   handleSignIn = () => {
+    // show progress dialog
+    Keyboard.dismiss();
+    this.toggleProgress(true);
+
     auth()
       .signInWithPhoneNumber('+1' + this.state.phoneNumber)
       .then((result) => {
@@ -218,12 +244,43 @@ class LoginScreen extends React.Component<any, State> {
         this.nextLoginFormPage();
       })
       .catch((err) => {
+        this.toggleProgress(false);
         Alert.alert(JSON.stringify(err));
+      })
+      .finally(() => {
+        // hide progress dialog
+        this.toggleProgress(false);
       });
   };
 
   // check if OTP code is valid
   handleVerification = () => {
+    // show progress dialog
+    Keyboard.dismiss();
+    this.toggleProgress(true);
+
+    const checkUserExists = (uuid: string) => {
+      // check if user exists
+      functions()
+        .httpsCallable('userExists')({uuid: uuid})
+        .then((response) => {
+          if (response.data.result) {
+            // if user already exists
+            this.completeLogin();
+          } else {
+            // if user doesn't exist, collect data
+            this.nextLoginFormPage();
+          }
+        })
+        .catch((err) => {
+          this.toggleProgress(false);
+          Alert.alert(JSON.stringify(err));
+        })
+        .finally(() => {
+          // hide progress dialog
+          this.toggleProgress(false);
+        });
+    };
     // check if verification text is legal
     if (this.state.verificationText.length != 6) {
       Alert.alert('Please enter a valid code.');
@@ -236,10 +293,51 @@ class LoginScreen extends React.Component<any, State> {
     this.phoneVerificationResult
       .confirm(this.state.verificationText)
       .then((result) => {
-        this.nextLoginFormPage();
+        this.setState({uid: result?.user.uid || ''});
+        checkUserExists(result?.user.uid || '');
       })
       .catch((err) => {
-        Alert.alert("That didn't work");
+        this.toggleProgress(false);
+        Alert.alert('The code was incorrect');
+      });
+  };
+
+  completeLogin = () => {
+    // set storage item
+    AsyncStorage.setItem(storage.userSignedIn, 'true');
+    // send navigation to home screen
+    this.props.navigation.navigate(routes.home);
+  };
+
+  handleCreateUser = () => {
+    // show progress
+    Keyboard.dismiss();
+    this.toggleProgress(true);
+
+    functions()
+      .httpsCallable('newUser')({
+        uuid: this.state.uid,
+        phoneNumber: this.state.phoneNumber,
+        name: this.state.name,
+        age: this.state.age,
+        zipCode: this.state.zipCode,
+      })
+      .then((response) => {
+        if (response.data.result) {
+          // if user is done creating
+          this.completeLogin();
+        } else {
+          // if user doesn't exist, collect data
+          Alert.alert(JSON.stringify(response.data.error));
+        }
+      })
+      .catch((error) => {
+        this.toggleProgress(false);
+        Alert.alert(JSON.stringify(error));
+      })
+      .finally(() => {
+        // hide progress
+        this.toggleProgress(false);
       });
   };
 
@@ -278,7 +376,6 @@ class LoginScreen extends React.Component<any, State> {
     );
   };
 
-  // TODO: fix weird button graphics and make button stick on top of keyboard
   continueButton = (callback: () => void) => {
     // disable button when not shown
     return (
@@ -306,34 +403,74 @@ class LoginScreen extends React.Component<any, State> {
     );
   };
 
+  finishButton = () => {
+    // disable button when not shown
+    return (
+      <>
+        {this.state.hasLoginStarted && (
+          <Animated.View
+            style={[
+              styles.finishButtonContainer,
+              {
+                opacity: this.continueOpacity,
+                bottom: this.state.continueButtonY,
+              },
+            ]}>
+            <TouchableOpacity
+              style={[styles.finishButton]}
+              onPress={() => {
+                this.handleCreateUser();
+              }}>
+              <Text style={styles.continueButtonText}>Finish</Text>
+              <View style={styles.finishButtonIcon}>
+                <Icon name="angle-right" type="font-awesome" color="white" />
+              </View>
+            </TouchableOpacity>
+          </Animated.View>
+        )}
+      </>
+    );
+  };
+
   // enter phone number form
   phoneNumberPage = () => {
     // function which uses regex operations to format raw phone number
-    const formatPhoneNumber = (input: string): string => {
+    const phoneNumberTextHandler = (input: string) => {
       // Strip all characters from the input except digits
-      input = input.replace(/\D/g, '');
+      var numbers = input.replace(/\D/g, '');
 
-      // Trim the remaining input to ten characters, to preserve phone number format
-      input = input.substring(0, 10);
+      if (this.state.phoneNumber != numbers) {
+        // Trim the remaining input to ten characters, to preserve phone number format
+        numbers = numbers.substring(0, 10);
 
-      // Based upon the length of the string, we add formatting as necessary
-      var size = input.length;
-      if (size == 0) {
-        input = input;
-      } else if (size < 4) {
-        input = '(' + input;
-      } else if (size < 7) {
-        input = '(' + input.substring(0, 3) + ') ' + input.substring(3, 6);
+        // set still numbers state
+        this.setState({phoneNumber: numbers});
+
+        // Based upon the length of the string, we add formatting as necessary
+        var size = numbers.length;
+        if (size == 0) {
+          numbers = numbers;
+        } else if (size < 3) {
+          numbers = '(' + numbers;
+        } else if (size < 7) {
+          numbers =
+            '(' + numbers.substring(0, 3) + ') ' + numbers.substring(3, 6);
+        } else {
+          numbers =
+            '(' +
+            numbers.substring(0, 3) +
+            ') ' +
+            numbers.substring(3, 6) +
+            ' - ' +
+            numbers.substring(6, 10);
+        }
+
+        // update formatted phone number
+        this.setState({phoneNumberFormatted: numbers});
       } else {
-        input =
-          '(' +
-          input.substring(0, 3) +
-          ') ' +
-          input.substring(3, 6) +
-          ' - ' +
-          input.substring(6, 10);
+        // update formatted phone number
+        this.setState({phoneNumberFormatted: input});
       }
-      return input;
     };
 
     return (
@@ -353,7 +490,6 @@ class LoginScreen extends React.Component<any, State> {
               this.startLoginAnimation();
             } else {
               this.phoneNumberTextInput.current?.focus();
-            
             }
           }}>
           <Animated.View style={styles.loginPhoneNumber} pointerEvents="none">
@@ -363,17 +499,21 @@ class LoginScreen extends React.Component<any, State> {
             />
             <TextInput
               style={styles.loginPhoneNumberTextInput}
-              value={this.state.phoneNumber}
-              onChangeText={(text) =>
-                this.setState({phoneNumber: formatPhoneNumber(text)})
-              }
+              value={this.state.phoneNumberFormatted}
+              onChangeText={phoneNumberTextHandler}
               keyboardType="phone-pad"
               placeholder="Enter your phone number"
               ref={this.phoneNumberTextInput}
             />
           </Animated.View>
         </TouchableOpacity>
-        {this.continueButton(this.handleSignIn)}
+        {this.continueButton(() => {
+          if (this.state.phoneNumber.length == 10) {
+            this.handleSignIn();
+          } else {
+            Alert.alert('Enter a valid phone number');
+          }
+        })}
       </Animated.View>
     );
   };
@@ -509,10 +649,7 @@ class LoginScreen extends React.Component<any, State> {
             placeholder="Enter your home ZIP code"
           />
         </Animated.View>
-        {this.continueButton(() => {
-          //finish login
-          Alert.alert('finished login');
-        })}
+        {this.finishButton()}
       </Animated.View>
     );
   };
@@ -520,6 +657,7 @@ class LoginScreen extends React.Component<any, State> {
   render() {
     return (
       <View style={styles.container}>
+        <ProgressHUD visible={this.state.showProgress} />
         <StatusBar
           barStyle={
             this.state.hasLoginStarted ? 'dark-content' : 'light-content'
@@ -661,11 +799,24 @@ const styles = StyleSheet.create({
   continueButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#40c4ff',
+    backgroundColor: colors.continueButtonColor,
+    borderRadius: 10,
+    justifyContent: 'space-between',
+  },
+  finishButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.finishButtonColor,
     borderRadius: 10,
     justifyContent: 'space-between',
   },
   continueButtonContainer: {
+    position: 'absolute',
+    width: '100%',
+    alignSelf: 'center',
+    zIndex: 0,
+  },
+  finishButtonContainer: {
     position: 'absolute',
     width: '100%',
     alignSelf: 'center',
@@ -678,7 +829,16 @@ const styles = StyleSheet.create({
     margin: '5%',
   },
   continueButtonIcon: {
-    backgroundColor: '#80d8ff',
+    backgroundColor: colors.continueButtonIconColor,
+    width: 35,
+    height: 35,
+    marginRight: '2.5%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 20,
+  },
+  finishButtonIcon: {
+    backgroundColor: colors.finishButtonIconColor,
     width: 35,
     height: 35,
     marginRight: '2.5%',

@@ -6,15 +6,13 @@ import {
 } from '@react-navigation/stack';
 import LaunchScreen from './screens/launch/LaunchScreen';
 import LoginScreen from './screens/login/LoginScreen';
-
-export enum routes {
-  launch = 'launch',
-  login = 'login',
-}
+import HomeScreen from './screens/home/HomeScreen';
+import routes from './routes/routes';
 
 type ScreenOptions = {
   launchOptions: StackNavigationOptions;
   loginOptions: StackNavigationOptions;
+  homeOptions: StackNavigationOptions;
 };
 
 const options: ScreenOptions = {
@@ -22,6 +20,9 @@ const options: ScreenOptions = {
     headerShown: false,
   },
   loginOptions: {
+    headerShown: false,
+  },
+  homeOptions: {
     headerShown: false,
   },
 };
@@ -41,6 +42,11 @@ function App() {
           name={routes.login}
           component={LoginScreen}
           options={options.loginOptions}
+        />
+        <Stack.Screen
+          name={routes.home}
+          component={HomeScreen}
+          options={options.homeOptions}
         />
       </Stack.Navigator>
     </NavigationContainer>
