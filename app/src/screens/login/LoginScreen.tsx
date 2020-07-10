@@ -10,6 +10,8 @@ import {
   TouchableOpacity,
   Keyboard,
   Alert,
+  KeyboardEvent,
+  EmitterSubscription,
 } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import {colors, globalStyles, texts} from '../../assets';
@@ -21,6 +23,8 @@ import ViewPager from '@react-native-community/viewpager';
 type State = {
   // progress of animation [0, 1], used by other animation handlers to update different components
   animation: Animated.Value;
+  // height of continue button
+  continueButtonY: Animated.Value;
   // phone number text
   phoneNumber: string;
   // verification code as string array of size 6
@@ -45,6 +49,10 @@ class LoginScreen extends React.Component<any, State> {
   loginContainerMarginTop: Animated.AnimatedInterpolation;
   phoneNumberInputHeight: Animated.AnimatedInterpolation;
   continueOpacity: Animated.AnimatedInterpolation;
+  phoneNumberCaptionHeight: Animated.AnimatedInterpolation;
+  continueButtonHeight: Animated.AnimatedInterpolation;
+  keyboardDidShowListener: EmitterSubscription;
+  keyboardDidHideListener: EmitterSubscription;
 
   // generated animated views
   AnimatableAnimatedView: Animatable.AnimatableComponent<any, any>;
@@ -61,6 +69,9 @@ class LoginScreen extends React.Component<any, State> {
   // instance variables
   private phoneVerificationResult: FirebaseAuthTypes.ConfirmationResult | null = null;
 
+  // constants
+  CONTINUE_HEIGHT: number = 30;
+
   // called when LoginScreen is opened
   constructor(props: any) {
     super(props);
@@ -76,6 +87,7 @@ class LoginScreen extends React.Component<any, State> {
       age: '',
       zipCode: '',
       name: '',
+      continueButtonY: new Animated.Value(this.CONTINUE_HEIGHT),
     };
 
     // assign animation interpolations
@@ -95,6 +107,14 @@ class LoginScreen extends React.Component<any, State> {
       inputRange: [0, 1],
       outputRange: [0, 1],
     });
+    this.phoneNumberCaptionHeight = this.state.animation.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0, 60],
+    });
+    this.continueButtonHeight = this.state.animation.interpolate({
+      inputRange: [0, 1],
+      outputRange: ['0%', '100%'],
+    });
 
     // generate custom animated views
     this.AnimatableAnimatedView = Animatable.createAnimatableComponent(
@@ -105,18 +125,51 @@ class LoginScreen extends React.Component<any, State> {
     );
     this.AnimatableImage = Animatable.createAnimatableComponent(Image);
     this.AnimatedViewPager = Animated.createAnimatedComponent(ViewPager);
+
+    // add keyboard listeners to track continue button
+    this.keyboardDidShowListener = Keyboard.addListener(
+      'keyboardWillShow',
+      this._keyboardWillShow,
+    );
+    this.keyboardDidHideListener = Keyboard.addListener(
+      'keyboardWillHide',
+      this._keyboardWillHide,
+    );
   }
+
+  componentWillUnmount() {
+    this.keyboardDidShowListener.remove();
+    this.keyboardDidHideListener.remove();
+  }
+
+  _keyboardWillShow = (e: KeyboardEvent) => {
+    // animate continue button
+    Animated.timing(this.state.continueButtonY, {
+      toValue: e.endCoordinates.height + this.CONTINUE_HEIGHT,
+      useNativeDriver: false,
+      duration: e.duration,
+    }).start();
+  };
+
+  _keyboardWillHide = (e: KeyboardEvent) => {
+    Animated.timing(this.state.continueButtonY, {
+      toValue: this.CONTINUE_HEIGHT,
+      useNativeDriver: false,
+      duration: e.duration,
+    }).start();
+  };
 
   // open up login screen
   startLoginAnimation = () => {
+    // tells program that login page is now open
+    this.setState({hasLoginStarted: true});
+
     // start opening animation
     Animated.timing(this.state.animation, {
       toValue: 1,
       useNativeDriver: false,
       duration: 500,
     }).start(() => {
-      // tells program that login page is now open
-      this.setState({hasLoginStarted: true});
       // open the keyboard up
       this.phoneNumberTextInput.current?.focus();
     });
@@ -124,13 +177,15 @@ class LoginScreen extends React.Component<any, State> {
 
   // go back to home login screen
   resetLoginAnimation = () => {
-    this.setState({hasLoginStarted: false});
     Keyboard.dismiss();
     Animated.timing(this.state.animation, {
       toValue: 0,
       useNativeDriver: false,
       duration: 500,
-    }).start();
+    }).start(() => {
+      // tells program that login page is now open
+      this.setState({hasLoginStarted: false});
+    });
   };
 
   // progress to next page in login form
@@ -192,8 +247,11 @@ class LoginScreen extends React.Component<any, State> {
   backButton = () => {
     if (this.state.hasLoginStarted) {
       return (
-        <Animated.View style={styles.backButton}>
-          <TouchableOpacity onPress={this.prevLoginFormPage}>
+        <Animated.View
+          style={[styles.backButton, {opacity: this.continueOpacity}]}>
+          <TouchableOpacity
+            style={styles.backButtonTouchable}
+            onPress={this.prevLoginFormPage}>
             <Icon
               size={26}
               name="angle-left"
@@ -222,30 +280,81 @@ class LoginScreen extends React.Component<any, State> {
 
   // TODO: fix weird button graphics and make button stick on top of keyboard
   continueButton = (callback: () => void) => {
+    // disable button when not shown
     return (
-      <Animated.View
-        style={[
-          styles.continueButtonContainer,
-          {opacity: this.continueOpacity},
-        ]}>
-        <TouchableOpacity style={styles.continueButton} onPress={callback}>
-          <Text style={styles.continueButtonText}>Continue</Text>
-          <View style={styles.continueButtonIcon}>
-            <Icon name="angle-right" type="font-awesome" color="white" />
-          </View>
-        </TouchableOpacity>
-      </Animated.View>
+      <>
+        {this.state.hasLoginStarted && (
+          <Animated.View
+            style={[
+              styles.continueButtonContainer,
+              {
+                opacity: this.continueOpacity,
+                bottom: this.state.continueButtonY,
+              },
+            ]}>
+            <TouchableOpacity
+              style={[styles.continueButton]}
+              onPress={callback}>
+              <Text style={styles.continueButtonText}>Continue</Text>
+              <View style={styles.continueButtonIcon}>
+                <Icon name="angle-right" type="font-awesome" color="white" />
+              </View>
+            </TouchableOpacity>
+          </Animated.View>
+        )}
+      </>
     );
   };
 
   // enter phone number form
   phoneNumberPage = () => {
+    // function which uses regex operations to format raw phone number
+    const formatPhoneNumber = (input: string): string => {
+      // Strip all characters from the input except digits
+      input = input.replace(/\D/g, '');
+
+      // Trim the remaining input to ten characters, to preserve phone number format
+      input = input.substring(0, 10);
+
+      // Based upon the length of the string, we add formatting as necessary
+      var size = input.length;
+      if (size == 0) {
+        input = input;
+      } else if (size < 4) {
+        input = '(' + input;
+      } else if (size < 7) {
+        input = '(' + input.substring(0, 3) + ') ' + input.substring(3, 6);
+      } else {
+        input =
+          '(' +
+          input.substring(0, 3) +
+          ') ' +
+          input.substring(3, 6) +
+          ' - ' +
+          input.substring(6, 10);
+      }
+      return input;
+    };
+
     return (
       <Animated.View style={{padding: '10%'}}>
         <Text style={styles.loginText}>Let's get started</Text>
+        <Animated.Text
+          style={[
+            styles.ageCaptionText,
+            {height: this.phoneNumberCaptionHeight},
+          ]}>
+          Mobile messaging rates and SMS charges may apply based on your service
+          provider
+        </Animated.Text>
         <TouchableOpacity
           onPress={() => {
-            this.startLoginAnimation();
+            if (!this.state.hasLoginStarted) {
+              this.startLoginAnimation();
+            } else {
+              this.phoneNumberTextInput.current?.focus();
+            
+            }
           }}>
           <Animated.View style={styles.loginPhoneNumber} pointerEvents="none">
             <Image
@@ -255,7 +364,9 @@ class LoginScreen extends React.Component<any, State> {
             <TextInput
               style={styles.loginPhoneNumberTextInput}
               value={this.state.phoneNumber}
-              onChangeText={(text) => this.setState({phoneNumber: text})}
+              onChangeText={(text) =>
+                this.setState({phoneNumber: formatPhoneNumber(text)})
+              }
               keyboardType="phone-pad"
               placeholder="Enter your phone number"
               ref={this.phoneNumberTextInput}
@@ -501,6 +612,7 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: 'white',
     borderRadius: 20,
+    zIndex: 100,
   },
   loginText: {
     ...globalStyles.headerText,
@@ -525,15 +637,19 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   backButton: {
-    backgroundColor: colors.textInputBackground,
     position: 'absolute',
-    justifyContent: 'center',
-    alignItems: 'center',
     width: 40,
     height: 40,
-    borderRadius: 20,
     left: '10%',
     top: '10%',
+  },
+  backButtonTouchable: {
+    backgroundColor: colors.textInputBackground,
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 20,
   },
   progressCounter: {
     position: 'absolute',
@@ -545,12 +661,15 @@ const styles = StyleSheet.create({
   continueButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#40c4ff',
+    borderRadius: 10,
     justifyContent: 'space-between',
   },
   continueButtonContainer: {
-    backgroundColor: '#40c4ff',
-    marginTop: '45%',
-    borderRadius: 10,
+    position: 'absolute',
+    width: '100%',
+    alignSelf: 'center',
+    zIndex: 0,
   },
   continueButtonText: {
     color: 'white',
