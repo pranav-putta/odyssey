@@ -23,6 +23,7 @@ import {StackNavigationProp} from '@react-navigation/stack';
 import ProgressHUD from '../../components/ProgressHUD';
 import routes from '../../routes/routes';
 import AsyncStorage from '@react-native-community/async-storage';
+import {TouchableWithoutFeedback} from 'react-native-gesture-handler';
 
 // state type definitions
 type State = {
@@ -39,7 +40,7 @@ type State = {
   // verification text input data as string
   verificationText: string;
   // age text input data
-  age: string;
+  age: number;
   // zip code text input data
   zipCode: string;
   // name text input data
@@ -62,6 +63,7 @@ class LoginScreen extends React.Component<Props, State> {
   // animation variables
   loginContainerHeight: Animated.AnimatedInterpolation;
   loginContainerMarginTop: Animated.AnimatedInterpolation;
+  loginContainerBorderRadius: Animated.AnimatedInterpolation;
   phoneNumberInputHeight: Animated.AnimatedInterpolation;
   continueOpacity: Animated.AnimatedInterpolation;
   phoneNumberCaptionHeight: Animated.AnimatedInterpolation;
@@ -100,7 +102,7 @@ class LoginScreen extends React.Component<Props, State> {
       verification: Array(6).fill('-'),
       verificationText: '',
       currentPageProgress: 0,
-      age: '',
+      age: -1,
       zipCode: '',
       name: '',
       uid: '',
@@ -132,6 +134,10 @@ class LoginScreen extends React.Component<Props, State> {
     this.continueButtonHeight = this.state.animation.interpolate({
       inputRange: [0, 1],
       outputRange: ['0%', '100%'],
+    });
+    this.loginContainerBorderRadius = this.state.animation.interpolate({
+      inputRange: [0, 1],
+      outputRange: [20, 2],
     });
 
     // generate custom animated views
@@ -419,7 +425,11 @@ class LoginScreen extends React.Component<Props, State> {
             <TouchableOpacity
               style={[styles.finishButton]}
               onPress={() => {
-                this.handleCreateUser();
+                if (this.state.zipCode.length >= 5) {
+                  this.handleCreateUser();
+                } else {
+                  Alert.alert('Enter a valid zip code.');
+                }
               }}>
               <Text style={styles.continueButtonText}>Finish</Text>
               <View style={styles.finishButtonIcon}>
@@ -484,7 +494,7 @@ class LoginScreen extends React.Component<Props, State> {
           Mobile messaging rates and SMS charges may apply based on your service
           provider
         </Animated.Text>
-        <TouchableOpacity
+        <TouchableWithoutFeedback
           onPress={() => {
             if (!this.state.hasLoginStarted) {
               this.startLoginAnimation();
@@ -506,7 +516,7 @@ class LoginScreen extends React.Component<Props, State> {
               ref={this.phoneNumberTextInput}
             />
           </Animated.View>
-        </TouchableOpacity>
+        </TouchableWithoutFeedback>
         {this.continueButton(() => {
           if (this.state.phoneNumber.length == 10) {
             this.handleSignIn();
@@ -587,12 +597,16 @@ class LoginScreen extends React.Component<Props, State> {
             onChangeText={(text) => {
               this.setState({name: text});
             }}
-            keyboardType="default"
+            keyboardType="name-phone-pad"
             placeholder="Enter your name"
           />
         </Animated.View>
         {this.continueButton(() => {
-          this.nextLoginFormPage();
+          if (this.state.name != '') {
+            this.nextLoginFormPage();
+          } else {
+            Alert.alert('Enter a valid name.');
+          }
         })}
       </Animated.View>
     );
@@ -610,17 +624,21 @@ class LoginScreen extends React.Component<Props, State> {
         <Animated.View style={styles.loginPhoneNumber}>
           <TextInput
             style={{fontSize: 18}}
-            value={this.state.age.toString()}
+            value={this.state.age == -1 ? '' : this.state.age.toString()}
             onChangeText={(text) => {
-              this.setState({age: text});
+              var age = parseInt(text);
+              if (age) {
+                this.setState({age: age});
+              } else if (text == '') {
+                this.setState({age: -1});
+              }
             }}
             keyboardType="number-pad"
             placeholder="Enter your age"
           />
         </Animated.View>
         {this.continueButton(() => {
-          var age = parseInt(this.state.age);
-          if (age) {
+          if (this.state.age != -1) {
             this.nextLoginFormPage();
           } else {
             Alert.alert('Enter a valid age.');
@@ -692,7 +710,12 @@ class LoginScreen extends React.Component<Props, State> {
         <this.AnimatableAnimatedView
           style={[
             styles.loginContainer,
-            {flex: 1, height: this.loginContainerHeight},
+            {
+              flex: 1,
+              height: this.loginContainerHeight,
+              borderTopLeftRadius: this.loginContainerBorderRadius,
+              borderTopRightRadius: this.loginContainerBorderRadius,
+            },
           ]}
           animation="slideInUp"
           duration={1000}
@@ -749,7 +772,6 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: '100%',
     backgroundColor: 'white',
-    borderRadius: 20,
     zIndex: 100,
   },
   loginText: {
@@ -773,6 +795,7 @@ const styles = StyleSheet.create({
   loginPhoneNumberTextInput: {
     marginLeft: 10,
     fontSize: 18,
+    color: 'black',
   },
   backButton: {
     position: 'absolute',

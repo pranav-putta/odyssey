@@ -8,11 +8,13 @@ import LaunchScreen from './screens/launch/LaunchScreen';
 import LoginScreen from './screens/login/LoginScreen';
 import HomeScreen from './screens/home/HomeScreen';
 import routes from './routes/routes';
+import BillDetailScreen from './screens/home/bill/BillDetailScreen';
 
 type ScreenOptions = {
   launchOptions: StackNavigationOptions;
   loginOptions: StackNavigationOptions;
   homeOptions: StackNavigationOptions;
+  billDetailsOptions: StackNavigationOptions;
 };
 
 const options: ScreenOptions = {
@@ -23,6 +25,9 @@ const options: ScreenOptions = {
     headerShown: false,
   },
   homeOptions: {
+    headerShown: false,
+  },
+  billDetailsOptions: {
     headerShown: false,
   },
 };
@@ -47,6 +52,11 @@ function App() {
           name={routes.home}
           component={HomeScreen}
           options={options.homeOptions}
+        />
+        <Stack.Screen
+          name={routes.billDetails}
+          component={BillDetailScreen}
+          options={options.billDetailsOptions}
         />
       </Stack.Navigator>
     </NavigationContainer>
