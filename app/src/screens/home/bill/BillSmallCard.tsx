@@ -17,12 +17,12 @@ type Props = {
 
 const BillSmallCard = (item: Props) => {
   return (
-    <TouchableWithoutFeedback
-      style={styles.container}
-      onPress={() => {
-        Alert.alert('hello');
-      }}>
-      <View style={{flex: 1}}>
+    <View style={[styles.container]}>
+      <TouchableWithoutFeedback
+        style={{width: '100%', height: '100%'}}
+        onPress={() => {
+          Alert.alert('hello');
+        }}>
         <Image
           style={styles.image}
           source={require('../../../assets/images/card-temp.jpg')}
@@ -39,18 +39,24 @@ const BillSmallCard = (item: Props) => {
           <Text style={styles.header}>Synposis</Text>
           <Text style={styles.synopsis}>{item.item.description}</Text>
         </View>
-      </View>
-    </TouchableWithoutFeedback>
+      </TouchableWithoutFeedback>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    width: '70%',
-    height: '97%',
+    width: '98%',
+    height: '65%',
+    alignSelf: 'center',
     backgroundColor: 'white',
-    marginHorizontal: '10%',
+    marginHorizontal: '6%',
+    marginTop: '2%',
     borderRadius: 20,
+    shadowColor: 'black',
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    shadowOffset: {width: 0, height: 4},
   },
   image: {
     width: '100%',

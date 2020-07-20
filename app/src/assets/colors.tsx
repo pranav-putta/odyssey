@@ -12,4 +12,16 @@ export default {
   finishButtonColor: '#00e676',
   finishButtonIconColor: '#69f0ae',
   tabBackgroundColor: '#80d8ff',
+
+  tabs: {
+    bills: {color: 'rgb(187, 222, 251)', text: '#1565c0'},
+    community: {
+      color: 'rgb(187, 222, 251)',
+      text: '#1565c0',
+    },
+    profile: {
+      color: 'rgb(187, 222, 251)',
+      text: '#1565c0',
+    },
+  },
 };

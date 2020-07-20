@@ -3,10 +3,9 @@ import {
   StyleSheet,
   View,
   Image,
-  StatusBar,
-  TextInput,
+  Text,
   Dimensions,
-  Animated,
+  TouchableOpacity,
 } from 'react-native';
 import {colors} from '../../../assets';
 import {globalStyles} from '../../../assets/';
@@ -15,6 +14,7 @@ import BillSmallCard from './BillSmallCard';
 import BillItem from './BillItem';
 
 import Carousel from 'react-native-snap-carousel';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 type State = {
   data: BillItem[];
@@ -28,6 +28,7 @@ const height = Dimensions.get('screen').height;
 
 class FeedScreen extends React.Component<Props, State> {
   AnimatableImage: Animatable.AnimatableComponent<any, any>;
+  billsRef = React.createRef<Carousel<Text>>();
 
   constructor(props: any) {
     super(props);
@@ -41,10 +42,10 @@ class FeedScreen extends React.Component<Props, State> {
           description: `Amends the School Code. Requires the instruction on character education to include the teaching of respect toward a person's race or ethnicity or gender.`,
         },
         {
-          id: 'SB0018',
-          title: 'NEW SCHOOL',
+          id: 'SB0010',
+          title: 'PARAPROFESSIONAL EDUCATOR',
           category: 'Education',
-          description: `Amends the School Code. Requires the instruction on character education to include the teaching of respect toward a person's race or ethnicity or gender.`,
+          description: `Provides that in fixing the salaries of teachers, a school board shall pay those who serve on a full-time basis a rate not less than (i) $32,076 for the...`,
         },
       ],
       search: '',
@@ -57,43 +58,37 @@ class FeedScreen extends React.Component<Props, State> {
   render() {
     return (
       <View style={styles.container}>
-        <StatusBar barStyle="light-content" />
-        <this.AnimatableImage
-          animation="lightSpeedIn"
-          duration={500}
-          iterationCount={1}
-          source={require('../../../assets/images/dominoes.png')}
-          style={styles.logoImage}
-        />
-        <Animatable.Text
-          animation="bounceIn"
-          duration={1500}
-          iterationCount={1}
-          style={styles.dominoText}>
-          Bills
-        </Animatable.Text>
-        <Animated.View style={styles.textInput}>
-          <TextInput
-            style={{fontSize: 18}}
-            value={this.state.search}
-            onChangeText={(text) => {
-              this.setState({search: text});
-            }}
-            keyboardType="name-phone-pad"
-            placeholder="Search"
+        <SafeAreaView />
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginBottom: '10%',
+            zIndex: 1,
+          }}>
+          <Image
+            source={require('../../../assets/images/dominoes.png')}
+            style={styles.logoImage}
           />
-        </Animated.View>
+          <Text style={styles.dominoText}>Bills</Text>
+        </View>
+        <View style={{flexDirection: 'row', zIndex: 1}}>
+          <TouchableOpacity style={styles.tabButton}>
+            <Text style={[styles.tabButton, {color: colors.primary}]}>New</Text>
+          </TouchableOpacity>
+          <Text style={styles.tabButton}>Liked</Text>
+        </View>
         <Carousel
           data={this.state.data}
           renderItem={BillSmallCard}
           sliderWidth={width}
-          itemWidth={width}
+          itemWidth={width * 0.75}
           itemHeight={height}
-          layout={'stack'}
-          layoutCardOffset={20}
+          layout={'default'}
           autoplay={true}
           autoplayInterval={8000}
-          loop={true}
+          inactiveSlideOpacity={0.5}
+          loop={false}
         />
       </View>
     );
@@ -103,33 +98,36 @@ class FeedScreen extends React.Component<Props, State> {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    zIndex: 0,
   },
   logoImage: {
     height: '2%',
     width: '2%',
-    marginTop: '25%',
-    marginLeft: '10%',
+    marginLeft: '6%',
     resizeMode: 'center',
     borderRadius: 20,
     padding: '10%',
+    zIndex: 2,
   },
   dominoText: {
     ...globalStyles.hugeText,
-    marginLeft: '10%',
-    marginTop: '2.5%',
-    color: colors.dominoTextColor,
+    marginLeft: '5%',
+    textAlign: 'justify',
   },
-  viewPager: {marginLeft: '10%', marginTop: '10%'},
   textInput: {
     backgroundColor: colors.textInputBackground,
     marginHorizontal: '10%',
-    marginVertical: '5%',
+    marginVertical: '2.5%',
     paddingHorizontal: '5%',
     borderRadius: 10,
     flexDirection: 'row',
     alignItems: 'center',
     height: 50,
+  },
+  tabButton: {
+    fontSize: 20,
+    marginLeft: '7%',
+    marginBottom: '5%',
   },
 });
 

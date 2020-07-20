@@ -1,99 +1,139 @@
 import React from 'react';
-import {StyleSheet, View, Text, StyleProp, ViewStyle} from 'react-native';
-import {
-  TouchableWithoutFeedback,
-  TouchableHighlight,
-  TouchableOpacity,
-} from 'react-native-gesture-handler';
-import {Icon} from 'react-native-elements';
-import {colors} from '../assets/';
+import {StyleSheet, Alert, Animated} from 'react-native';
+import TabBarItem from './TabBarItem';
+import {colors} from '../assets';
 
-class TabBar extends React.Component {
+type TabBarState = {
+  active: TabKey;
+  animation: Animated.Value;
+  shown: boolean;
+};
+
+type TabBarProps = {
+  zIndex?: number;
+  show: boolean;
+  current: TabKey;
+  tabPressed: (tab: TabKey) => void;
+};
+
+// key enum for each tab
+export enum TabKey {
+  bills = 'bills',
+  community = 'community',
+  profile = 'profile',
+}
+
+class TabBar extends React.Component<TabBarProps, TabBarState> {
+  bottomVal: Animated.AnimatedInterpolation;
+
+  constructor(props: TabBarProps) {
+    super(props);
+
+    this.state = {
+      active: this.props.current,
+      animation: new Animated.Value(0),
+      shown: true,
+    };
+
+    this.bottomVal = this.state.animation.interpolate({
+      inputRange: [0, 1],
+      outputRange: ['0%', '-10%'],
+    });
+  }
+
+  // hide tab bar
+  hide = () => {
+    Animated.spring(this.state.animation, {
+      toValue: 1,
+      bounciness: 0,
+      speed: 1,
+      useNativeDriver: false,
+    }).start(() => {
+      this.setState({shown: false});
+    });
+  };
+
+  // show tab bar
+  show = () => {
+    Animated.spring(this.state.animation, {
+      toValue: 0,
+      bounciness: 5,
+      speed: 1,
+      useNativeDriver: false,
+    }).start(() => {
+      this.setState({shown: true});
+    });
+  };
+
+  // called when tab item is pressed
+  onTabPress = (key: TabKey) => {
+    this.setState({active: key});
+    this.props.tabPressed(key);
+  };
+
   render() {
+    if (this.props.show && !this.state.shown) {
+      this.show();
+    } else if (!this.props.show && this.state.shown) {
+      this.hide();
+    }
+
     return (
-      <View style={styles.container}>
-        <TabItem
-          icon={{name: 'fire', type: 'font-awesome-5'}}
-          active={true}
-          label="Feed"
+      <Animated.View
+        style={[
+          styles.container,
+          {zIndex: this.props.zIndex || 1, bottom: this.bottomVal},
+        ]}>
+        <TabBarItem
+          icon={{name: 'trello', type: 'feather'}}
+          tkey={TabKey.bills}
+          active={this.state.active}
+          onPress={this.onTabPress}
+          width={40}
+          color={colors.tabs.bills.color}
+          textColor={colors.tabs.bills.text}
+          label="Bills"
         />
-      </View>
+        <TabBarItem
+          icon={{name: 'earth-outline', type: 'ionicon'}}
+          tkey={TabKey.community}
+          active={this.state.active}
+          onPress={this.onTabPress}
+          width={90}
+          color={colors.tabs.community.color}
+          textColor={colors.tabs.community.text}
+          label="Community"
+        />
+        <TabBarItem
+          icon={{name: 'user', type: 'feather'}}
+          tkey={TabKey.profile}
+          active={this.state.active}
+          onPress={this.onTabPress}
+          width={50}
+          color={colors.tabs.profile.color}
+          textColor={colors.tabs.profile.text}
+          label="Profile"
+        />
+      </Animated.View>
     );
   }
 }
 
-type TabItemProps = {
-  style?: StyleProp<ViewStyle>;
-  icon: {
-    type: string;
-    name: string;
-  };
-  label: string;
-  active: boolean;
-};
-
-const activeColor = 'rgb(30, 30, 110)';
-const inactiveColor = 'rgba(30, 30, 110, 0.4)';
-
-const TabItem: React.FC<TabItemProps> = ({style, icon, label, active}) => {
-  return (
-    <TouchableWithoutFeedback>
-      <View style={[tabItemStyles.container, style]}>
-        {active && (
-          <View style={tabItemStyles.centered}>
-            <Text style={tabItemStyles.label}>{label}</Text>
-          </View>
-        )}
-        {!active && (
-          <View style={tabItemStyles.centered}>
-            <Icon name={icon.name} type={icon.type} />
-          </View>
-        )}
-        {active && <View style={tabItemStyles.dot} />}
-      </View>
-    </TouchableWithoutFeedback>
-  );
-};
-
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    width: '90%',
-    height: '7.5%',
-    bottom: '2.5%',
-    margin: '5%',
+    width: '100%',
+    height: '10%',
+    alignSelf: 'center',
     shadowColor: 'gray',
-    shadowOffset: {width: 10, height: 10},
-    shadowOpacity: 0.2,
+    shadowOffset: {width: 0, height: 3},
+    shadowOpacity: 0.4,
     shadowRadius: 10,
-    borderRadius: 10,
+    paddingBottom: '2%',
+    //borderRadius: 10,
     backgroundColor: 'white',
     flexDirection: 'row',
-    paddingHorizontal: '5%',
-  },
-});
-
-const tabItemStyles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  centered: {},
-  icon: {
-    tintColor: inactiveColor,
-  },
-  label: {
-    color: activeColor,
-    fontSize: 12,
-    fontWeight: '600',
-    letterSpacing: -0.2,
-  },
-  dot: {
-    bottom: 8,
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
-    backgroundColor: activeColor,
+    justifyContent: 'space-evenly',
   },
 });
 

@@ -1,25 +1,52 @@
 import React from 'react';
-import {View, StatusBar, StyleSheet} from 'react-native';
+import {View, StatusBar, StyleSheet, Alert} from 'react-native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import BillScreen from './bill/BillScreen';
 import DiscussionScreen from './discussion/DiscussionScreen';
+import TabBar, {TabKey} from '../../components/TabBar';
+import { TabRouter } from '@react-navigation/native';
 
-type State = {};
+type State = {
+  showTabs: boolean;
+  current: TabKey;
+};
 type Props = {};
 
 const Tab = createBottomTabNavigator();
 class HomeScreen extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
+
+    this.state = {
+      showTabs: true,
+      current: TabKey.bills,
+    };
   }
+
+  tabPressed = (tab: TabKey) => {
+    this.setState({current: tab});
+  };
+
+  currentScreen = () => {
+    switch (this.state.current) {
+      case TabKey.bills: {
+        return <BillScreen />;
+      }
+      default: {
+        return <View></View>;
+      }
+    }
+  };
+
   render() {
     return (
       <View style={styles.container}>
-        <StatusBar barStyle={'dark-content'} />
-        <Tab.Navigator>
-          <Tab.Screen name="Bills" component={BillScreen} />
-          <Tab.Screen name="Discussion" component={DiscussionScreen} />
-        </Tab.Navigator>
+        <TabBar
+          show={this.state.showTabs}
+          current={this.state.current}
+          tabPressed={this.tabPressed}
+        />
+        {this.currentScreen()}
       </View>
     );
   }
