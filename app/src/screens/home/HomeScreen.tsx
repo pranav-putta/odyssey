@@ -6,12 +6,14 @@ import DiscussionScreen from './discussion/DiscussionScreen';
 import TabBar, {TabKey} from '../../components/TabBar';
 import {TabRouter} from '@react-navigation/native';
 import BillListScreen from './bill/BillListScreen';
+import ProfileScreen from './profile/ProfileScreen';
+import {StackNavigationProp} from '@react-navigation/stack';
 
 type State = {
   showTabs: boolean;
   current: TabKey;
 };
-type Props = {};
+type Props = {navigation: StackNavigationProp<any, any>};
 
 const Tab = createBottomTabNavigator();
 class HomeScreen extends React.Component<Props, State> {
@@ -38,6 +40,9 @@ class HomeScreen extends React.Component<Props, State> {
             }}
           />
         );
+      }
+      case TabKey.profile: {
+        return <ProfileScreen navigation={this.props.navigation} />;
       }
       default: {
         return <View></View>;

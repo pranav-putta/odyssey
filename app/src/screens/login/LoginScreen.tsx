@@ -58,7 +58,6 @@ type State = {
 type Props = {
   navigation: StackNavigationProp<any, any>;
 };
-
 class LoginScreen extends React.Component<Props, State> {
   // animation variables
   loginContainerHeight: Animated.AnimatedInterpolation;
@@ -250,7 +249,6 @@ class LoginScreen extends React.Component<Props, State> {
         this.nextLoginFormPage();
       })
       .catch((err) => {
-        this.toggleProgress(false);
         Alert.alert(JSON.stringify(err));
       })
       .finally(() => {

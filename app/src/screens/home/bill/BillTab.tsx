@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import {createSharedElementStackNavigator} from 'react-navigation-shared-element';
 import {billTabRoutes} from '../../../routes/routes';
 import BillListScreen from './BillListScreen';
-import BillDetailScreen from './BillDetailScreen';
+import BillDetailScreen from './BillModal';
 import BillItem from './components/BillItem';
 import {TransitionSpecs} from '@react-navigation/stack';
 

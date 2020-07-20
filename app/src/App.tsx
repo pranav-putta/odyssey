@@ -8,7 +8,7 @@ import LaunchScreen from './screens/launch/LaunchScreen';
 import LoginScreen from './screens/login/LoginScreen';
 import HomeScreen from './screens/home/HomeScreen';
 import routes from './routes/routes';
-import BillDetailScreen from './screens/home/bill/BillDetailScreen';
+import BillDetailScreen from './screens/home/bill/BillModal';
 
 type ScreenOptions = {
   launchOptions: StackNavigationOptions;

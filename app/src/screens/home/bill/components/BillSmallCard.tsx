@@ -1,4 +1,4 @@
-import React, {createRef} from 'react';
+import React from 'react';
 import {View, Text, StyleSheet} from 'react-native';
 import {colors} from '../../../../assets';
 import {Image} from 'react-native-animatable';
@@ -10,33 +10,25 @@ type State = {};
 type Props = {
   index: number;
   item: BillItem;
-  onPress: (
-    item: BillItem,
-    index: number,
-    x: number,
-    y: number,
-    width: number,
-    height: number,
-  ) => void;
+  onPress: (item: BillItem, index: number) => void;
 };
-
-const billRef = createRef<View>();
 
 const BillSmallCard = (item: Props) => {
   return (
-    <View style={[styles.container]} ref={billRef}>
+    <View style={[styles.container]}>
       <TouchableWithoutFeedback
         style={{width: '100%', height: '100%'}}
         onPress={() => {
-          billRef.current?.measure((x, y, width, height, pageX, pageY) => {
-            item.onPress(item.item, item.index, x, y, width, height);
-          });
+          item.onPress(item.item, item.index);
         }}>
-        <Image
-          style={styles.image}
-          source={require('../../../../assets/images/card-temp.jpg')}
-        />
-
+        <SharedElement
+          style={styles.imageContainer}
+          id={`item.${item.item.id}.photo`}>
+          <Image
+            style={styles.image}
+            source={require('../../../../assets/images/card-temp.jpg')}
+          />
+        </SharedElement>
         <View style={styles.content}>
           <View style={styles.categoriesContainer}>
             <Text style={styles.number}>{item.item.id}</Text>
@@ -47,7 +39,7 @@ const BillSmallCard = (item: Props) => {
           </View>
           <Text style={styles.title}>{item.item.title}</Text>
           <Text style={styles.header}>Synposis</Text>
-          <Text numberOfLines={5} style={styles.synopsis}>
+          <Text numberOfLines={6} style={styles.synopsis}>
             {item.item.description}
           </Text>
         </View>
@@ -70,8 +62,12 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     shadowOffset: {width: 0, height: 4},
   },
-  image: {
+  imageContainer: {
+    width: '100%',
     flex: 3,
+  },
+  image: {
+    flex: 1,
     width: '100%',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,

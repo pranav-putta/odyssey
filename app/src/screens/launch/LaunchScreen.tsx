@@ -13,15 +13,20 @@ class LaunchScreen extends React.Component<Props> {
   componentDidMount() {
     const {navigation} = this.props;
     // check if user is signed in
-    AsyncStorage.getItem(storage.userSignedIn).then((signedIn) => {
-      if (signedIn && signedIn == 'true') {
-        // user is signed in
-        navigation.navigate(routes.home);
-      } else {
-        // user is not signed in
+    AsyncStorage.getItem(storage.userSignedIn)
+      .then((signedIn) => {
+        if (signedIn && signedIn == 'true') {
+          // user is signed in
+          navigation.navigate(routes.home);
+        } else {
+          // user is not signed in
+          navigation.navigate(routes.login);
+        }
+      })
+      .catch(() => {
+        // something went wrong, route to login
         navigation.navigate(routes.login);
-      }
-    });
+      });
   }
 
   render() {

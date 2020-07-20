@@ -15,7 +15,7 @@ import BillItem from './components/BillItem';
 import Carousel from 'react-native-snap-carousel';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {StackNavigationProp} from '@react-navigation/stack';
-import BillDetailScreen, {Measure} from './BillDetailScreen';
+import BillDetailScreen, {Measure} from './BillModal';
 
 type State = {
   data: BillItem[];
@@ -102,18 +102,9 @@ class FeedScreen extends React.Component<Props, State> {
               <BillSmallCard
                 index={item.index}
                 item={item.item}
-                onPress={(
-                  item: BillItem,
-                  index: number,
-                  x: number,
-                  y: number,
-                  width: number,
-                  height: number,
-                ) => {
+                onPress={(item: BillItem, index: number) => {
                   this.setState({selectedBill: item});
-                  this.setState({
-                    billMeasure: {x: x, y: y, width: width, height: height},
-                  });
+
                   this.setState({showDetails: true});
                   this.props.toggleTabs();
                 }}
