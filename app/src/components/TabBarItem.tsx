@@ -66,22 +66,22 @@ class TabBarItem extends React.Component<TabItemProps, TabItemState> {
   }
   // expand tab function
   expand = () => {
-    this.setState({expanded: true});
-
-    Animated.timing(this.state.animation, {
-      toValue: 1,
-      useNativeDriver: false,
-      duration: 250,
-    }).start(() => {});
+    this.setState({expanded: true}, () => {
+      Animated.timing(this.state.animation, {
+        toValue: 1,
+        useNativeDriver: false,
+        duration: 250,
+      }).start();
+    });
   };
 
   collapse = () => {
-    Animated.timing(this.state.animation, {
-      toValue: 0,
-      useNativeDriver: false,
-      duration: 250,
-    }).start(() => {
-      this.setState({expanded: false});
+    this.setState({expanded: false}, () => {
+      Animated.timing(this.state.animation, {
+        toValue: 0,
+        useNativeDriver: false,
+        duration: 250,
+      }).start();
     });
   };
 

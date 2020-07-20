@@ -14,20 +14,18 @@ type ScreenOptions = {
   launchOptions: StackNavigationOptions;
   loginOptions: StackNavigationOptions;
   homeOptions: StackNavigationOptions;
-  billDetailsOptions: StackNavigationOptions;
 };
 
 const options: ScreenOptions = {
   launchOptions: {
+    header: undefined,
     headerShown: false,
+    gestureEnabled: false,
   },
-  loginOptions: {
-    headerShown: false,
-  },
+  loginOptions: {header: undefined, gestureEnabled: false, headerShown: false},
   homeOptions: {
-    headerShown: false,
-  },
-  billDetailsOptions: {
+    header: undefined,
+    gestureEnabled: false,
     headerShown: false,
   },
 };
@@ -52,11 +50,6 @@ function App() {
           name={routes.home}
           component={HomeScreen}
           options={options.homeOptions}
-        />
-        <Stack.Screen
-          name={routes.billDetails}
-          component={BillDetailScreen}
-          options={options.billDetailsOptions}
         />
       </Stack.Navigator>
     </NavigationContainer>

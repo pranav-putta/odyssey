@@ -37,7 +37,7 @@ class TabBar extends React.Component<TabBarProps, TabBarState> {
 
     this.bottomVal = this.state.animation.interpolate({
       inputRange: [0, 1],
-      outputRange: ['0%', '-10%'],
+      outputRange: ['0%', '-15%'],
     });
   }
 
@@ -58,7 +58,6 @@ class TabBar extends React.Component<TabBarProps, TabBarState> {
     Animated.spring(this.state.animation, {
       toValue: 0,
       bounciness: 5,
-      speed: 1,
       useNativeDriver: false,
     }).start(() => {
       this.setState({shown: true});
@@ -123,7 +122,7 @@ const styles = StyleSheet.create({
   container: {
     position: 'absolute',
     width: '100%',
-    height: '10%',
+    height: '11%',
     alignSelf: 'center',
     shadowColor: 'gray',
     shadowOffset: {width: 0, height: 3},
