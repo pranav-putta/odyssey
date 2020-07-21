@@ -3,9 +3,13 @@ import {View} from 'react-native';
 import {createSharedElementStackNavigator} from 'react-navigation-shared-element';
 import {billTabRoutes} from '../../../routes/routes';
 import BillListScreen from './BillListScreen';
-import BillDetailScreen from './BillModal';
+import BillDetailScreen from './BillDetailScreen';
 import BillItem from './components/BillItem';
-import {TransitionSpecs} from '@react-navigation/stack';
+import {
+  TransitionSpecs,
+  HeaderStyleInterpolators,
+  StackCardStyleInterpolator,
+} from '@react-navigation/stack';
 
 export type BillTabParams = {
   list: undefined;
@@ -13,9 +17,49 @@ export type BillTabParams = {
     item: BillItem;
   };
 };
-const Stack = createSharedElementStackNavigator<BillTabParams>({});
+const Stack = createSharedElementStackNavigator<BillTabParams>();
 
 class BillTab extends React.Component {
+  s: StackCardStyleInterpolator;
+
+  constructor(props: any) {
+    super(props);
+    this.s = ({current, next, layouts}) => {
+      return {
+        cardStyle: {
+          transform: [
+            {
+              translateY: current.progress.interpolate({
+                inputRange: [0, 1],
+                outputRange: [layouts.screen.height, 0],
+              }),
+            },
+            {
+              scale: current.progress.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0.2, 1],
+              }),
+            },
+            {
+              scale: next
+                ? next.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [1, 0.8],
+                  })
+                : 1,
+            },
+          ],
+        },
+        overlayStyle: {
+          opacity: current.progress.interpolate({
+            inputRange: [0, 1],
+            outputRange: [0, 0.5],
+          }),
+        },
+      };
+    };
+  }
+
   render() {
     return (
       <Stack.Navigator initialRouteName={billTabRoutes.list}>
@@ -29,6 +73,13 @@ class BillTab extends React.Component {
           component={BillDetailScreen}
           options={{
             headerShown: false,
+            gestureDirection: 'vertical',
+            transitionSpec: {
+              open: TransitionSpecs.TransitionIOSSpec,
+              close: TransitionSpecs.TransitionIOSSpec,
+            },
+            headerStyleInterpolator: HeaderStyleInterpolators.forFade,
+            cardStyleInterpolator: this.s,
           }}
           initialParams={{item: undefined}}
           sharedElementsConfig={(route, otherRoute, showing) => {

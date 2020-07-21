@@ -2,7 +2,7 @@ import React from 'react';
 import {View, StatusBar, StyleSheet, Alert} from 'react-native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import BillScreen from './bill/BillListScreen';
-import DiscussionScreen from './discussion/DiscussionScreen';
+import DiscussionScreen from './community/DiscussionScreen';
 import TabBar, {TabKey} from '../../components/TabBar';
 import {TabRouter} from '@react-navigation/native';
 import BillListScreen from './bill/BillListScreen';
@@ -35,6 +35,7 @@ class HomeScreen extends React.Component<Props, State> {
       case TabKey.bills: {
         return (
           <BillListScreen
+            navigation={this.props.navigation}
             toggleTabs={() => {
               this.setState({showTabs: !this.state.showTabs});
             }}
