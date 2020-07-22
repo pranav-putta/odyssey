@@ -1,5 +1,5 @@
 import React, {createRef} from 'react';
-import {View, Text, StyleSheet} from 'react-native';
+import {View, Text, StyleSheet, Alert} from 'react-native';
 import {colors} from '../../../../assets';
 import {Image} from 'react-native-animatable';
 import {TouchableWithoutFeedback} from 'react-native-gesture-handler';
@@ -17,7 +17,8 @@ type Props = {
 };
 
 const BillSmallCard = (item: Props) => {
-  var ref = createRef<View>();
+  let ref = createRef<View>();
+
   return (
     <View style={[styles.container]} ref={ref}>
       <TouchableWithoutFeedback
@@ -38,10 +39,7 @@ const BillSmallCard = (item: Props) => {
         <SharedElement
           style={styles.imageContainer}
           id={`item.${item.item.id}.photo`}>
-          <Image
-            style={styles.image}
-            source={require('../../../../assets/images/card.png')}
-          />
+          <Image style={styles.image} source={item.item.image} />
         </SharedElement>
         <View style={styles.content}>
           <View style={styles.categoriesContainer}>
@@ -106,7 +104,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     paddingVertical: '5%',
     paddingHorizontal: '7.5%',
-    flex: 5,
+    flex: 6,
     shadowColor: 'black',
     shadowOpacity: 0.5,
     shadowRadius: 15,

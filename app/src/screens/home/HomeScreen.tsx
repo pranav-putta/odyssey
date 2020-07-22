@@ -11,7 +11,7 @@ import {StackNavigationProp} from '@react-navigation/stack';
 
 type State = {
   showTabs: boolean;
-  current: TabKey;
+  current: string;
 };
 type Props = {navigation: StackNavigationProp<any, any>};
 
@@ -26,7 +26,7 @@ class HomeScreen extends React.Component<Props, State> {
     };
   }
 
-  tabPressed = (tab: TabKey) => {
+  tabPressed = (tab: string) => {
     this.setState({current: tab});
   };
 

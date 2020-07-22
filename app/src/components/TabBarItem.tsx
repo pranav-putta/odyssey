@@ -24,9 +24,9 @@ type TabItemProps = {
   color: string;
   textColor: string;
   width: number;
-  tkey: TabKey;
-  active: TabKey;
-  onPress: (tkey: TabKey) => void;
+  tkey: string;
+  active: string;
+  onPress: (tkey: string) => void;
 };
 
 type TabItemState = {

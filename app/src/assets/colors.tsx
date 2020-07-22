@@ -13,6 +13,7 @@ export default {
   finishButtonColor: '#00e676',
   finishButtonIconColor: '#69f0ae',
   tabBackgroundColor: '#80d8ff',
+  votingBackgroundColor: '#448aff',
   cards: {
     temp: '#448aff',
   },

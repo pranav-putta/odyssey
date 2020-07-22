@@ -54,11 +54,12 @@ class FeedScreen extends React.Component<Props, State> {
         {
           id: 'HB0018',
           title: 'SCH CD-CHARACTER EDUCATION',
-          category: 'Environment',
+          category: 'Education',
           description: `Amends the School Code. Requires the instruction on character education to include the teaching of respect toward a person's race or ethnicity or gender.`,
           bgColor: '#7fd6db',
           categoryColor: '#7fd6db50',
           categoryTextColor: '#7fd6db',
+          image: require('../../../assets/images/finance.png'),
         },
         {
           id: 'SB0027',
@@ -68,6 +69,7 @@ class FeedScreen extends React.Component<Props, State> {
           bgColor: '#ecb3ea',
           categoryColor: '#ecb3ea50',
           categoryTextColor: '#ecb3ea',
+          image: require('../../../assets/images/card.png'),
         },
         {
           id: 'SB0022',
@@ -77,6 +79,17 @@ class FeedScreen extends React.Component<Props, State> {
           bgColor: '#68d678',
           categoryColor: '#68d67850',
           categoryTextColor: '#68d678',
+          image: require('../../../assets/images/transport.png'),
+        },
+        {
+          id: 'SB0022',
+          title: 'VEH CD-DEALER CAR SALES',
+          category: 'Transportation',
+          description: `Amends the Illinois Vehicle Code. Provides that the Act may be referred to as the Religious Equity Act. Allows for the sale of motor vehicles on any 6 days of the week chosen by the business owner (instead of on any day but Sunday). Makes conforming changes. Effective immediately.`,
+          bgColor: '#ffab40',
+          categoryColor: '#ffab4050',
+          categoryTextColor: '#ffab40',
+          image: require('../../../assets/images/finance.png'),
         },
       ],
       search: '',
@@ -125,37 +138,60 @@ class FeedScreen extends React.Component<Props, State> {
     );
   };
 
+  newTab = () => {
+    return (
+      <Carousel
+        data={this.state.data}
+        renderItem={(item: {item: BillItem; index: number}) => {
+          return (
+            <BillSmallCard
+              index={item.index}
+              item={item.item}
+              onPress={(item: BillItem, index: number, measure: Measure) => {
+                this.setState({selectedBill: item});
+                this.setState({billMeasure: measure});
+                this.setState({showDetails: true});
+                this.props.toggleTabs();
+              }}
+            />
+          );
+        }}
+        sliderWidth={width}
+        itemWidth={width * 0.8}
+        itemHeight={height}
+        layout={'default'}
+        inactiveSlideScale={0.9}
+        inactiveSlideOpacity={0.8}
+        centerContent={true}
+        loop={false}
+      />
+    );
+  };
+
+  likedTab = () => {
+    return (
+      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+        <Text style={{fontSize: 24, marginBottom: '50%'}}>No Likes Yet!</Text>
+      </View>
+    );
+  };
+
+  currentTab = () => {
+    if (this.state.currentTab == BillTabKey.new) {
+      return this.newTab();
+    } else if (this.state.currentTab == BillTabKey.liked) {
+      return this.likedTab();
+    }
+  };
+
   render() {
     return (
       <View style={styles.container}>
         <SafeAreaView />
         <View
           style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            marginBottom: '2.5%',
-            marginHorizontal: '12%',
-            zIndex: 1,
-          }}>
-          <View
-            style={{
-              backgroundColor: colors.tabs.bills.color,
-              borderRadius: 10,
-              padding: '2.5%',
-            }}>
-            <Icon name="user" type="feather" size={30} />
-          </View>
-          <View style={{marginLeft: '5%'}}>
-            <Text style={styles.helloText}>Hello</Text>
-            <Text style={styles.nameText}>Pranav</Text>
-          </View>
-        </View>
-        <View
-          style={{
-            backgroundColor: colors.textInputBackground,
-            marginHorizontal: '12%',
-            marginVertical: '4%',
-            marginBottom: '8%',
+            marginHorizontal: '8%',
+            marginBottom: '4%',
             padding: '4%',
             borderRadius: 10,
           }}>
@@ -166,33 +202,7 @@ class FeedScreen extends React.Component<Props, State> {
           </Text>
         </View>
         {this.tabs()}
-        <Carousel
-          data={this.state.data}
-          renderItem={(item: {item: BillItem; index: number}) => {
-            return (
-              <BillSmallCard
-                index={item.index}
-                item={item.item}
-                onPress={(item: BillItem, index: number, measure: Measure) => {
-                  this.setState({selectedBill: item});
-                  this.setState({billMeasure: measure});
-                  this.setState({showDetails: true});
-                  this.props.toggleTabs();
-                }}
-              />
-            );
-          }}
-          sliderWidth={width}
-          itemWidth={width * 0.8}
-          itemHeight={height}
-          layout={'default'}
-          autoplay={true}
-          autoplayInterval={8000}
-          inactiveSlideScale={0.9}
-          inactiveSlideOpacity={0.8}
-          centerContent={true}
-          loop={false}
-        />
+        {this.currentTab()}
         <View
           style={[StyleSheet.absoluteFill, {zIndex: 100}]}
           pointerEvents={this.state.showDetails ? 'auto' : 'none'}>
@@ -259,18 +269,19 @@ const styles = StyleSheet.create({
     marginBottom: '0.5%',
   },
   helloText: {
-    fontSize: 18,
+    fontSize: 46,
+    fontWeight: '300',
   },
   nameText: {fontSize: 18, fontWeight: 'bold'},
   discover: {
-    fontSize: 24,
+    fontSize: 40,
     fontFamily: 'Futura',
-    fontWeight: '600',
+    fontWeight: '500',
   },
   discoverCaption: {
-    marginTop: '1%',
+    marginTop: '3%',
     fontFamily: 'Futura',
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: '400',
   },
 });

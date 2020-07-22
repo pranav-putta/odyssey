@@ -4,7 +4,7 @@ import TabBarItem from './TabBarItem';
 import {colors} from '../assets';
 
 type TabBarState = {
-  active: TabKey;
+  active: string;
   animation: Animated.Value;
   shown: boolean;
 };
@@ -12,8 +12,8 @@ type TabBarState = {
 type TabBarProps = {
   zIndex?: number;
   show: boolean;
-  current: TabKey;
-  tabPressed: (tab: TabKey) => void;
+  current: string;
+  tabPressed: (tab: string) => void;
 };
 
 // key enum for each tab
@@ -65,7 +65,7 @@ class TabBar extends React.Component<TabBarProps, TabBarState> {
   };
 
   // called when tab item is pressed
-  onTabPress = (key: TabKey) => {
+  onTabPress = (key: string) => {
     this.setState({active: key});
     this.props.tabPressed(key);
   };
@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     shadowColor: 'gray',
     shadowOffset: {width: 0, height: 3},
-    shadowOpacity: 0.3,
+    shadowOpacity: 0,
     shadowRadius: 5,
     paddingBottom: '2%',
     //borderRadius: 10,

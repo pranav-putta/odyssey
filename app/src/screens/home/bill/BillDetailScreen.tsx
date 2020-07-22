@@ -5,15 +5,20 @@ import {
   StyleSheet,
   Animated,
   TouchableOpacity,
-  Alert,
+  ScrollView,
   Dimensions,
+  StatusBar,
 } from 'react-native';
 import {colors} from '../../../assets';
 import {Image} from 'react-native-animatable';
 import BillItem from './components/BillItem';
 import {SharedElement} from 'react-navigation-shared-element';
 import {Icon} from 'react-native-elements';
-import FloatingTabBar from '../../../components/FloatingTabHub';
+import BillFloatingTabs, {
+  BillFloatingTabKey,
+} from '../../../components/BillFloatingTabs';
+import TouchableScale from 'react-native-touchable-scale';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 export type Measure = {
   x: number;
@@ -31,6 +36,8 @@ type State = {
   expanded: boolean;
   animation: Animated.Value;
   numberLines: number | undefined;
+  activeTab: string;
+  showTabBar: boolean;
 };
 
 const width = Dimensions.get('screen').width;
@@ -41,6 +48,11 @@ class BillDetailScreen extends React.Component<Props, State> {
   screenHeight: Animated.AnimatedInterpolation;
   screenMarginTop: Animated.AnimatedInterpolation;
   textOpacity: Animated.AnimatedInterpolation;
+  contentMargin: Animated.AnimatedInterpolation;
+  tabBarOpacity: Animated.AnimatedInterpolation;
+  borderRadius: Animated.AnimatedInterpolation;
+
+  AnimatedTouchableScale: Animated.AnimatedComponent<TouchableScale>;
 
   constructor(props: Props) {
     super(props);
@@ -49,6 +61,8 @@ class BillDetailScreen extends React.Component<Props, State> {
       expanded: false,
       animation: new Animated.Value(0),
       numberLines: 5,
+      activeTab: BillFloatingTabKey.info,
+      showTabBar: false,
     };
 
     this.screenWidth = this.state.animation.interpolate({
@@ -70,10 +84,29 @@ class BillDetailScreen extends React.Component<Props, State> {
       inputRange: [0, 0.1, 0.9, 1],
       outputRange: [1, 0, 0, 1],
     });
+    this.contentMargin = this.state.animation.interpolate({
+      inputRange: [0, 1],
+      outputRange: ['5%', '0%'],
+    });
+    this.tabBarOpacity = this.state.animation.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0, 1],
+    });
+    this.borderRadius = this.state.animation.interpolate({
+      inputRange: [0, 1],
+      outputRange: [40, 0],
+    });
+
+    // generate animated components
+    this.AnimatedTouchableScale = Animated.createAnimatedComponent(
+      TouchableScale,
+    );
   }
 
   // expand the card outward
   expand = () => {
+    this.setState({showTabBar: true});
+
     Animated.timing(this.state.animation, {
       toValue: 1,
       useNativeDriver: false,
@@ -87,6 +120,8 @@ class BillDetailScreen extends React.Component<Props, State> {
   // collapse the card
   collapse = () => {
     this.setState({numberLines: 5});
+    this.setState({showTabBar: false});
+    this.onTabPress(BillFloatingTabKey.info);
 
     Animated.timing(this.state.animation, {
       toValue: 0,
@@ -96,6 +131,149 @@ class BillDetailScreen extends React.Component<Props, State> {
       this.props.onClose();
       this.setState({expanded: false});
     });
+  };
+
+  infoPage = (item: BillItem) => {
+    return (
+      <View style={{flex: 1}}>
+        <Animated.View
+          style={[styles.voteButton, {opacity: this.state.animation}]}>
+          <TouchableScale
+            style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}
+            onPress={() => {
+              this.setState({activeTab: BillFloatingTabKey.voting});
+            }}>
+            <Text style={styles.voteText}>Vote!</Text>
+          </TouchableScale>
+        </Animated.View>
+        <Animated.View
+          style={[
+            styles.imageContainer,
+            {
+              borderTopLeftRadius: this.borderRadius,
+              borderTopRightRadius: this.borderRadius,
+            },
+          ]}>
+          <Image style={styles.image} source={item.image} />
+        </Animated.View>
+        <Animated.View style={[styles.content, {margin: this.contentMargin, borderBottomRightRadius: this.borderRadius, borderBottomLeftRadius: this.borderRadius}]}>
+          <View style={styles.categoriesContainer}>
+            <Text style={styles.number}>{item.id}</Text>
+            <View
+              style={[styles.category, {backgroundColor: item.categoryColor}]}>
+              <Text
+                style={[styles.categoryText, {color: item.categoryTextColor}]}>
+                {item.category}
+              </Text>
+            </View>
+          </View>
+          <Text style={styles.title}>{item.title}</Text>
+          <ScrollView>
+            <Text ellipsizeMode="tail" style={styles.synopsis}>
+              {item.description}
+            </Text>
+          </ScrollView>
+        </Animated.View>
+      </View>
+    );
+  };
+
+  votingPage = () => {
+    return (
+      <View style={{flex: 1, backgroundColor: 'white'}}>
+        <SafeAreaView />
+        <Text
+          style={{
+            alignSelf: 'center',
+            marginTop: '5%',
+            fontSize: 30,
+            fontWeight: 'bold',
+          }}>
+          Vote
+        </Text>
+        <Text
+          style={{
+            alignSelf: 'center',
+            marginTop: '15%',
+            fontSize: 24,
+            fontWeight: 'bold',
+          }}>
+          Do you support this bill?
+        </Text>
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-around',
+            alignSelf: 'center',
+            marginTop: '5%',
+          }}>
+          <TouchableOpacity
+            style={{
+              width: 100,
+              height: 50,
+              justifyContent: 'center',
+              alignItems: 'center',
+              padding: '2.5%',
+              backgroundColor: '#1de9b6',
+              borderRadius: 10,
+              marginHorizontal: '5%',
+            }}>
+            <Text style={{fontSize: 24, fontWeight: 'bold', color: 'white'}}>
+              Yes
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={{
+              width: 100,
+              height: 50,
+              justifyContent: 'center',
+              alignItems: 'center',
+              padding: '2.5%',
+              backgroundColor: '#ff5252',
+              marginHorizontal: '5%',
+              borderRadius: 10,
+            }}>
+            <Text style={{fontSize: 24, fontWeight: 'bold', color: 'white'}}>
+              No
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+          <Text
+            style={{
+              fontSize: 15,
+              color: colors.darkGray,
+              fontWeight: '300',
+              marginBottom: '20%',
+            }}>
+            Comments Here
+          </Text>
+        </View>
+      </View>
+    );
+  };
+
+  researchPage = () => {
+    return <View></View>;
+  };
+
+  currentTabPage = (item: BillItem) => {
+    switch (this.state.activeTab) {
+      case BillFloatingTabKey.info: {
+        return this.infoPage(item);
+      }
+      case BillFloatingTabKey.voting: {
+        return this.votingPage();
+      }
+      case BillFloatingTabKey.research: {
+        return this.researchPage();
+      }
+    }
+  };
+
+  onTabPress = (key: string) => {
+    this.setState({activeTab: key});
   };
 
   // generate the close button
@@ -131,10 +309,6 @@ class BillDetailScreen extends React.Component<Props, State> {
         //outputRange: ['89%', '0%'],
         outputRange: [this.props.measure?.y || 0, 0],
       });
-      this.textOpacity = this.state.animation.interpolate({
-        inputRange: [0, 0.1, 0.9, 1],
-        outputRange: [1, 0, 0, 1],
-      });
 
       if (!this.state.expanded && this.props.expanded) {
         this.expand();
@@ -148,40 +322,18 @@ class BillDetailScreen extends React.Component<Props, State> {
               width: this.screenWidth,
               height: this.screenHeight,
               marginTop: this.screenMarginTop,
+              borderRadius: this.borderRadius,
             },
           ]}>
-          <FloatingTabBar />
-          <SharedElement
-            style={styles.imageContainer}
-            id={`item.${this.props.item.id}.photo`}>
-            <Image
-              style={styles.image}
-              source={require('../../../assets/images/card.png')}
-            />
-          </SharedElement>
-          <View style={styles.content}>
-            <View style={styles.categoriesContainer}>
-              <Text style={styles.number}>{this.props.item.id}</Text>
-
-              <View
-                style={[
-                  styles.category,
-                  {backgroundColor: this.props.item.categoryColor},
-                ]}>
-                <Text
-                  style={[
-                    styles.categoryText,
-                    {color: this.props.item.categoryTextColor},
-                  ]}>
-                  {this.props.item.category}
-                </Text>
-              </View>
-            </View>
-            <Text style={styles.title}>{this.props.item.title}</Text>
-            <Text ellipsizeMode="tail" style={styles.synopsis}>
-              {this.props.item.description}
-            </Text>
-          </View>
+          <StatusBar barStyle="light-content" />
+          <BillFloatingTabs
+            current={this.state.activeTab}
+            opacity={this.tabBarOpacity}
+            itemColor={this.props.item.categoryColor}
+            itemTextColor={this.props.item.categoryTextColor}
+            onTabPress={this.onTabPress}
+          />
+          {this.currentTabPage(this.props.item)}
           {this.backButton()}
         </Animated.View>
       );
@@ -218,7 +370,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     paddingVertical: '5%',
     paddingHorizontal: '7.5%',
-    flex: 5,
+    flex: 6,
     shadowColor: 'black',
     shadowOpacity: 0.5,
     shadowRadius: 15,
@@ -278,6 +430,25 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 20,
+  },
+  voteButton: {
+    position: 'absolute',
+    right: '7%',
+    bottom: '14%',
+    padding: '4%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 10,
+    backgroundColor: colors.votingBackgroundColor,
+    shadowColor: 'black',
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    zIndex: 150,
+  },
+  voteText: {
+    color: 'white',
+    fontSize: 24,
+    fontWeight: 'bold',
   },
 });
 

@@ -1,3 +1,5 @@
+import {ImageSourcePropType} from 'react-native';
+
 type BillItem = {
   id: string;
   category: string;
@@ -6,6 +8,7 @@ type BillItem = {
   bgColor: string;
   categoryColor: string;
   categoryTextColor: string;
+  image: ImageSourcePropType;
 };
 
 export default BillItem;

@@ -28,7 +28,7 @@ class ProfileScreen extends React.Component<Props, State> {
               });
           }}>
           <Text style={{color: 'white', fontWeight: 'bold'}}>
-            Log out bitch.
+            Log out
           </Text>
         </TouchableOpacity>
       </View>
