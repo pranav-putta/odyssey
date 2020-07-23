@@ -1,11 +1,11 @@
 import React from 'react';
 import {View, StatusBar, StyleSheet, Alert} from 'react-native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import BillScreen from './bill/BillListScreen';
+import BillScreen from './bill/BillScreen';
 import DiscussionScreen from './community/DiscussionScreen';
 import TabBar, {TabKey} from '../../components/TabBar';
 import {TabRouter} from '@react-navigation/native';
-import BillListScreen from './bill/BillListScreen';
+import BillListScreen from './bill/BillScreen';
 import ProfileScreen from './profile/ProfileScreen';
 import {StackNavigationProp} from '@react-navigation/stack';
 

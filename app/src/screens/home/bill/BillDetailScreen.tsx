@@ -31,6 +31,8 @@ type Props = {
   measure: Measure | undefined;
   expanded: boolean;
   onClose: () => void;
+  onStartClose: () => void;
+  onExpanded: () => void;
 };
 type State = {
   expanded: boolean;
@@ -112,6 +114,7 @@ class BillDetailScreen extends React.Component<Props, State> {
       useNativeDriver: false,
       duration: 250,
     }).start(() => {
+      this.props.onExpanded()
       this.setState({expanded: true});
     });
     this.setState({numberLines: undefined});
@@ -122,6 +125,7 @@ class BillDetailScreen extends React.Component<Props, State> {
     this.setState({numberLines: 5});
     this.setState({showTabBar: false});
     this.onTabPress(BillFloatingTabKey.info);
+    this.props.onStartClose()
 
     Animated.timing(this.state.animation, {
       toValue: 0,
@@ -133,6 +137,7 @@ class BillDetailScreen extends React.Component<Props, State> {
     });
   };
 
+  // generate information page
   infoPage = (item: BillItem) => {
     return (
       <View style={{flex: 1}}>
@@ -178,6 +183,7 @@ class BillDetailScreen extends React.Component<Props, State> {
     );
   };
 
+  // generate voting page
   votingPage = () => {
     return (
       <View style={{flex: 1, backgroundColor: 'white'}}>
@@ -254,10 +260,12 @@ class BillDetailScreen extends React.Component<Props, State> {
     );
   };
 
+  // generate research page
   researchPage = () => {
     return <View></View>;
   };
 
+  // generate current tab from state
   currentTabPage = (item: BillItem) => {
     switch (this.state.activeTab) {
       case BillFloatingTabKey.info: {
@@ -272,6 +280,7 @@ class BillDetailScreen extends React.Component<Props, State> {
     }
   };
 
+  // called when tab { 'info', 'voting', 'research' } is clicked
   onTabPress = (key: string) => {
     this.setState({activeTab: key});
   };
