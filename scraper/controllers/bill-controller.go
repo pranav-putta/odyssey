@@ -13,8 +13,9 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gocolly/colly"
-	"github.com/pranavputta22/voice/db"
-	"github.com/pranavputta22/voice/models"
+	"github.com/gocolly/colly/queue"
+	"pranavputta.me/oddysey/scraper/db"
+	"pranavputta.me/oddysey/scraper/models"
 )
 
 var x int
@@ -22,6 +23,7 @@ var x int
 // BillCallback is a function to be called when bill information is retrieved
 type BillCallback func(models.Bill, error)
 
+// RefreshBills
 func RefreshBills(url string, ga string) {
 	ScrapeBills(url, ga, func(b models.Bill, err error) {
 		e := db.InsertBill(b)
@@ -39,7 +41,7 @@ func ScrapeBills(url string, ga string, callback BillCallback) error {
 	billCollector := colly.NewCollector(colly.Async(true), colly.DetectCharset())
 
 	// setup collectors
-	billCollector.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: 4})
+	billCollector.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: 1})
 	billCollector.OnHTML("body", func(e *colly.HTMLElement) {
 		onBillDetailsResponse(e, callback)
 	})
@@ -50,6 +52,8 @@ func ScrapeBills(url string, ga string, callback BillCallback) error {
 	if err != nil {
 		return errors.New("couldn't scrape")
 	}
+
+	q, _ := queue.New(1, &queue.InMemoryQueueStorage{MaxSize: 100000})
 
 	// go through each link on the page
 	billsDoc.Find("li").Each(func(_ int, el *goquery.Selection) {
@@ -64,10 +68,12 @@ func ScrapeBills(url string, ga string, callback BillCallback) error {
 		if err != nil {
 			return
 		}
-		billCollector.Visit(link)
+		q.AddURL(link)
 	})
+	q.Run(billCollector)
 	billCollector.Wait()
-
+	db.Finish()
+	fmt.Println("done!")
 	return nil
 }
 
@@ -114,30 +120,31 @@ func onBillDetailsResponse(e *colly.HTMLElement, callback BillCallback) {
 	if shouldUpdateActions || shouldUpdateAll {
 		// bill actions
 		actionsTemp := buildActions(doc)
-		updateText, updateVotes := checkActionsForUpdates(actionsTemp, bill.Actions)
+		//updateText, updateVotes := checkActionsForUpdates(actionsTemp, bill.Actions)
 
 		// update actions into bill doc
 		bill.Actions = actionsTemp
 		bill.ActionsHash = hash
 
-		if updateText || shouldUpdateAll {
-			// create the url for full text
-			fullTextURL := fmt.Sprintf("http://www.ilga.gov/legislation/101/%s/10100%s%04d.htm",
-				bill.Metadata.Chamber, bill.Metadata.Chamber, bill.Metadata.Number)
+		/*
+			if updateText || shouldUpdateAll {
+				// create the url for full text
+				fullTextURL := fmt.Sprintf("http://www.ilga.gov/legislation/101/%s/10100%s%04d.htm",
+					bill.Metadata.Chamber, bill.Metadata.Chamber, bill.Metadata.Number)
 
-			newDoc, err := goquery.NewDocument(fullTextURL)
-			fullText := ""
-			if err == nil {
-				fullText = buildFullText(newDoc.Find("html"))
+				newDoc, err := goquery.NewDocument(fullTextURL)
+				fullText := ""
+				if err == nil {
+					fullText = buildFullText(newDoc.Find("html"))
+				}
+
+				bill.BillText.URL = fullTextURL
+				bill.BillText.FullText = fullText
 			}
 
-			bill.BillText.URL = fullTextURL
-			bill.BillText.FullText = fullText
-		}
-
-		if updateVotes || shouldUpdateAll {
-			// scoop voting data
-		}
+			if updateVotes || shouldUpdateAll {
+				// scoop voting data
+			}*/
 	}
 	callback(bill, nil)
 }

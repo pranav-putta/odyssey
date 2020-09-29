@@ -9,21 +9,20 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"time"
 
 	"cloud.google.com/go/firestore"
-	firebase "firebase.google.com/go"
 	pq "github.com/lib/pq"
-	"github.com/pranavputta22/voice/config"
-	"github.com/pranavputta22/voice/models"
-	"google.golang.org/api/option"
+	"pranavputta.me/oddysey/scraper/models"
 )
 
 var _client *firestore.Client
 var _ctx context.Context
 var _db *sql.DB
+var _billStmt *sql.Stmt
+var _membStmt *sql.Stmt
+var _txn *sql.Tx
 
 // retrieves the context instance
 func ctx() context.Context {
@@ -48,32 +47,6 @@ func dumpMap(data interface{}) (map[string]interface{}, error) {
 	return out, nil
 }
 
-// retrieve credentials
-func firestoreCredentials() []byte {
-	dat, err := ioutil.ReadFile("service.json")
-	if err != nil {
-		return nil
-	}
-	return dat
-}
-
-// createFirestoreClient sets up an instance with firestore
-func createFirestoreClient(ctx context.Context) *firestore.Client {
-	// Use a service account
-	sa := option.WithCredentialsJSON(firestoreCredentials())
-	app, err := firebase.NewApp(ctx, nil, sa)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	client, err := app.Firestore(ctx)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	return client
-}
-
 // createPostgreSQLClient sets up an instance with google cloud sql postgresql
 func createPostgreSQLClient() *sql.DB {
 	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s "+
@@ -88,52 +61,35 @@ func createPostgreSQLClient() *sql.DB {
 		panic(err)
 	}
 
+	db.SetMaxIdleConns(10)
+	db.SetMaxOpenConns(10)
+	db.SetConnMaxLifetime(0)
+
 	return db
-}
-
-// retrieves the client instance
-func firestoreClient() *firestore.Client {
-	if _client == nil {
-		_client = createFirestoreClient(ctx())
-	}
-
-	return _client
 }
 
 // retrieve the client instance
 func postgreSQLClient() *sql.DB {
 	if _db == nil {
 		_db = createPostgreSQLClient()
+		_txn, err := _db.Begin()
+		if err != nil {
+			panic(err)
+		}
+
+		_billStmt, _ = _txn.Prepare(pq.CopyIn("bills", "assembly", "chamber", "number", "title", "short_summary", "full_summary", "sponsor_ids", "house_primary_sponsor",
+			"senate_primary_sponsor", "chief_sponsor", "actions", "actions_hash", "url", "last_updated", "bill_text"))
+		_membStmt, _ = _txn.Prepare(pq.CopyIn("members", "name", "picture_url", "chamber", "district", "member_url", "contacts", "member_id", "party",
+			"general_assembly"))
 	}
 
 	return _db
 }
 
-// insertFirestore inserts the specified structure into the specified collection
-func insertFirestore(collection string, data interface{}) error {
-	// convert data into a flat map
-	m, err := dumpMap(data)
-	if err != nil {
-		return err
-	}
-
-	// add data to firestore
-	_, _, err = firestoreClient().Collection(collection).Add(ctx(), m)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // InsertMember inserts a new assembly member into the database
 func InsertMember(p models.Person) error {
-	if config.DATABASE == config.Firestore {
-		// send to firestore table
-		insertFirestore("members", p)
-		return nil
-	} else if config.DATABASE == config.PostgreSQL {
-		// send to postgresql table
+	// send to postgresql table
+	/*
 		var client = postgreSQLClient()
 
 		sql := `INSERT INTO members (name, picture_url, chamber, district, member_url, contacts, member_id, party, general_assembly)
@@ -147,26 +103,20 @@ func InsertMember(p models.Person) error {
 						contacts = $6,
 						member_id = $7,
 						party = $8,
-						general_assembly = $9;`
-		_, err := client.Exec(sql, p.Name, p.PictureURL, p.Chamber, p.District, p.URL, pq.Array(p.Contacts), p.MemberID, p.Party, p.GeneralAssembly)
-		return err
-	} else {
-		return nil
-	}
+						general_assembly = $9;`*/
+
+	_, err := _membStmt.Exec(p.Name, p.PictureURL, p.Chamber, p.District, p.URL, pq.Array(p.Contacts), p.MemberID, p.Party, p.GeneralAssembly)
+	return err
 }
 
 // InsertBill inserts bill into postgresql
 func InsertBill(b models.Bill) error {
-	if config.DATABASE == config.Firestore {
-		// send to firestore table
-		insertFirestore("bills", b)
-		return nil
-	} else if config.DATABASE == config.PostgreSQL {
-		// send to postgresql table
+	// send to postgresql table
+	/*
 		var client = postgreSQLClient()
 
 		sql := `INSERT INTO bills (assembly, chamber, number, title, short_summary, full_summary,
-			sponsor_ids, house_primary_sponsor, senate_primary_sponsor, chief_sponsor, actions, 
+			sponsor_ids, house_primary_sponsor, senate_primary_sponsor, chief_sponsor, actions,
 			actions_hash, url, last_updated, bill_text)
 				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
 				ON CONFLICT (assembly, chamber, number) DO UPDATE
@@ -184,14 +134,11 @@ func InsertBill(b models.Bill) error {
 						actions_hash = $12,
 						url = $13,
 						last_updated = $14,
-						bill_text = $15;`
-		_, err := client.Exec(sql, b.Metadata.Assembly, b.Metadata.Chamber, b.Metadata.Number,
-			b.Title, b.ShortSummary, b.FullSummary, pq.Array(b.SponsorIDs), b.HousePrimarySponsor,
-			b.SenatePrimarySponsor, b.ChiefSponsor, pq.Array(b.Actions), b.ActionsHash, b.Metadata.URL, time.Now().UnixNano()/1000000, b.BillText)
-		return err
-	} else {
-		return nil
-	}
+						bill_text = $15;`*/
+	_, err := _billStmt.Exec(b.Metadata.Assembly, b.Metadata.Chamber, b.Metadata.Number,
+		b.Title, b.ShortSummary, b.FullSummary, pq.Array(b.SponsorIDs), b.HousePrimarySponsor,
+		b.SenatePrimarySponsor, b.ChiefSponsor, pq.Array(b.Actions), b.ActionsHash, b.Metadata.URL, time.Now().UnixNano()/1000000, b.BillText)
+	return err
 }
 
 // GetMember finds the row with the specified ga and member id
@@ -245,10 +192,29 @@ func GetBill(md models.BillMetadata) (bill models.Bill, err error) {
 		&bill.HousePrimarySponsor, &bill.SenatePrimarySponsor, &bill.ChiefSponsor,
 		pq.Array(&bill.Actions), &bill.ActionsHash, &bill.Metadata.URL, &bill.BillText); err {
 	case sql.ErrNoRows:
-		return bill, errors.New("no rows found")
+		return bill, errors.New("item not found")
 	case nil:
 		return bill, nil
 	default:
 		return bill, err
 	}
+}
+
+// Finish commits everything to the database and closes conn
+func Finish() {
+	_, err := _billStmt.Exec()
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = _billStmt.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = _txn.Commit()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_db.Close()
 }

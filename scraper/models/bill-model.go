@@ -6,7 +6,7 @@ import (
 	"errors"
 )
 
-// Tag type
+// Action tag type enum
 type Tag int
 
 const (
@@ -70,6 +70,7 @@ type BillMetadata struct {
 	URL      string
 }
 
+// BillFullText stores the data from the full text html data
 type BillFullText struct {
 	URL      string `json:"url,omitempty"`
 	FullText string `json:"fullText,omitempty"`
@@ -81,6 +82,10 @@ type BillAction struct {
 	Chamber     string
 	Description string
 	Tag         Tag
+}
+
+// BillVoteEvent stores the voting outcome of a pdf
+type BillVoteEvent struct {
 }
 
 // Value is an implemented method from database/sql/driver which converts Contact into jsonb
@@ -113,5 +118,3 @@ func (ba *BillAction) Scan(value interface{}) error {
 	return json.Unmarshal(b, &ba)
 }
 
-type BillVoteEvent struct {
-}

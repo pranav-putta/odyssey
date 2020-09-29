@@ -14,8 +14,8 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gocolly/colly"
 	"github.com/gocolly/colly/queue"
-	"github.com/pranavputta22/voice/db"
-	"github.com/pranavputta22/voice/models"
+	"pranavputta.me/oddysey/scraper/db"
+	"pranavputta.me/oddysey/scraper/models"
 )
 
 // PersonCallback is a callback function that passes the collected Person struct
