@@ -9,16 +9,17 @@ import {
   Dimensions,
   StatusBar,
 } from 'react-native';
-import {colors} from '../../../assets';
-import {Image} from 'react-native-animatable';
+import { colors } from '../../../assets';
+import { Image } from 'react-native-animatable';
 import BillItem from './components/BillItem';
-import {SharedElement} from 'react-navigation-shared-element';
-import {Icon} from 'react-native-elements';
+import { SharedElement } from 'react-navigation-shared-element';
+import { Icon } from 'react-native-elements';
 import BillFloatingTabs, {
   BillFloatingTabKey,
 } from '../../../components/BillFloatingTabs';
 import TouchableScale from 'react-native-touchable-scale';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import CommentItem from './components/CommentItem';
 
 export type Measure = {
   x: number;
@@ -51,6 +52,7 @@ class BillDetailScreen extends React.Component<Props, State> {
   screenMarginTop: Animated.AnimatedInterpolation;
   textOpacity: Animated.AnimatedInterpolation;
   contentMargin: Animated.AnimatedInterpolation;
+  tabBarHeight: Animated.AnimatedInterpolation;
   tabBarOpacity: Animated.AnimatedInterpolation;
   borderRadius: Animated.AnimatedInterpolation;
 
@@ -90,10 +92,15 @@ class BillDetailScreen extends React.Component<Props, State> {
       inputRange: [0, 1],
       outputRange: ['5%', '0%'],
     });
-    this.tabBarOpacity = this.state.animation.interpolate({
+    this.tabBarHeight = this.state.animation.interpolate({
       inputRange: [0, 1],
+      outputRange: ['0%', '8%'],
+    });
+    this.tabBarOpacity = this.state.animation.interpolate({
+      inputRange: [0, 0.25],
       outputRange: [0, 1],
     });
+
     this.borderRadius = this.state.animation.interpolate({
       inputRange: [0, 1],
       outputRange: [40, 0],
@@ -101,31 +108,31 @@ class BillDetailScreen extends React.Component<Props, State> {
 
     // generate animated components
     this.AnimatedTouchableScale = Animated.createAnimatedComponent(
-      TouchableScale,
+      TouchableScale
     );
   }
 
   // expand the card outward
   expand = () => {
-    this.setState({showTabBar: true});
+    this.setState({ showTabBar: true });
 
     Animated.timing(this.state.animation, {
       toValue: 1,
       useNativeDriver: false,
       duration: 250,
     }).start(() => {
-      this.props.onExpanded()
-      this.setState({expanded: true});
+      this.props.onExpanded();
+      this.setState({ expanded: true });
     });
-    this.setState({numberLines: undefined});
+    this.setState({ numberLines: undefined });
   };
 
   // collapse the card
   collapse = () => {
-    this.setState({numberLines: 5});
-    this.setState({showTabBar: false});
+    this.setState({ numberLines: 5 });
+    this.setState({ showTabBar: false });
     this.onTabPress(BillFloatingTabKey.info);
-    this.props.onStartClose()
+    this.props.onStartClose();
 
     Animated.timing(this.state.animation, {
       toValue: 0,
@@ -133,21 +140,23 @@ class BillDetailScreen extends React.Component<Props, State> {
       duration: 250,
     }).start(() => {
       this.props.onClose();
-      this.setState({expanded: false});
+      this.setState({ expanded: false });
     });
   };
 
   // generate information page
   infoPage = (item: BillItem) => {
     return (
-      <View style={{flex: 1}}>
+      <View style={{ flex: 1 }}>
         <Animated.View
-          style={[styles.voteButton, {opacity: this.state.animation}]}>
+          style={[styles.voteButton, { opacity: this.state.animation }]}
+        >
           <TouchableScale
-            style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}
+            style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
             onPress={() => {
-              this.setState({activeTab: BillFloatingTabKey.voting});
-            }}>
+              this.setState({ activeTab: BillFloatingTabKey.voting });
+            }}
+          >
             <Text style={styles.voteText}>Vote!</Text>
           </TouchableScale>
         </Animated.View>
@@ -158,16 +167,28 @@ class BillDetailScreen extends React.Component<Props, State> {
               borderTopLeftRadius: this.borderRadius,
               borderTopRightRadius: this.borderRadius,
             },
-          ]}>
+          ]}
+        >
           <Image style={styles.image} source={item.image} />
         </Animated.View>
-        <Animated.View style={[styles.content, {margin: this.contentMargin, borderBottomRightRadius: this.borderRadius, borderBottomLeftRadius: this.borderRadius}]}>
+        <Animated.View
+          style={[
+            styles.content,
+            {
+              margin: this.contentMargin,
+              borderBottomRightRadius: this.borderRadius,
+              borderBottomLeftRadius: this.borderRadius,
+            },
+          ]}
+        >
           <View style={styles.categoriesContainer}>
             <Text style={styles.number}>{item.id}</Text>
             <View
-              style={[styles.category, {backgroundColor: item.categoryColor}]}>
+              style={[styles.category, { backgroundColor: item.categoryColor }]}
+            >
               <Text
-                style={[styles.categoryText, {color: item.categoryTextColor}]}>
+                style={[styles.categoryText, { color: item.categoryTextColor }]}
+              >
                 {item.category}
               </Text>
             </View>
@@ -186,7 +207,7 @@ class BillDetailScreen extends React.Component<Props, State> {
   // generate voting page
   votingPage = () => {
     return (
-      <View style={{flex: 1, backgroundColor: 'white'}}>
+      <View style={{ flex: 1, backgroundColor: 'white' }}>
         <SafeAreaView />
         <Text
           style={{
@@ -194,7 +215,8 @@ class BillDetailScreen extends React.Component<Props, State> {
             marginTop: '5%',
             fontSize: 30,
             fontWeight: 'bold',
-          }}>
+          }}
+        >
           Vote
         </Text>
         <Text
@@ -203,7 +225,8 @@ class BillDetailScreen extends React.Component<Props, State> {
             marginTop: '15%',
             fontSize: 24,
             fontWeight: 'bold',
-          }}>
+          }}
+        >
           Do you support this bill?
         </Text>
         <View
@@ -212,7 +235,8 @@ class BillDetailScreen extends React.Component<Props, State> {
             justifyContent: 'space-around',
             alignSelf: 'center',
             marginTop: '5%',
-          }}>
+          }}
+        >
           <TouchableOpacity
             style={{
               width: 100,
@@ -223,8 +247,9 @@ class BillDetailScreen extends React.Component<Props, State> {
               backgroundColor: '#1de9b6',
               borderRadius: 10,
               marginHorizontal: '5%',
-            }}>
-            <Text style={{fontSize: 24, fontWeight: 'bold', color: 'white'}}>
+            }}
+          >
+            <Text style={{ fontSize: 24, fontWeight: 'bold', color: 'white' }}>
               Yes
             </Text>
           </TouchableOpacity>
@@ -238,23 +263,44 @@ class BillDetailScreen extends React.Component<Props, State> {
               backgroundColor: '#ff5252',
               marginHorizontal: '5%',
               borderRadius: 10,
-            }}>
-            <Text style={{fontSize: 24, fontWeight: 'bold', color: 'white'}}>
+            }}
+          >
+            <Text style={{ fontSize: 24, fontWeight: 'bold', color: 'white' }}>
               No
             </Text>
           </TouchableOpacity>
         </View>
 
-        <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-          <Text
-            style={{
-              fontSize: 15,
-              color: colors.darkGray,
-              fontWeight: '300',
-              marginBottom: '20%',
-            }}>
-            Comments Here
-          </Text>
+        <View style={{ flex: 1, marginTop: '5%', marginHorizontal: '5%' }}>
+          <CommentItem
+            image="https://ilga.gov/images/members/%7B370B1494-7F8F-48BC-BD66-4756E15442E1%7D.jpg"
+            comment="Telehealth is especially necessary during the pandemic when doctors don't have access to their parents. "
+            name="Representative Edgar Gonzales"
+          />
+          <CommentItem
+            image="https://scontent-ort2-2.xx.fbcdn.net/v/t1.0-9/101002973_2570520339867071_1869691803314159616_n.jpg?_nc_cat=100&_nc_sid=85a577&_nc_ohc=U_JsmQ5C9DYAX8pbCnh&_nc_ht=scontent-ort2-2.xx&oh=84bbd17915f6b271f57ca236f66589af&oe=5F4238F5"
+            comment="Doesn't this set a poor prescendent for people not going to their doctors? And rather defaulting to telehealth services"
+            name="Pranav Putta"
+            indent={1}
+          />
+          <CommentItem
+            image="https://ilga.gov/images/members/%7B370B1494-7F8F-48BC-BD66-4756E15442E1%7D.jpg"
+            comment="Actually, I think this is an extremely benefitial precedent to set because it allows us to make an industry wide standard that we want to encourage pepole who don't generally have immediate access to healthcare to be able to fully take advantage of telehealth services!"
+            name="Representative Edgar Gonzales"
+            indent={1}
+          />
+          <CommentItem
+            image="https://scontent-ort2-2.xx.fbcdn.net/v/t1.0-9/101002973_2570520339867071_1869691803314159616_n.jpg?_nc_cat=100&_nc_sid=85a577&_nc_ohc=U_JsmQ5C9DYAX8pbCnh&_nc_ht=scontent-ort2-2.xx&oh=84bbd17915f6b271f57ca236f66589af&oe=5F4238F5"
+            comment="Thank you so much for the feedback!"
+            name="Pranav Putta"
+            indent={1}
+          />
+          <CommentItem
+            image="https://ilga.gov/images/members/%7B370B1494-7F8F-48BC-BD66-4756E15442E1%7D.jpg"
+            comment="Glad to be of assistance!"
+            name="Edgar Gonzales"
+            indent={1}
+          />
         </View>
       </View>
     );
@@ -282,19 +328,21 @@ class BillDetailScreen extends React.Component<Props, State> {
 
   // called when tab { 'info', 'voting', 'research' } is clicked
   onTabPress = (key: string) => {
-    this.setState({activeTab: key});
+    this.setState({ activeTab: key });
   };
 
   // generate the close button
   backButton = () => {
     return (
       <Animated.View
-        style={[styles.backButton, {opacity: this.state.animation}]}>
+        style={[styles.backButton, { opacity: this.state.animation }]}
+      >
         <TouchableOpacity
           style={styles.backButtonTouchable}
           onPress={() => {
             this.collapse();
-          }}>
+          }}
+        >
           <Icon size={26} name="close" type="evilicon" color="black" />
         </TouchableOpacity>
       </Animated.View>
@@ -333,17 +381,20 @@ class BillDetailScreen extends React.Component<Props, State> {
               marginTop: this.screenMarginTop,
               borderRadius: this.borderRadius,
             },
-          ]}>
+          ]}
+        >
           <StatusBar barStyle="light-content" />
+
+          {this.currentTabPage(this.props.item)}
+          {this.backButton()}
           <BillFloatingTabs
             current={this.state.activeTab}
+            height={this.tabBarHeight}
             opacity={this.tabBarOpacity}
             itemColor={this.props.item.categoryColor}
             itemTextColor={this.props.item.categoryTextColor}
             onTabPress={this.onTabPress}
           />
-          {this.currentTabPage(this.props.item)}
-          {this.backButton()}
         </Animated.View>
       );
     } else {
@@ -365,7 +416,7 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    flex: 4,
+    flex: 1,
   },
   image: {
     width: '100%',
@@ -374,16 +425,16 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 40,
   },
   content: {
-    margin: '5%',
     backgroundColor: 'white',
     borderRadius: 30,
     paddingVertical: '5%',
+    paddingBottom: '2%',
     paddingHorizontal: '7.5%',
-    flex: 6,
+    flex: 2,
     shadowColor: 'black',
     shadowOpacity: 0.5,
     shadowRadius: 15,
-    shadowOffset: {width: 0, height: 2.5},
+    shadowOffset: { width: 0, height: 2.5 },
   },
   number: {
     fontFamily: 'Roboto-Light',
@@ -410,7 +461,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: '4%',
     borderRadius: 20,
   },
-  categoryText: {color: 'white', fontWeight: 'bold'},
+  categoryText: { color: 'white', fontWeight: 'bold' },
   header: {
     fontSize: 16,
     fontWeight: 'bold',
@@ -443,7 +494,7 @@ const styles = StyleSheet.create({
   voteButton: {
     position: 'absolute',
     right: '7%',
-    bottom: '14%',
+    bottom: '3%',
     padding: '4%',
     justifyContent: 'center',
     alignItems: 'center',

@@ -1,7 +1,7 @@
 import React from 'react';
-import {Animated, StyleSheet} from 'react-native';
+import { Animated, StyleSheet, View } from 'react-native';
 import TabBarItem from './TabBarItem';
-import {colors} from '../assets/';
+import { colors } from '../assets/';
 
 export enum BillFloatingTabKey {
   info = 'info',
@@ -15,6 +15,7 @@ type State = {
 
 type Props = {
   current: string;
+  height: Animated.AnimatedInterpolation;
   opacity: Animated.AnimatedInterpolation;
   itemColor: string;
   itemTextColor: string;
@@ -23,7 +24,7 @@ type Props = {
 
 class BillFloatingTabs extends React.Component<Props, State> {
   onTabPress = (key: string) => {
-    this.setState({active: key});
+    this.setState({ active: key });
     this.props.onTabPress(key);
   };
 
@@ -40,37 +41,44 @@ class BillFloatingTabs extends React.Component<Props, State> {
       this.onTabPress(this.props.current);
     }
     return (
-      <Animated.View style={[styles.container, {opacity: this.props.opacity}]}>
-        <TabBarItem
-          icon={{name: 'info', type: 'feather'}}
-          tkey={BillFloatingTabKey.info}
-          active={this.state.active}
-          onPress={this.onTabPress}
-          width={50}
-          color={this.props.itemColor}
-          textColor={this.props.itemTextColor}
-          label="Info"
-        />
-        <TabBarItem
-          icon={{name: 'vote', type: 'material-community'}}
-          tkey={BillFloatingTabKey.voting}
-          active={this.state.active}
-          onPress={this.onTabPress}
-          width={70}
-          color={this.props.itemColor}
-          textColor={this.props.itemTextColor}
-          label="Voting"
-        />
-        <TabBarItem
-          icon={{name: 'book-open', type: 'feather'}}
-          tkey={BillFloatingTabKey.research}
-          active={this.state.active}
-          onPress={this.onTabPress}
-          width={70}
-          color={this.props.itemColor}
-          textColor={this.props.itemTextColor}
-          label="Research"
-        />
+      <Animated.View
+        style={[
+          styles.container,
+          { height: this.props.height, opacity: this.props.opacity },
+        ]}
+      >
+        <View style={styles.tabContainer}>
+          <TabBarItem
+            icon={{ name: 'info', type: 'feather' }}
+            tkey={BillFloatingTabKey.info}
+            active={this.state.active}
+            onPress={this.onTabPress}
+            width={50}
+            color={this.props.itemColor}
+            textColor={this.props.itemTextColor}
+            label="Info"
+          />
+          <TabBarItem
+            icon={{ name: 'vote', type: 'material-community' }}
+            tkey={BillFloatingTabKey.voting}
+            active={this.state.active}
+            onPress={this.onTabPress}
+            width={70}
+            color={this.props.itemColor}
+            textColor={this.props.itemTextColor}
+            label="Voting"
+          />
+          <TabBarItem
+            icon={{ name: 'book-open', type: 'feather' }}
+            tkey={BillFloatingTabKey.research}
+            active={this.state.active}
+            onPress={this.onTabPress}
+            width={70}
+            color={this.props.itemColor}
+            textColor={this.props.itemTextColor}
+            label="Research"
+          />
+        </View>
       </Animated.View>
     );
   }
@@ -78,20 +86,24 @@ class BillFloatingTabs extends React.Component<Props, State> {
 
 const styles = StyleSheet.create({
   container: {
-    position: 'absolute',
-    width: '90%',
-    height: '7%',
-    bottom: '5%',
+    //width: '90%',
+    width: '100%',
+    height: '8%',
+    bottom: '0%',
     zIndex: 100,
     alignSelf: 'center',
     shadowColor: 'gray',
-    shadowOffset: {width: 0, height: 3},
+    shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.3,
     shadowRadius: 5,
-    borderRadius: 40,
     backgroundColor: 'white',
+  },
+  tabContainer: {
+    flex: 1,
     flexDirection: 'row',
     justifyContent: 'space-evenly',
+    alignContent: 'center',
+    marginBottom: '1.5%',
   },
 });
 

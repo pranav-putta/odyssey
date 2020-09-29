@@ -1,19 +1,20 @@
-import React from 'react';
-import {View, StatusBar, StyleSheet, Alert} from 'react-native';
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import BillScreen from './bill/BillScreen';
-import DiscussionScreen from './community/DiscussionScreen';
-import TabBar, {TabKey} from '../../components/TabBar';
-import {TabRouter} from '@react-navigation/native';
-import BillListScreen from './bill/BillScreen';
-import ProfileScreen from './profile/ProfileScreen';
-import {StackNavigationProp} from '@react-navigation/stack';
+import React from "react";
+import { View, StatusBar, StyleSheet, Alert } from "react-native";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import BillScreen from "./bill/BillScreen";
+import DiscussionScreen from "./community/CommunityScreen";
+import TabBar, { TabKey } from "../../components/TabBar";
+import { TabRouter } from "@react-navigation/native";
+import BillListScreen from "./bill/BillScreen";
+import ProfileScreen from "./profile/ProfileScreen";
+import CommunityScreen from "./community/CommunityScreen";
+import { StackNavigationProp } from "@react-navigation/stack";
 
 type State = {
   showTabs: boolean;
   current: string;
 };
-type Props = {navigation: StackNavigationProp<any, any>};
+type Props = { navigation: StackNavigationProp<any, any> };
 
 const Tab = createBottomTabNavigator();
 class HomeScreen extends React.Component<Props, State> {
@@ -27,7 +28,7 @@ class HomeScreen extends React.Component<Props, State> {
   }
 
   tabPressed = (tab: string) => {
-    this.setState({current: tab});
+    this.setState({ current: tab });
   };
 
   currentScreen = () => {
@@ -37,13 +38,16 @@ class HomeScreen extends React.Component<Props, State> {
           <BillListScreen
             navigation={this.props.navigation}
             toggleTabs={() => {
-              this.setState({showTabs: !this.state.showTabs});
+              this.setState({ showTabs: !this.state.showTabs });
             }}
           />
         );
       }
       case TabKey.profile: {
         return <ProfileScreen navigation={this.props.navigation} />;
+      }
+      case TabKey.community: {
+        return <CommunityScreen />;
       }
       default: {
         return <View></View>;

@@ -1,13 +1,13 @@
-import React, {createRef} from 'react';
-import {View, Text, StyleSheet, Alert} from 'react-native';
-import {colors} from '../../../../assets';
-import {Image} from 'react-native-animatable';
-import {TouchableWithoutFeedback} from 'react-native-gesture-handler';
+import React, { createRef } from 'react';
+import { View, Text, StyleSheet, Alert } from 'react-native';
+import { colors } from '../../../../assets';
+import { Image } from 'react-native-animatable';
+import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import BillItem from './BillItem';
-import {SharedElement} from 'react-navigation-shared-element';
+import { SharedElement } from 'react-navigation-shared-element';
 import TouchableScale from 'react-native-touchable-scale';
-import {Measure} from '../BillDetailScreen';
-import {Icon} from 'react-native-elements';
+import { Measure } from '../BillDetailScreen';
+import { Icon } from 'react-native-elements';
 type State = {};
 
 type Props = {
@@ -24,7 +24,7 @@ const BillSmallCard = (item: Props) => {
       <TouchableWithoutFeedback
         style={[
           styles.touchableContainer,
-          {backgroundColor: item.item.bgColor},
+          { backgroundColor: item.item.bgColor },
         ]}
         onPress={() => {
           ref.current?.measureInWindow((x, y, w, h) => {
@@ -35,10 +35,12 @@ const BillSmallCard = (item: Props) => {
               height: h,
             });
           });
-        }}>
+        }}
+      >
         <SharedElement
           style={styles.imageContainer}
-          id={`item.${item.item.id}.photo`}>
+          id={`item.${item.item.id}.photo`}
+        >
           <Image style={styles.image} source={item.item.image} />
         </SharedElement>
         <View style={styles.content}>
@@ -48,13 +50,15 @@ const BillSmallCard = (item: Props) => {
             <View
               style={[
                 styles.category,
-                {backgroundColor: item.item.categoryColor},
-              ]}>
+                { backgroundColor: item.item.categoryColor },
+              ]}
+            >
               <Text
                 style={[
                   styles.categoryText,
-                  {color: item.item.categoryTextColor},
-                ]}>
+                  { color: item.item.categoryTextColor },
+                ]}
+              >
                 {item.item.category}
               </Text>
             </View>
@@ -72,7 +76,7 @@ const BillSmallCard = (item: Props) => {
 const styles = StyleSheet.create({
   container: {
     width: '98%',
-    height: '75%',
+    height: '80%',
     marginTop: '5%',
     alignSelf: 'center',
   },
@@ -84,13 +88,13 @@ const styles = StyleSheet.create({
     shadowColor: 'black',
     shadowOpacity: 0,
     shadowRadius: 5,
-    shadowOffset: {width: 0, height: 4},
+    shadowOffset: { width: 0, height: 4 },
   },
   imageContainer: {
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    flex: 4,
+    flex: 1,
   },
   image: {
     width: '100%',
@@ -104,11 +108,11 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     paddingVertical: '5%',
     paddingHorizontal: '7.5%',
-    flex: 6,
+    flex: 2,
     shadowColor: 'black',
     shadowOpacity: 0.5,
     shadowRadius: 15,
-    shadowOffset: {width: 0, height: 0},
+    shadowOffset: { width: 0, height: 0 },
   },
   number: {
     fontFamily: 'Roboto-Light',
