@@ -18,6 +18,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import BillDetailScreen, { Measure } from './BillDetailScreen';
 import TouchableScale from 'react-native-touchable-scale';
 import RepExpandedCard from './components/RepExpandedCard';
+import { Icon } from 'react-native-elements';
 
 enum BillTabKey {
   new = 'new',
@@ -221,6 +222,7 @@ class FeedScreen extends React.Component<Props, State> {
     image: string;
     phoneNumber: string;
     address: string;
+    title: string;
   }) => {
     return (
       <TouchableScale
@@ -237,15 +239,54 @@ class FeedScreen extends React.Component<Props, State> {
           this.setState({ repSelected: true });
         }}
       >
-        <Image
-          style={styles.repcardImage}
-          source={{
-            uri: props.image,
-          }}
-        />
-        <Text numberOfLines={1} style={styles.repcardText}>
-          {props.name}
-        </Text>
+        <View style={{ flexDirection: 'row' }}>
+          <Image
+            style={styles.repcardImage}
+            source={{
+              uri: props.image,
+            }}
+          />
+          <View
+            style={{
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              alignSelf: 'flex-end',
+              marginLeft: '5%',
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: 'Roboto',
+                fontSize: 17,
+                fontWeight: 'bold',
+                color: 'black',
+              }}
+            >
+              {props.title}
+            </Text>
+            <Text
+              numberOfLines={1}
+              style={{
+                fontFamily: 'Roboto',
+                fontWeight: 'normal',
+                color: 'black',
+              }}
+            >
+              {props.name}
+            </Text>
+          </View>
+          <Icon
+            type={'feather'}
+            name={'send'}
+            color={'black'}
+            size={20}
+            containerStyle={{
+              flex: 1,
+              alignSelf: 'center',
+            }}
+            style={{ alignSelf: 'flex-end' }}
+          />
+        </View>
       </TouchableScale>
     );
   };
@@ -263,37 +304,33 @@ class FeedScreen extends React.Component<Props, State> {
         <Text style={styles.discover}>Discover</Text>
         <View
           style={{
-            marginHorizontal: '8%',
-            marginBottom: '4%',
-            padding: '4%',
+            marginTop: '2%',
+            marginBottom: '6%',
+            paddingHorizontal: '4%',
             borderRadius: 10,
-            flexDirection: 'row',
+            flexDirection: 'column',
           }}
         >
-          <View style={{ flex: 1, alignItems: 'center' }}>
-            <Text style={styles.discoverCaption}>My Rep</Text>
-            <View style={{ flexDirection: 'row' }}>
-              {this.RepCard({
-                name: 'Michelle Mussman',
-                image:
-                  'https://ilga.gov/images/members/%7B63BBD5DE-333E-4015-8658-4F7B2D45E1B7%7D.jpg',
-                address: `257-S Stratton Office Building
+          <View style={{ flexDirection: 'row' }}>
+            {this.RepCard({
+              name: 'Michelle Mussman',
+              image:
+                'https://ilga.gov/images/members/%7B63BBD5DE-333E-4015-8658-4F7B2D45E1B7%7D.jpg',
+              address: `257-S Stratton Office Building
                   Springfield, IL   62706`,
-                phoneNumber: '(217) 782-3725',
-              })}
-            </View>
+              phoneNumber: '(217) 782-3725',
+              title: 'My Representative',
+            })}
           </View>
-          <View style={{ flex: 1, alignItems: 'center' }}>
-            <Text style={styles.discoverCaption}>My Senator</Text>
-            <View style={{ flexDirection: 'row' }}>
-              {this.RepCard({
-                name: 'Rachelle Crowe',
-                image:
-                  'https://ilga.gov/images/members/%7B05406617-A6A5-4533-852E-04678B860D88%7D.jpg',
-                phoneNumber: '(217) 782-5247',
-                address: `Senator 56th District \n311B Capitol Building Springfield, IL 62706`,
-              })}
-            </View>
+          <View style={{ flexDirection: 'row' }}>
+            {this.RepCard({
+              name: 'Rachelle Crowe',
+              image:
+                'https://ilga.gov/images/members/%7B05406617-A6A5-4533-852E-04678B860D88%7D.jpg',
+              phoneNumber: '(217) 782-5247',
+              address: `Senator 56th District \n311B Capitol Building Springfield, IL 62706`,
+              title: 'My Senator',
+            })}
           </View>
         </View>
         {this.tabBar()}
@@ -381,7 +418,7 @@ const styles = StyleSheet.create({
   },
   topTabs: {
     flexDirection: 'row',
-    paddingHorizontal: '10%',
+    alignSelf: 'center',
     marginBottom: '0.5%',
   },
   helloText: {
@@ -390,11 +427,12 @@ const styles = StyleSheet.create({
   },
   nameText: { fontSize: 18, fontWeight: 'bold' },
   discover: {
-    fontSize: 40,
+    fontSize: 30,
     fontFamily: 'Futura',
     fontWeight: '500',
-    textAlign: 'center',
-    marginTop: '2.5%',
+    textAlign: 'left',
+    marginTop: '0%',
+    marginLeft: '10%',
   },
   discoverCaption: {
     marginTop: '3%',
@@ -403,32 +441,32 @@ const styles = StyleSheet.create({
     fontWeight: '400',
   },
   repcard: {
-    padding: 10,
-    backgroundColor: colors.textInputBackground,
-    justifyContent: 'space-between',
+    padding: 5,
+    flexDirection: 'row',
     width: '100%',
     alignItems: 'center',
-    borderRadius: 15,
+    borderRadius: 10,
     flex: 1,
-    marginHorizontal: 10,
+    marginHorizontal: '5%',
     marginTop: 5,
+    /*
     shadowColor: 'black',
     shadowRadius: 2.5,
     shadowOpacity: 0.15,
-    shadowOffset: { width: 0, height: 0 },
+    shadowOffset: { width: 0, height: 0 },*/
   },
   repcardImage: {
     width: 50,
     height: 50,
-    borderRadius: 40,
+    borderRadius: 10,
     resizeMode: 'cover',
   },
   repcardText: {
     fontSize: 12,
-    marginTop: 10,
-    fontWeight: '500',
+    fontWeight: '300',
     fontFamily: 'Roboto-Thin',
-    textAlign: 'center',
+    textAlign: 'left',
+    color: 'white',
   },
 });
 

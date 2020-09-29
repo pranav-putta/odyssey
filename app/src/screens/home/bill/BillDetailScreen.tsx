@@ -8,6 +8,7 @@ import {
   ScrollView,
   Dimensions,
   StatusBar,
+  Platform,
 } from 'react-native';
 import { colors } from '../../../assets';
 import { Image } from 'react-native-animatable';
@@ -383,7 +384,9 @@ class BillDetailScreen extends React.Component<Props, State> {
             },
           ]}
         >
-          <StatusBar barStyle="light-content" />
+          {Platform.select({
+            ios: <StatusBar barStyle="light-content" />,
+          })}
 
           {this.currentTabPage(this.props.item)}
           {this.backButton()}

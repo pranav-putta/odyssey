@@ -1,14 +1,14 @@
-import React from "react";
-import { View, StatusBar, StyleSheet, Alert } from "react-native";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import BillScreen from "./bill/BillScreen";
-import DiscussionScreen from "./community/CommunityScreen";
-import TabBar, { TabKey } from "../../components/TabBar";
-import { TabRouter } from "@react-navigation/native";
-import BillListScreen from "./bill/BillScreen";
-import ProfileScreen from "./profile/ProfileScreen";
-import CommunityScreen from "./community/CommunityScreen";
-import { StackNavigationProp } from "@react-navigation/stack";
+import React from 'react';
+import { View, StatusBar, StyleSheet, Alert, Platform } from 'react-native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import BillScreen from './bill/BillScreen';
+import DiscussionScreen from './community/CommunityScreen';
+import TabBar, { TabKey } from '../../components/TabBar';
+import { TabRouter } from '@react-navigation/native';
+import BillListScreen from './bill/BillScreen';
+import ProfileScreen from './profile/ProfileScreen';
+import CommunityScreen from './community/CommunityScreen';
+import { StackNavigationProp } from '@react-navigation/stack';
 
 type State = {
   showTabs: boolean;
@@ -58,6 +58,15 @@ class HomeScreen extends React.Component<Props, State> {
   render() {
     return (
       <View style={styles.container}>
+        {Platform.select({
+          ios: (
+            <StatusBar
+              barStyle={'dark-content'}
+              hidden={false}
+              translucent={true}
+            />
+          ),
+        })}
         <TabBar
           show={this.state.showTabs}
           current={this.state.current}

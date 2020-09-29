@@ -111,7 +111,7 @@ class TabBar extends React.Component<TabBarProps, TabBarState> {
           width={50}
           color={colors.tabs.profile.color}
           textColor={colors.tabs.profile.text}
-          label="Profile"
+          label="Me"
         />
       </Animated.View>
     );

@@ -12,12 +12,14 @@ import {
   Alert,
   KeyboardEvent,
   EmitterSubscription,
+  Platform,
 } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import { colors, globalStyles, texts, storage } from '../../assets';
 import { Icon } from 'react-native-elements';
 import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
 import functions from '@react-native-firebase/functions';
+import firebase from '@react-native-firebase/app';
 import ViewPager from '@react-native-community/viewpager';
 import { StackNavigationProp } from '@react-navigation/stack';
 import ProgressHUD from '../../components/ProgressHUD';
@@ -239,10 +241,23 @@ class LoginScreen extends React.Component<Props, State> {
   };
 
   // call sign in with phone number
-  handleSignIn = () => {
+  handleSignIn = async () => {
     // show progress dialog
     Keyboard.dismiss();
     this.toggleProgress(true);
+
+    // initialize firebase
+    const firebaseConfig = {
+      apiKey: 'AIzaSyDjxmRVGsp0-2lcjHafbZvYX05DY5WsOeg',
+      authDomain: 'project-domino-8b97e.firebaseapp.com',
+      databaseURL: 'https://project-domino-8b97e.firebaseio.com',
+      projectId: 'project-domino-8b97e',
+      storageBucket: 'project-domino-8b97e.appspot.com',
+      messagingSenderId: '311797979253',
+      appId: '1:311797979253:web:8fa891e4ef888d940cc03c',
+      measurementId: 'G-VNCCJM9ZV2',
+    };
+    await firebase.initializeApp(firebaseConfig);
 
     auth()
       .signInWithPhoneNumber('+1' + this.state.phoneNumber)
@@ -380,7 +395,7 @@ class LoginScreen extends React.Component<Props, State> {
         style={[styles.progressCounter, { opacity: this.continueOpacity }]}
       >
         <Text style={{ fontSize: 20, fontWeight: 'bold' }}>
-          {this.state.currentPageProgress + 1}/5
+          {this.state.currentPageProgress + 1}/6
         </Text>
       </Animated.View>
     );
@@ -432,15 +447,7 @@ class LoginScreen extends React.Component<Props, State> {
             <TouchableOpacity
               style={[styles.finishButton]}
               onPress={() => {
-                const address =
-                  this.addressTextInput.current?.getAddressText() || '';
-                if (address.length > 0) {
-                  this.setState({ address: address }, () => {
-                    this.handleCreateUser();
-                  });
-                } else {
-                  Alert.alert('Enter a valid address.');
-                }
+                this.handleCreateUser();
               }}
             >
               <Text style={styles.continueButtonText}>Finish</Text>
@@ -654,7 +661,7 @@ class LoginScreen extends React.Component<Props, State> {
           />
         </Animated.View>
         {this.continueButton(() => {
-          if (this.state.age != -1) {
+          if (this.state.age > 0) {
             this.nextLoginFormPage();
           } else {
             Alert.alert('Enter a valid age.');
@@ -715,6 +722,30 @@ class LoginScreen extends React.Component<Props, State> {
           enablePoweredByContainer={false}
         />
         <View style={{ height: '60%' }} />
+        {this.continueButton(() => {
+          const address = this.addressTextInput.current?.getAddressText() || '';
+          if (address.length > 0) {
+            this.setState({ address: address }, () => {
+              this.nextLoginFormPage();
+            });
+          } else {
+            Alert.alert('Enter a valid address.');
+          }
+        })}
+      </Animated.View>
+    );
+  };
+
+  // topics of interest page
+  topicsPage = () => {
+    return (
+      <Animated.View style={styles.pageContainer}>
+        <Text style={styles.loginText}>Topics</Text>
+        <Text style={styles.ageCaptionText}>
+          Choose topics you find interesting.
+        </Text>
+
+        <View style={{ height: '60%' }} />
         {this.finishButton()}
       </Animated.View>
     );
@@ -724,13 +755,17 @@ class LoginScreen extends React.Component<Props, State> {
     return (
       <View style={styles.container}>
         <ProgressHUD visible={this.state.showProgress} />
-        <StatusBar
-          barStyle={
-            this.state.hasLoginStarted ? 'dark-content' : 'light-content'
-          }
-          hidden={false}
-          translucent={true}
-        />
+        {Platform.select({
+          ios: (
+            <StatusBar
+              barStyle={
+                this.state.hasLoginStarted ? 'dark-content' : 'light-content'
+              }
+              hidden={false}
+              translucent={true}
+            />
+          ),
+        })}
 
         <this.AnimatableImage
           animation="lightSpeedIn"
@@ -745,7 +780,7 @@ class LoginScreen extends React.Component<Props, State> {
           iterationCount={1}
           style={styles.dominoText}
         >
-          Domino
+          Odyssey
         </Animatable.Text>
         <Animatable.Text
           animation="fadeIn"
@@ -786,6 +821,7 @@ class LoginScreen extends React.Component<Props, State> {
             {this.namePage()}
             {this.agePage()}
             {this.addressPage()}
+            {this.topicsPage()}
           </this.AnimatedViewPager>
         </this.AnimatableAnimatedView>
       </View>
@@ -841,11 +877,11 @@ const styles = StyleSheet.create({
     height: 50,
   },
   loginPhoneNumberIcon: {
-    width: '7.5%',
-    height: '100%',
-    resizeMode: 'center',
+    flex: 1,
+    height: '50%',
   },
   loginPhoneNumberTextInput: {
+    flex: 11,
     marginLeft: 10,
     fontSize: 18,
     color: 'black',

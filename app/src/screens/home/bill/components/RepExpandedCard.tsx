@@ -26,7 +26,6 @@ class RepExpandedCard extends React.Component<Props, State> {
         }}
         animationIn="zoomInUp"
         animationOut="fadeOut"
-        animationOutTiming={100}
       >
         <View style={styles.container}>
           <Image source={{ uri: this.props.info.image }} style={styles.image} />
