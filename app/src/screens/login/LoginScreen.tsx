@@ -27,6 +27,7 @@ import routes from '../../routes/routes';
 import AsyncStorage from '@react-native-community/async-storage';
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+import { GridList } from './components/GridList';
 
 // state type definitions
 type State = {
@@ -257,7 +258,7 @@ class LoginScreen extends React.Component<Props, State> {
       appId: '1:311797979253:web:8fa891e4ef888d940cc03c',
       measurementId: 'G-VNCCJM9ZV2',
     };
-    await firebase.initializeApp(firebaseConfig);
+    // await firebase.initializeApp(firebaseConfig);
 
     auth()
       .signInWithPhoneNumber('+1' + this.state.phoneNumber)
@@ -738,6 +739,12 @@ class LoginScreen extends React.Component<Props, State> {
 
   // topics of interest page
   topicsPage = () => {
+    type Topic = {
+      name: string;
+      color: string;
+      textColor: string;
+      image: string;
+    };
     return (
       <Animated.View style={styles.pageContainer}>
         <Text style={styles.loginText}>Topics</Text>
@@ -745,7 +752,68 @@ class LoginScreen extends React.Component<Props, State> {
           Choose topics you find interesting.
         </Text>
 
-        <View style={{ height: '60%' }} />
+        <GridList<Topic>
+          n={2}
+          data={[
+            {
+              name: 'Energy',
+              color: '#fff59d',
+              textColor: 'black',
+              image:
+                'https://www.iconfinder.com/data/icons/bitsies/128/Lightbulb-512.png',
+            },
+            {
+              name: 'Agriculture',
+              color: '#00e676',
+              textColor: 'white',
+              image:
+                'https://www.iconfinder.com/data/icons/avatars-xmas-giveaway/128/avocado_scream_avatar_food-512.png',
+            },
+          ]}
+          item={(data: Topic): React.ReactElement => {
+            return (
+              <View
+                style={{
+                  flex: 1,
+                  // TODO: change height to percent
+                  height: 150,
+                }}
+              >
+                <TouchableOpacity
+                  style={{
+                    backgroundColor: data.color,
+                    flex: 1,
+                    borderRadius: 10,
+                    margin: '5%',
+                    justifyContent: 'space-between',
+                    paddingVertical: '10%',
+                    alignItems: 'center',
+                    //borderWidth: 0.75,
+                    //borderColor: 'grey',
+                  }}
+                  onPress={() => {
+                    this.startLoginAnimation();
+                  }}
+                >
+                  <Image
+                    style={{ height: 70, width: 70 }}
+                    source={{ uri: data.image }}
+                  />
+                  <Text
+                    style={{
+                      bottom: 0,
+                      fontSize: 18,
+                      color: data.textColor,
+                      fontWeight: 'bold',
+                    }}
+                  >
+                    {data.name}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            );
+          }}
+        />
         {this.finishButton()}
       </Animated.View>
     );
@@ -839,7 +907,6 @@ const styles = StyleSheet.create({
     width: '2%',
     marginTop: '70%',
     marginLeft: '10%',
-    resizeMode: 'center',
     borderRadius: 20,
     padding: '10%',
   },
