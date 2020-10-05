@@ -20,7 +20,8 @@ class LaunchScreen extends React.Component<Props> {
           navigation.navigate(routes.home);
         } else {
           // user is not signed in
-          navigation.navigate(routes.login);
+          // TODO: BIG NONONONONONONO change pls
+          navigation.navigate(routes.home);
         }
       })
       .catch(() => {

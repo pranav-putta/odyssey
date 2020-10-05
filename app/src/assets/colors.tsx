@@ -20,7 +20,7 @@ export default {
 
   tabs: {
     bills: {color: 'rgb(187, 222, 251)', text: '#1565c0'},
-    community: {
+    search: {
       color: 'rgb(187, 222, 251)',
       text: '#1565c0',
     },

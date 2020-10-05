@@ -28,6 +28,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import { GridList } from './components/GridList';
+import { topics } from '../tmp/data';
 
 // state type definitions
 type State = {
@@ -57,6 +58,8 @@ type State = {
   uid: string;
   // show progress dialog
   showProgress: boolean;
+  // topic icons clicked
+  selectedTopics: { [name: string]: boolean };
 };
 
 type Props = {
@@ -112,6 +115,7 @@ class LoginScreen extends React.Component<Props, State> {
       uid: '',
       continueButtonY: new Animated.Value(this.CONTINUE_HEIGHT),
       showProgress: false,
+      selectedTopics: {},
     };
 
     // assign animation interpolations
@@ -344,6 +348,7 @@ class LoginScreen extends React.Component<Props, State> {
         name: this.state.name,
         age: this.state.age,
         address: this.state.address,
+        selectedTopics: this.state.selectedTopics,
       })
       .then((response) => {
         if (response.data.result) {
@@ -744,7 +749,9 @@ class LoginScreen extends React.Component<Props, State> {
       color: string;
       textColor: string;
       image: string;
+      clicked?: boolean;
     };
+
     return (
       <Animated.View style={styles.pageContainer}>
         <Text style={styles.loginText}>Topics</Text>
@@ -754,6 +761,7 @@ class LoginScreen extends React.Component<Props, State> {
 
         <GridList<Topic>
           n={2}
+          style={{ marginBottom: '15%' }}
           data={[
             {
               name: 'Energy',
@@ -763,14 +771,113 @@ class LoginScreen extends React.Component<Props, State> {
                 'https://www.iconfinder.com/data/icons/bitsies/128/Lightbulb-512.png',
             },
             {
+              name: 'Justice',
+              color: '#40c4ff',
+              textColor: 'white',
+              image:
+                'https://cdn4.iconfinder.com/data/icons/success-filloutline/64/law-scale-justice-judge-balance-512.png',
+            },
+            {
+              name: 'Economy',
+              color: '#1de9b6',
+              textColor: 'white',
+              image:
+                'https://cdn2.iconfinder.com/data/icons/business-and-economy/256/business_economic_finance_interprise_company_graph-512.png',
+            },
+            {
+              name: 'K-12',
+              color: '#ce93d8',
+              textColor: 'white',
+              image:
+                'https://cdn3.iconfinder.com/data/icons/education-and-school-8/48/School-512.png',
+            },
+            {
+              name: 'College',
+              color: '#ff8a80',
+              textColor: 'white',
+              image:
+                'https://cdn3.iconfinder.com/data/icons/higher-education-icon-set/256/diploma.png',
+            },
+            {
+              name: 'Healthcare',
+              color: '#ffb74d',
+              textColor: 'white',
+              image:
+                'https://cdn4.iconfinder.com/data/icons/coronavirus-color/64/hospital-building-nursing-healthcare-medical-512.png',
+            },
+            {
               name: 'Agriculture',
               color: '#00e676',
               textColor: 'white',
               image:
                 'https://www.iconfinder.com/data/icons/avatars-xmas-giveaway/128/avocado_scream_avatar_food-512.png',
             },
+            {
+              name: 'Infrastructure',
+              color: '#a1887f',
+              textColor: 'white',
+              image:
+                'https://cdn0.iconfinder.com/data/icons/city-elements-flaticon/64/river-bridge-architecture_and_city-architectonic-engineering-buildings-landscape-512.png',
+            },
+            {
+              name: 'Internal',
+              color: '#f44336',
+              textColor: 'white',
+              image:
+                'https://cdn0.iconfinder.com/data/icons/city-elements-flaticon/64/government-Government_buildings-embassy-building-country-architecture_and_city-buildings-512.png',
+            },
+            {
+              name: 'Commerce',
+              color: '#ffeb3b',
+              textColor: 'black',
+              image:
+                'https://cdn0.iconfinder.com/data/icons/city-elements-filledoutline-1/64/cafe-food_and_restaurant-commerce_and_shopping-architecture_and_city-coffee_shop-store-buildings-512.png',
+            },
+            {
+              name: 'Government',
+              color: '#4fc3f7',
+              textColor: 'white',
+              image:
+                'https://cdn2.iconfinder.com/data/icons/us-election-2020/60/057-political-supporters-512.png',
+            },
+            {
+              name: 'Taxes',
+              color: '#4e575c',
+              textColor: 'white',
+              image:
+                'https://cdn3.iconfinder.com/data/icons/fintech-icon/128/13_Tax-512.png',
+            },
+            {
+              name: 'Tech',
+              color: '#ba68c8',
+              textColor: 'white',
+              image:
+                'https://cdn2.iconfinder.com/data/icons/artificial-intelligence-6/64/ArtificialIntelligence12-512.png',
+            },
+            {
+              name: 'Utility',
+              color: '#1e88e5',
+              textColor: 'white',
+              image:
+                'https://cdn0.iconfinder.com/data/icons/city-elements-filledoutline-1/64/restroom-public_toilet-toilet-portable_toilet-portable-van-public-bathroom-architecture_and_city-512.png',
+            },
+            {
+              name: 'Pensions',
+              color: '#00e676',
+              textColor: 'white',
+              image:
+                'https://cdn1.iconfinder.com/data/icons/business-456/500/growing-512.png',
+            },
+            {
+              name: 'VA',
+              color: '#fbc02d',
+              textColor: 'black',
+              image:
+                'https://cdn3.iconfinder.com/data/icons/avatar-55/64/Soldier-avatar-occupation-profession-man-human-512.png',
+            },
           ]}
           item={(data: Topic): React.ReactElement => {
+            let clicked = this.state.selectedTopics[data.name] || false;
             return (
               <View
                 style={{
@@ -781,18 +888,22 @@ class LoginScreen extends React.Component<Props, State> {
               >
                 <TouchableOpacity
                   style={{
-                    backgroundColor: data.color,
+                    backgroundColor: clicked
+                      ? data.color
+                      : colors.textInputBackground,
                     flex: 1,
                     borderRadius: 10,
                     margin: '5%',
                     justifyContent: 'space-between',
                     paddingVertical: '10%',
                     alignItems: 'center',
-                    //borderWidth: 0.75,
-                    //borderColor: 'grey',
+                    borderWidth: clicked ? 0 : 0,
+                    borderColor: 'grey',
                   }}
                   onPress={() => {
-                    this.startLoginAnimation();
+                    let tmp = this.state.selectedTopics;
+                    tmp[data.name] = !(tmp[data.name] || false);
+                    this.setState({ selectedTopics: tmp });
                   }}
                 >
                   <Image
@@ -803,7 +914,7 @@ class LoginScreen extends React.Component<Props, State> {
                     style={{
                       bottom: 0,
                       fontSize: 18,
-                      color: data.textColor,
+                      color: clicked ? data.textColor : 'black',
                       fontWeight: 'bold',
                     }}
                   >

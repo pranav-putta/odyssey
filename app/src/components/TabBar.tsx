@@ -19,7 +19,7 @@ type TabBarProps = {
 // key enum for each tab
 export enum TabKey {
   bills = 'bills',
-  community = 'community',
+  search = 'search',
   profile = 'profile',
 }
 
@@ -94,14 +94,14 @@ class TabBar extends React.Component<TabBarProps, TabBarState> {
           label="Bills"
         />
         <TabBarItem
-          icon={{name: 'earth-outline', type: 'ionicon'}}
-          tkey={TabKey.community}
+          icon={{name: 'search', type: 'feather'}}
+          tkey={TabKey.search}
           active={this.state.active}
           onPress={this.onTabPress}
-          width={90}
-          color={colors.tabs.community.color}
-          textColor={colors.tabs.community.text}
-          label="Community"
+          width={70}
+          color={colors.tabs.search.color}
+          textColor={colors.tabs.search.text}
+          label="Search"
         />
         <TabBarItem
           icon={{name: 'user', type: 'feather'}}

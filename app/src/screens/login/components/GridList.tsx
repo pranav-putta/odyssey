@@ -1,11 +1,12 @@
 import { types } from '@babel/core';
 import React from 'react';
-import { View, StyleSheet, FlatList } from 'react-native';
+import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 
 interface Props<DataType> {
   item: (data: DataType) => React.ReactElement;
   data: DataType[];
   n: number;
+  style: any;
 }
 
 interface State {}
@@ -42,11 +43,13 @@ export class GridList<DataType> extends React.Component<
       newArr.push(this.props.data.splice(0, this.props.n));
     }
     return (
-      <View style={styles.container}>
-        {newArr.map((arr) => {
-          return <this.BlockRow data={arr} />;
-        })}
-      </View>
+      <ScrollView style={this.props.style}>
+        <View style={styles.container} key={'lol'}>
+          {newArr.map((arr) => {
+            return <this.BlockRow key={JSON.stringify(arr)} data={arr} />;
+          })}
+        </View>
+      </ScrollView>
     );
   }
 }

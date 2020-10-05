@@ -46,7 +46,7 @@ class HomeScreen extends React.Component<Props, State> {
       case TabKey.profile: {
         return <ProfileScreen navigation={this.props.navigation} />;
       }
-      case TabKey.community: {
+      case TabKey.search: {
         return <CommunityScreen />;
       }
       default: {

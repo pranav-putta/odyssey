@@ -21,6 +21,7 @@ import BillFloatingTabs, {
 import TouchableScale from 'react-native-touchable-scale';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CommentItem from './components/CommentItem';
+import { TextInput } from 'react-native-gesture-handler';
 
 export type Measure = {
   x: number;
@@ -36,12 +37,18 @@ type Props = {
   onStartClose: () => void;
   onExpanded: () => void;
 };
+enum Vote {
+  Yes,
+  No,
+  None,
+}
 type State = {
   expanded: boolean;
   animation: Animated.Value;
   numberLines: number | undefined;
   activeTab: string;
   showTabBar: boolean;
+  vote: Vote;
 };
 
 const width = Dimensions.get('screen').width;
@@ -57,6 +64,9 @@ class BillDetailScreen extends React.Component<Props, State> {
   tabBarOpacity: Animated.AnimatedInterpolation;
   borderRadius: Animated.AnimatedInterpolation;
 
+  yayAnimation: Animated.Value;
+  noAnimation: Animated.Value;
+
   AnimatedTouchableScale: Animated.AnimatedComponent<TouchableScale>;
 
   constructor(props: Props) {
@@ -66,8 +76,10 @@ class BillDetailScreen extends React.Component<Props, State> {
       expanded: false,
       animation: new Animated.Value(0),
       numberLines: 5,
-      activeTab: BillFloatingTabKey.info,
+      // TODO: change
+      activeTab: BillFloatingTabKey.voting,
       showTabBar: false,
+      vote: Vote.None,
     };
 
     this.screenWidth = this.state.animation.interpolate({
@@ -106,6 +118,9 @@ class BillDetailScreen extends React.Component<Props, State> {
       inputRange: [0, 1],
       outputRange: [40, 0],
     });
+
+    this.yayAnimation = new Animated.Value(0);
+    this.noAnimation = new Animated.Value(0);
 
     // generate animated components
     this.AnimatedTouchableScale = Animated.createAnimatedComponent(
@@ -149,6 +164,7 @@ class BillDetailScreen extends React.Component<Props, State> {
   infoPage = (item: BillItem) => {
     return (
       <View style={{ flex: 1 }}>
+        {this.closeButton()}
         <Animated.View
           style={[styles.voteButton, { opacity: this.state.animation }]}
         >
@@ -205,103 +221,268 @@ class BillDetailScreen extends React.Component<Props, State> {
     );
   };
 
-  // generate voting page
-  votingPage = () => {
+  comment = () => {
     return (
-      <View style={{ flex: 1, backgroundColor: 'white' }}>
-        <SafeAreaView />
-        <Text
-          style={{
-            alignSelf: 'center',
-            marginTop: '5%',
-            fontSize: 30,
-            fontWeight: 'bold',
-          }}
-        >
-          Vote
-        </Text>
-        <Text
-          style={{
-            alignSelf: 'center',
-            marginTop: '15%',
-            fontSize: 24,
-            fontWeight: 'bold',
-          }}
-        >
-          Do you support this bill?
-        </Text>
+      <View
+        style={{
+          borderRadius: 10,
+          marginTop: '2.5%',
+          padding: '5%',
+          paddingBottom: '2.5%',
+          borderWidth: 1,
+          borderColor: colors.textInputBackground,
+        }}
+      >
         <View
           style={{
             flexDirection: 'row',
-            justifyContent: 'space-around',
-            alignSelf: 'center',
-            marginTop: '5%',
+            alignItems: 'center',
           }}
         >
-          <TouchableOpacity
-            style={{
-              width: 100,
-              height: 50,
-              justifyContent: 'center',
-              alignItems: 'center',
-              padding: '2.5%',
-              backgroundColor: '#1de9b6',
-              borderRadius: 10,
-              marginHorizontal: '5%',
+          <Image
+            style={{ width: 40, height: 40, borderRadius: 40 }}
+            source={{
+              uri:
+                'https://ilhousedems.com/wp-content/uploads/2020/02/Gonzalez.jpg',
             }}
+          />
+          <View
+            style={{ marginHorizontal: 10, justifyContent: 'space-between' }}
           >
-            <Text style={{ fontSize: 24, fontWeight: 'bold', color: 'white' }}>
-              Yes
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
+            <Text style={{ fontWeight: 'bold' }}>Edgar Gonzales</Text>
+            <Text>September 4, 2020</Text>
+          </View>
+          <View
             style={{
-              width: 100,
-              height: 50,
-              justifyContent: 'center',
-              alignItems: 'center',
-              padding: '2.5%',
               backgroundColor: '#ff5252',
-              marginHorizontal: '5%',
-              borderRadius: 10,
+              margin: '2.5%',
+              position: 'absolute',
+              justifyContent: 'center',
+              alignItems: 'center',
+              right: 0,
+              borderRadius: 5,
             }}
           >
-            <Text style={{ fontSize: 24, fontWeight: 'bold', color: 'white' }}>
-              No
-            </Text>
+            <Text style={{ color: 'white', fontWeight: 'bold' }}>Against</Text>
+          </View>
+        </View>
+        <Text style={{ padding: '2.5%' }}>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla
+          ultricies lorem ac pellentesque dignissim.
+        </Text>
+        <View>
+          <TouchableOpacity
+            style={{
+              marginHorizontal: '2.5%',
+              width: 50,
+              padding: 5,
+              //backgroundColor: '#cfd8dc',
+              borderRadius: 5,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <Icon name="like2" type="antdesign" size={18} color="black" />
+            <Text>10</Text>
           </TouchableOpacity>
         </View>
+      </View>
+    );
+  };
 
-        <View style={{ flex: 1, marginTop: '5%', marginHorizontal: '5%' }}>
-          <CommentItem
-            image="https://ilga.gov/images/members/%7B370B1494-7F8F-48BC-BD66-4756E15442E1%7D.jpg"
-            comment="Telehealth is especially necessary during the pandemic when doctors don't have access to their parents. "
-            name="Representative Edgar Gonzales"
+  // generate voting page
+  votingPage = () => {
+    const AnimatedTouchableOpacity = Animated.createAnimatedComponent(
+      TouchableOpacity
+    );
+
+    const animateVoting = (vote: Vote) => {
+      const current = this.state.vote;
+      const anim = vote == Vote.Yes ? this.yayAnimation : this.noAnimation;
+      if (current == vote) {
+        Animated.timing(anim, {
+          toValue: 0,
+          useNativeDriver: false,
+          duration: 250,
+        }).start();
+        this.setState({ vote: Vote.None });
+      } else if (current != vote) {
+        let yes = 1;
+        let no = 0;
+        if (vote == Vote.No) {
+          yes = 0;
+          no = 1;
+        }
+        Animated.parallel([
+          Animated.timing(this.yayAnimation, {
+            toValue: yes,
+            useNativeDriver: false,
+            duration: 250,
+          }),
+          Animated.timing(this.noAnimation, {
+            toValue: no,
+            useNativeDriver: false,
+            duration: 250,
+          }),
+        ]).start();
+        this.setState({ vote: vote });
+      } else if (current == Vote.None) {
+        Animated.timing(anim, {
+          toValue: 1,
+          useNativeDriver: false,
+          duration: 250,
+        }).start();
+        this.setState({ vote: vote });
+      }
+    };
+    return (
+      <View style={{ flex: 1, backgroundColor: 'white' }}>
+        <SafeAreaView />
+        <View style={{ flexDirection: 'row' }}>
+          <Animated.View
+            style={[styles.backButton, { opacity: this.state.animation }]}
+          >
+            <TouchableOpacity
+              style={styles.backButtonTouchable}
+              onPress={() => {
+                this.setState({ activeTab: BillFloatingTabKey.info });
+              }}
+            >
+              <Icon size={26} name="arrow-left" type="feather" color="black" />
+            </TouchableOpacity>
+          </Animated.View>
+
+          <Text
+            style={{
+              alignSelf: 'center',
+              fontSize: 30,
+              fontWeight: 'bold',
+            }}
+          >
+            Vote
+          </Text>
+        </View>
+
+        <View
+          style={{ marginHorizontal: '10%', marginTop: '5%', height: '72.5%' }}
+        >
+          <View
+            style={{
+              flexDirection: 'row',
+              borderRadius: 10,
+            }}
+          >
+            <AnimatedTouchableOpacity
+              style={{
+                flex: 1,
+                justifyContent: 'center',
+                alignItems: 'center',
+                padding: '10%',
+                backgroundColor: this.yayAnimation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [colors.textInputBackground, '#00e676'],
+                }),
+                borderTopLeftRadius: 10,
+                borderBottomLeftRadius: 10,
+              }}
+              onPress={() => {
+                animateVoting(Vote.Yes);
+              }}
+            >
+              <Animated.Text
+                style={{
+                  fontSize: 25,
+                  fontWeight: 'bold',
+                  color: this.yayAnimation.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: ['black', 'white'],
+                  }),
+                }}
+              >
+                Yes
+              </Animated.Text>
+            </AnimatedTouchableOpacity>
+            <View
+              style={{
+                height: '100%',
+                width: 0.5,
+              }}
+            />
+            <AnimatedTouchableOpacity
+              style={{
+                flex: 1,
+                justifyContent: 'center',
+                alignItems: 'center',
+                padding: '10%',
+                backgroundColor: this.noAnimation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [colors.textInputBackground, '#ff5252'],
+                }),
+                borderTopRightRadius: 10,
+                borderBottomRightRadius: 10,
+              }}
+              onPress={() => {
+                animateVoting(Vote.No);
+              }}
+            >
+              <Animated.Text
+                style={{
+                  fontSize: 25,
+                  fontWeight: 'bold',
+                  color: this.noAnimation.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: ['black', 'white'],
+                  }),
+                }}
+              >
+                No
+              </Animated.Text>
+            </AnimatedTouchableOpacity>
+          </View>
+          <Text style={{ marginTop: '5%', fontSize: 20, fontWeight: 'bold' }}>
+            Comments
+          </Text>
+          <ScrollView>
+            {this.comment()}
+            {this.comment()}
+          </ScrollView>
+        </View>
+        <View
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            width: '100%',
+            height: '12%',
+            backgroundColor: '#546e7a',
+            borderTopLeftRadius: 25,
+            borderTopRightRadius: 25,
+            padding: '5%',
+            alignItems: 'center',
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+          }}
+        >
+          <TextInput
+            placeholder="Write your opinion"
+            placeholderTextColor="#e0e0e0"
+            style={{ fontSize: 20, color: colors.textInputBackground }}
           />
-          <CommentItem
-            image="https://scontent-ort2-2.xx.fbcdn.net/v/t1.0-9/101002973_2570520339867071_1869691803314159616_n.jpg?_nc_cat=100&_nc_sid=85a577&_nc_ohc=U_JsmQ5C9DYAX8pbCnh&_nc_ht=scontent-ort2-2.xx&oh=84bbd17915f6b271f57ca236f66589af&oe=5F4238F5"
-            comment="Doesn't this set a poor prescendent for people not going to their doctors? And rather defaulting to telehealth services"
-            name="Pranav Putta"
-            indent={1}
-          />
-          <CommentItem
-            image="https://ilga.gov/images/members/%7B370B1494-7F8F-48BC-BD66-4756E15442E1%7D.jpg"
-            comment="Actually, I think this is an extremely benefitial precedent to set because it allows us to make an industry wide standard that we want to encourage pepole who don't generally have immediate access to healthcare to be able to fully take advantage of telehealth services!"
-            name="Representative Edgar Gonzales"
-            indent={1}
-          />
-          <CommentItem
-            image="https://scontent-ort2-2.xx.fbcdn.net/v/t1.0-9/101002973_2570520339867071_1869691803314159616_n.jpg?_nc_cat=100&_nc_sid=85a577&_nc_ohc=U_JsmQ5C9DYAX8pbCnh&_nc_ht=scontent-ort2-2.xx&oh=84bbd17915f6b271f57ca236f66589af&oe=5F4238F5"
-            comment="Thank you so much for the feedback!"
-            name="Pranav Putta"
-            indent={1}
-          />
-          <CommentItem
-            image="https://ilga.gov/images/members/%7B370B1494-7F8F-48BC-BD66-4756E15442E1%7D.jpg"
-            comment="Glad to be of assistance!"
-            name="Edgar Gonzales"
-            indent={1}
-          />
+          <TouchableOpacity
+            style={{
+              backgroundColor: '#2196f3',
+              padding: 7.5,
+              borderRadius: 30,
+            }}
+          >
+            <Icon
+              size={30}
+              name="arrow-right"
+              style={{ fontWeight: 'bold' }}
+              type="feather"
+              color="white"
+            />
+          </TouchableOpacity>
         </View>
       </View>
     );
@@ -321,9 +502,6 @@ class BillDetailScreen extends React.Component<Props, State> {
       case BillFloatingTabKey.voting: {
         return this.votingPage();
       }
-      case BillFloatingTabKey.research: {
-        return this.researchPage();
-      }
     }
   };
 
@@ -333,10 +511,10 @@ class BillDetailScreen extends React.Component<Props, State> {
   };
 
   // generate the close button
-  backButton = () => {
+  closeButton = () => {
     return (
       <Animated.View
-        style={[styles.backButton, { opacity: this.state.animation }]}
+        style={[styles.closeButton, { opacity: this.state.animation }]}
       >
         <TouchableOpacity
           style={styles.backButtonTouchable}
@@ -345,6 +523,23 @@ class BillDetailScreen extends React.Component<Props, State> {
           }}
         >
           <Icon size={26} name="close" type="evilicon" color="black" />
+        </TouchableOpacity>
+      </Animated.View>
+    );
+  };
+
+  backButton = () => {
+    return (
+      <Animated.View
+        style={[styles.backButton, { opacity: this.state.animation }]}
+      >
+        <TouchableOpacity
+          style={styles.backButtonTouchable}
+          onPress={() => {
+            this.setState({ activeTab: BillFloatingTabKey.info });
+          }}
+        >
+          <Icon size={26} name="arrow-left" type="feather" color="black" />
         </TouchableOpacity>
       </Animated.View>
     );
@@ -389,15 +584,6 @@ class BillDetailScreen extends React.Component<Props, State> {
           })}
 
           {this.currentTabPage(this.props.item)}
-          {this.backButton()}
-          <BillFloatingTabs
-            current={this.state.activeTab}
-            height={this.tabBarHeight}
-            opacity={this.tabBarOpacity}
-            itemColor={this.props.item.categoryColor}
-            itemTextColor={this.props.item.categoryTextColor}
-            onTabPress={this.onTabPress}
-          />
         </Animated.View>
       );
     } else {
@@ -429,7 +615,7 @@ const styles = StyleSheet.create({
   },
   content: {
     backgroundColor: 'white',
-    borderRadius: 30,
+    borderRadius: 20,
     paddingVertical: '5%',
     paddingBottom: '2%',
     paddingHorizontal: '7.5%',
@@ -479,20 +665,26 @@ const styles = StyleSheet.create({
     fontWeight: '200',
     fontFamily: 'Futura',
   },
-  backButton: {
+  closeButton: {
     position: 'absolute',
     width: 40,
     height: 40,
     right: '6%',
     top: '6%',
+    zIndex: 100,
+    backgroundColor: colors.textInputBackground,
+    borderRadius: 20,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    marginHorizontal: 20,
   },
   backButtonTouchable: {
-    backgroundColor: colors.textInputBackground,
     width: '100%',
     height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 20,
   },
   voteButton: {
     position: 'absolute',

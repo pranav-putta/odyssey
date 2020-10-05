@@ -68,16 +68,6 @@ class BillFloatingTabs extends React.Component<Props, State> {
             textColor={this.props.itemTextColor}
             label="Voting"
           />
-          <TabBarItem
-            icon={{ name: 'book-open', type: 'feather' }}
-            tkey={BillFloatingTabKey.research}
-            active={this.state.active}
-            onPress={this.onTabPress}
-            width={70}
-            color={this.props.itemColor}
-            textColor={this.props.itemTextColor}
-            label="Research"
-          />
         </View>
       </Animated.View>
     );
