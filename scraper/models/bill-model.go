@@ -72,16 +72,16 @@ type BillMetadata struct {
 
 // BillFullText stores the data from the full text html data
 type BillFullText struct {
-	URL      string `json:"url,omitempty"`
-	FullText string `json:"fullText,omitempty"`
+	URL      string `jsonb:"url,omitempty"`
+	FullText string `jsonb:"fullText,omitempty"`
 }
 
 // BillAction stores a single action event data
 type BillAction struct {
-	Date        int64
-	Chamber     string
-	Description string
-	Tag         Tag
+	Date        int64  `jsonb:"date,omitempty"`
+	Chamber     string `jsonb:"chamber,omitempty"`
+	Description string `jsonb:"description,omitempty"`
+	Tag         Tag    `jsonb:"tag,omitempty"`
 }
 
 // BillVoteEvent stores the voting outcome of a pdf
@@ -117,4 +117,3 @@ func (ba *BillAction) Scan(value interface{}) error {
 
 	return json.Unmarshal(b, &ba)
 }
-

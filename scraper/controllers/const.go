@@ -12,7 +12,11 @@ const (
 
 	// SenateBillsURL is the url to access the list of senate bills,
 	// formatted by general assembly number
-	SenateBillsURL string = "http://www.ilga.gov/legislation/grplist.asp?num1=1&num2=50&DocTypeID=SB&GA=%s&SessionId=108"
+	SenateBillsURL string = "http://www.ilga.gov/legislation/grplist.asp?num1=1&num2=10000&DocTypeID=SB&GA=%s&SessionId=108"
+
+	// SenateBillsURL is the url to access the list of senate bills,
+	// formatted by general assembly number
+	HouseBillsURL string = "http://www.ilga.gov/legislation/grplist.asp?num1=1&num2=10000&DocTypeID=HB&GA=%s&SessionId=108"
 
 	// RootURL is the base url of illinois general assembly website
 	RootURL string = "http://ilga.gov"

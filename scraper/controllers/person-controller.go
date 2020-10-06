@@ -21,8 +21,8 @@ import (
 // PersonCallback is a callback function that passes the collected Person struct
 type PersonCallback func(models.Person, error)
 
-// RefreshDatabase will scrape all senate and house data and upload all data to database
-func RefreshDatabase(assembly string) {
+// RefreshMembers will scrape all senate and house data and upload all data to database
+func RefreshMembers(assembly string) {
 	ScrapePeople(assembly, func(p models.Person, err error) {
 		e := db.InsertMember(p)
 		if e != nil {
@@ -63,7 +63,7 @@ func ScrapePeople(assembly string, callback PersonCallback) {
 	// wait for threads to finish
 	peopleCollector.Wait()
 	personDetailCollector.Wait()
-
+	db.Finish()
 }
 
 // collectPeople scrapes data from main link with list of members
@@ -77,7 +77,7 @@ func collectPeople(e *colly.HTMLElement, detailsCollector *colly.Collector, asse
 		chamber = "house"
 	}
 
-	for i := 0; i < rows.Length(); i += 5 {
+	for i := 0; i < 1; i += 5 {
 		// populate context with table information
 		ctx := colly.NewContext()
 		// td > a > text

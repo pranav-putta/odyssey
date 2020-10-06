@@ -6,23 +6,17 @@ package db
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"errors"
-	"fmt"
-	"log"
-	"time"
-
-	"cloud.google.com/go/firestore"
-	pq "github.com/lib/pq"
+	"github.com/jackc/pgx"
+	"github.com/lib/pq"
 	"pranavputta.me/oddysey/scraper/models"
+	"time"
 )
 
-var _client *firestore.Client
 var _ctx context.Context
-var _db *sql.DB
-var _billStmt *sql.Stmt
-var _membStmt *sql.Stmt
-var _txn *sql.Tx
+var _db *pgx.ConnPool
+var _tx *pgx.Tx
+var _batch *pgx.Batch
 
 // retrieves the context instance
 func ctx() context.Context {
@@ -33,66 +27,51 @@ func ctx() context.Context {
 	return _ctx
 }
 
-// dumpToMap takes a struct and flattens into map[string]interface{}
-func dumpMap(data interface{}) (map[string]interface{}, error) {
-	var out map[string]interface{}
-	// flatten struct into json data
-	res, err := json.Marshal(data)
-
-	if err != nil {
-		return nil, err
+// createPostgresClient generates a new connection to database
+func createPostgresClient() *pgx.ConnPool {
+	conf := pgx.ConnPoolConfig{
+		ConnConfig: pgx.ConnConfig{
+			Host:     DBHost,
+			Port:     DBPort,
+			User:     DBUser,
+			Password: DBPassword,
+			Database: DBName,
+		},
+		MaxConnections: 5,
 	}
-	// conver from json into map[string]interface{}
-	json.Unmarshal(res, &out)
-	return out, nil
-}
-
-// createPostgreSQLClient sets up an instance with google cloud sql postgresql
-func createPostgreSQLClient() *sql.DB {
-	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s "+
-		"password=%s dbname=%s sslmode=disable",
-		DBHost, DBPort, DBUser, DBPassword, DBName)
-	db, err := sql.Open("postgres", psqlInfo)
+	conn, err := pgx.NewConnPool(conf)
 	if err != nil {
 		panic(err)
 	}
-	err = db.Ping()
-	if err != nil {
-		panic(err)
-	}
-
-	db.SetMaxIdleConns(10)
-	db.SetMaxOpenConns(10)
-	db.SetConnMaxLifetime(0)
-
-	return db
+	return conn
 }
 
 // retrieve the client instance
-func postgreSQLClient() *sql.DB {
+func postgreSQLClient() *pgx.ConnPool {
 	if _db == nil {
-		_db = createPostgreSQLClient()
-		_txn, err := _db.Begin()
+		_db = createPostgresClient()
+
+		tx, err := _db.BeginEx(ctx(), nil)
+		_tx = tx
 		if err != nil {
 			panic(err)
 		}
-
-		_billStmt, _ = _txn.Prepare(pq.CopyIn("bills", "assembly", "chamber", "number", "title", "short_summary", "full_summary", "sponsor_ids", "house_primary_sponsor",
-			"senate_primary_sponsor", "chief_sponsor", "actions", "actions_hash", "url", "last_updated", "bill_text"))
-		_membStmt, _ = _txn.Prepare(pq.CopyIn("members", "name", "picture_url", "chamber", "district", "member_url", "contacts", "member_id", "party",
-			"general_assembly"))
+		_batch = _tx.BeginBatch()
 	}
-
 	return _db
+}
+
+func billBatch() *pgx.Batch {
+	if _db == nil || _batch == nil {
+		postgreSQLClient()
+	}
+	return _batch
 }
 
 // InsertMember inserts a new assembly member into the database
 func InsertMember(p models.Person) error {
 	// send to postgresql table
-	/*
-		var client = postgreSQLClient()
-
-		sql := `INSERT INTO members (name, picture_url, chamber, district, member_url, contacts, member_id, party, general_assembly)
+	query := `INSERT INTO members (name, picture_url, chamber, district, member_url, contacts, member_id, party, general_assembly)
 				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 				ON CONFLICT (member_id, chamber, general_assembly) DO UPDATE
 					SET name = $1,
@@ -103,24 +82,32 @@ func InsertMember(p models.Person) error {
 						contacts = $6,
 						member_id = $7,
 						party = $8,
-						general_assembly = $9;`*/
+						general_assembly = $9;`
 
-	_, err := _membStmt.Exec(p.Name, p.PictureURL, p.Chamber, p.District, p.URL, pq.Array(p.Contacts), p.MemberID, p.Party, p.GeneralAssembly)
-	return err
+	args := []interface{}{
+		p.Name,
+		p.PictureURL,
+		p.Chamber,
+		p.District,
+		p.URL,
+		p.Contacts,
+		p.MemberID,
+		p.Party,
+		p.GeneralAssembly}
+	billBatch().Queue(query, args, nil, nil)
+	return nil
 }
 
 // InsertBill inserts bill into postgresql
-func InsertBill(b models.Bill) error {
+func InsertBill(b models.Bill) {
 	// send to postgresql table
-	/*
-		var client = postgreSQLClient()
-
-		sql := `INSERT INTO bills (assembly, chamber, number, title, short_summary, full_summary,
+	query := `INSERT INTO bills (assembly, chamber, number, title, short_summary, full_summary,
 			sponsor_ids, house_primary_sponsor, senate_primary_sponsor, chief_sponsor, actions,
 			actions_hash, url, last_updated, bill_text)
 				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
-				ON CONFLICT (assembly, chamber, number) DO UPDATE
-					SET assembly = $1,
+				ON CONFLICT (assembly, chamber, number) 
+				DO 
+					UPDATE SET assembly = $1,
 						chamber = $2,
 						number = $3,
 						title = $4,
@@ -134,11 +121,29 @@ func InsertBill(b models.Bill) error {
 						actions_hash = $12,
 						url = $13,
 						last_updated = $14,
-						bill_text = $15;`*/
-	_, err := _billStmt.Exec(b.Metadata.Assembly, b.Metadata.Chamber, b.Metadata.Number,
-		b.Title, b.ShortSummary, b.FullSummary, pq.Array(b.SponsorIDs), b.HousePrimarySponsor,
-		b.SenatePrimarySponsor, b.ChiefSponsor, pq.Array(b.Actions), b.ActionsHash, b.Metadata.URL, time.Now().UnixNano()/1000000, b.BillText)
-	return err
+						bill_text = $15;`
+
+	args := []interface{}{
+		b.Metadata.Assembly,
+		b.Metadata.Chamber,
+		b.Metadata.Number,
+		b.Title,
+		b.ShortSummary,
+		b.FullSummary,
+		b.SponsorIDs,
+		b.HousePrimarySponsor,
+		b.SenatePrimarySponsor,
+		b.ChiefSponsor,
+		pq.Array(b.Actions),
+		b.ActionsHash,
+		b.Metadata.URL,
+		time.Now().UnixNano() / 1000000,
+		b.BillText,
+	}
+	_, err := postgreSQLClient().Exec(query, args...)
+	if err != nil {
+		panic(err)
+	}
 }
 
 // GetMember finds the row with the specified ga and member id
@@ -158,7 +163,7 @@ func GetMember(ga int, memberID int) (models.Person, error) {
 	var party string
 	var person models.Person
 
-	switch err := row.Scan(&name, &pictureURL, &chamber, &district, &memberURL, pq.Array(&contacts), &party); err {
+	switch err := row.Scan(&name, &pictureURL, &chamber, &district, &memberURL, &contacts, &party); err {
 	case sql.ErrNoRows:
 		return person, errors.New("no rows found")
 	case nil:
@@ -190,7 +195,7 @@ func GetBill(md models.BillMetadata) (bill models.Bill, err error) {
 
 	switch err := row.Scan(&bill.Metadata.Assembly, &bill.Metadata.Chamber, &bill.Metadata.Number, &bill.Title, &bill.ShortSummary, &bill.FullSummary,
 		&bill.HousePrimarySponsor, &bill.SenatePrimarySponsor, &bill.ChiefSponsor,
-		pq.Array(&bill.Actions), &bill.ActionsHash, &bill.Metadata.URL, &bill.BillText); err {
+		&bill.Actions, &bill.ActionsHash, &bill.Metadata.URL, &bill.BillText); err {
 	case sql.ErrNoRows:
 		return bill, errors.New("item not found")
 	case nil:
@@ -202,19 +207,5 @@ func GetBill(md models.BillMetadata) (bill models.Bill, err error) {
 
 // Finish commits everything to the database and closes conn
 func Finish() {
-	_, err := _billStmt.Exec()
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = _billStmt.Close()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = _txn.Commit()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	_db.Close()
+	postgreSQLClient().Close()
 }

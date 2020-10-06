@@ -14,6 +14,7 @@ require (
 	github.com/saintfish/chardet v0.0.0-20120816061221-3af4cd4741ca // indirect
 	github.com/temoto/robotstxt v1.1.1 // indirect
 	pranavputta.me/oddysey/scraper/controllers v0.0.0-00010101000000-000000000000
+	pranavputta.me/oddysey/scraper/db v0.0.0-00010101000000-000000000000
 )
 
 replace (
