@@ -19,6 +19,7 @@ import (
 )
 
 var x int
+var bills []models.Bill
 
 // BillCallback is a function to be called when bill information is retrieved
 type BillCallback func(models.Bill, error)
@@ -26,7 +27,7 @@ type BillCallback func(models.Bill, error)
 // RefreshBills
 func RefreshBills(url string, ga string) {
 	err := ScrapeBills(url, ga, func(b models.Bill, err error) {
-		db.InsertBill(b)
+		bills = append(bills, b)
 		x++
 		fmt.Printf("Done: Bill #%d, (%d)\n", b.Metadata.Number, x)
 	})
@@ -38,7 +39,8 @@ func RefreshBills(url string, ga string) {
 // ScrapeBills retrieves all bill data given the url of a list of bills from http://ilga.gov/
 func ScrapeBills(url string, ga string, callback BillCallback) error {
 	// bill details collector
-	billCollector := colly.NewCollector(colly.Async(true), colly.DetectCharset())
+	billCollector := colly.NewCollector(colly.Async(true), colly.DetectCharset(), colly.AllowURLRevisit())
+	billCollector.SetRequestTimeout(20 * time.Second)
 
 	// setup collectors
 	err := billCollector.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: 10})
@@ -47,6 +49,12 @@ func ScrapeBills(url string, ga string, callback BillCallback) error {
 	}
 	billCollector.OnHTML("body", func(e *colly.HTMLElement) {
 		onBillDetailsResponse(e, callback)
+	})
+	billCollector.OnError(func(response *colly.Response, err error) {
+		err = response.Request.Retry()
+		if err != nil {
+			panic(err)
+		}
 	})
 
 	// get bills document from provided url
@@ -75,6 +83,11 @@ func ScrapeBills(url string, ga string, callback BillCallback) error {
 	})
 	q.Run(billCollector)
 	billCollector.Wait()
+
+	for _, b := range bills {
+		db.InsertBill(b)
+	}
+
 	db.Finish()
 	fmt.Println("done!")
 	return nil

@@ -1,9 +1,13 @@
 import React from 'react';
-import {StyleSheet, View, Text, Alert} from 'react-native';
-import {StackNavigationProp} from '@react-navigation/stack';
+import { StyleSheet, View, Text, Alert } from 'react-native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-community/async-storage';
-import {globalStyles, storage} from '../../assets';
+import { globalStyles, storage } from '../../assets';
 import routes from '../../routes/routes';
+import functions from '@react-native-firebase/functions';
+import { fetchUser, storeUser, User } from '../../models';
+import app from '@react-native-firebase/app';
+import { findReps } from '../../apis';
 
 type Props = {
   navigation: StackNavigationProp<any, any>;
@@ -11,17 +15,21 @@ type Props = {
 
 class LaunchScreen extends React.Component<Props> {
   componentDidMount() {
-    const {navigation} = this.props;
+    //functions().useFunctionsEmulator("http://localhost:5001")
+    const { navigation } = this.props;
     // check if user is signed in
     AsyncStorage.getItem(storage.userSignedIn)
       .then((signedIn) => {
         if (signedIn && signedIn == 'true') {
-          // user is signed in
+          this.refresh()
+            .then(() => {})
+            .catch((err) => {
+              console.log(err);
+            });
           navigation.navigate(routes.home);
         } else {
           // user is not signed in
-          // TODO: BIG NONONONONONONO change pls
-          navigation.navigate(routes.home);
+          navigation.navigate(routes.login);
         }
       })
       .catch(() => {
@@ -30,10 +38,23 @@ class LaunchScreen extends React.Component<Props> {
       });
   }
 
+  refresh = async () => {
+    let out = await functions().httpsCallable('getReps')({
+      address: "261 dover circle, lake forest"
+    });
+    console.log(out.data);
+    /*
+    let user: User = data.data.result;
+    storeUser(user);
+    let reps = await findReps(user.address);*/
+  };
+
   render() {
     return (
       <View style={styles.container}>
-        <Text style={[globalStyles.headerText, styles.dominoText]}>Domino</Text>
+        <Text style={[globalStyles.headerText, styles.dominoText]}>
+          Odyssey
+        </Text>
         <Text style={[globalStyles.captionText, styles.createdText]}>
           Created by Pranav Putta, Sunny Gandhi, and Dylan Hu
         </Text>

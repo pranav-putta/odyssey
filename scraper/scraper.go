@@ -1,12 +1,13 @@
-package scraper
+package main
 
 import (
 	"fmt"
+	"net/http"
 	ody "pranavputta.me/oddysey/scraper/controllers"
 	"time"
 )
 
-func RefreshDatabase() {
+func RefreshDatabase(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()
 
 	ody.RefreshBills(ody.SenateBillsURL, "101")

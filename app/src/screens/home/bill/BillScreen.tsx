@@ -7,6 +7,7 @@ import {
   Dimensions,
   ScrollView,
   Alert,
+  RefreshControl,
 } from 'react-native';
 import { colors } from '../../../assets';
 import * as Animatable from 'react-native-animatable';
@@ -19,6 +20,7 @@ import BillDetailScreen, { Measure } from './BillDetailScreen';
 import TouchableScale from 'react-native-touchable-scale';
 import RepExpandedCard from './components/RepExpandedCard';
 import { Icon } from 'react-native-elements';
+import { fetchUser } from '../../../models';
 
 enum BillTabKey {
   new = 'new',
@@ -41,6 +43,8 @@ type State = {
     phoneNumber: string;
     address: string;
   };
+  refreshing: boolean;
+  loaded: boolean;
 };
 
 type Props = {
@@ -55,10 +59,15 @@ class FeedScreen extends React.Component<Props, State> {
   AnimatableImage: Animatable.AnimatableComponent<any, any>;
   billsRef = React.createRef<Carousel<Text>>();
 
+  componentDidMount() {
+  }
+
   constructor(props: any) {
     super(props);
 
     this.state = {
+      refreshing: false,
+      loaded: false,
       data: [
         {
           id: 'SB0022',
@@ -85,7 +94,7 @@ class FeedScreen extends React.Component<Props, State> {
           title: 'VEH CD-DEALER CAR SALES',
           category: 'Transportation',
           description: `Amends the Illinois Vehicle Code. Provides that the Act may be referred to as the Religious Equity Act. Allows for the sale of motor vehicles on any 6 days of the week chosen by the business owner (instead of on any day but Sunday). Makes conforming changes. Effective immediately.`,
-          bgColor: '#68d678',
+          bgColor: '#9eed99',
           categoryColor: '#68d67850',
           categoryTextColor: '#68d678',
           image: require('../../../assets/images/transport.png'),
@@ -291,50 +300,71 @@ class FeedScreen extends React.Component<Props, State> {
     );
   };
 
+  wait = (timeout: number) => {
+    return new Promise((resolve) => {
+      setTimeout(resolve, timeout);
+    });
+  };
+
   mainScreen = () => {
     return (
       <SafeAreaView style={{ flex: 1 }}>
-        <RepExpandedCard
-          visible={this.state.repSelected}
-          info={this.state.repSelectedInfo}
-          dismiss={() => {
-            this.setState({ repSelected: false });
-          }}
-        />
-        <Text style={styles.discover}>Discover</Text>
-        <View
-          style={{
-            marginTop: '2%',
-            marginBottom: '6%',
-            paddingHorizontal: '4%',
-            borderRadius: 10,
-            flexDirection: 'column',
-          }}
+        <ScrollView
+          contentContainerStyle={{ flex: 1 }}
+          refreshControl={
+            <RefreshControl
+              refreshing={this.state.refreshing}
+              onRefresh={() => {
+                this.setState({ refreshing: true });
+                this.wait(2000).then(() => {
+                  this.setState({ refreshing: false });
+                });
+              }}
+            />
+          }
         >
-          <View style={{ flexDirection: 'row' }}>
-            {this.RepCard({
-              name: 'Michelle Mussman',
-              image:
-                'https://ilga.gov/images/members/%7B63BBD5DE-333E-4015-8658-4F7B2D45E1B7%7D.jpg',
-              address: `257-S Stratton Office Building
+          <RepExpandedCard
+            visible={this.state.repSelected}
+            info={this.state.repSelectedInfo}
+            dismiss={() => {
+              this.setState({ repSelected: false });
+            }}
+          />
+          <Text style={styles.discover}>Discover</Text>
+          <View
+            style={{
+              marginTop: '2%',
+              marginBottom: '6%',
+              paddingHorizontal: '4%',
+              borderRadius: 10,
+              flexDirection: 'column',
+            }}
+          >
+            <View style={{ flexDirection: 'row' }}>
+              {this.RepCard({
+                name: 'Michelle Mussman',
+                image:
+                  'https://ilga.gov/images/members/%7B63BBD5DE-333E-4015-8658-4F7B2D45E1B7%7D.jpg',
+                address: `257-S Stratton Office Building
                   Springfield, IL   62706`,
-              phoneNumber: '(217) 782-3725',
-              title: 'My Representative',
-            })}
+                phoneNumber: '(217) 782-3725',
+                title: 'My Representative',
+              })}
+            </View>
+            <View style={{ flexDirection: 'row' }}>
+              {this.RepCard({
+                name: 'Rachelle Crowe',
+                image:
+                  'https://ilga.gov/images/members/%7B05406617-A6A5-4533-852E-04678B860D88%7D.jpg',
+                phoneNumber: '(217) 782-5247',
+                address: `Senator 56th District \n311B Capitol Building Springfield, IL 62706`,
+                title: 'My Senator',
+              })}
+            </View>
           </View>
-          <View style={{ flexDirection: 'row' }}>
-            {this.RepCard({
-              name: 'Rachelle Crowe',
-              image:
-                'https://ilga.gov/images/members/%7B05406617-A6A5-4533-852E-04678B860D88%7D.jpg',
-              phoneNumber: '(217) 782-5247',
-              address: `Senator 56th District \n311B Capitol Building Springfield, IL 62706`,
-              title: 'My Senator',
-            })}
-          </View>
-        </View>
-        {this.tabBar()}
-        {this.currentTabContent()}
+          {this.tabBar()}
+          {this.currentTabContent()}
+        </ScrollView>
       </SafeAreaView>
     );
   };

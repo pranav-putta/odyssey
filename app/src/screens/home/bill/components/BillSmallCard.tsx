@@ -73,6 +73,9 @@ const BillSmallCard = (item: Props) => {
   );
 };
 
+const borderRadius = 40;
+const contentBorderRadius = 30;
+
 const styles = StyleSheet.create({
   container: {
     width: '98%',
@@ -84,7 +87,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     alignSelf: 'center',
-    borderRadius: 40,
+    borderRadius: borderRadius,
     shadowColor: 'black',
     shadowOpacity: 0,
     shadowRadius: 5,
@@ -101,11 +104,12 @@ const styles = StyleSheet.create({
     height: '100%',
     borderTopLeftRadius: 40,
     borderTopRightRadius: 40,
+    resizeMode: 'cover',
   },
   content: {
     margin: '5%',
     backgroundColor: 'white',
-    borderRadius: 30,
+    borderRadius: contentBorderRadius,
     paddingVertical: '5%',
     paddingHorizontal: '7.5%',
     flex: 2,

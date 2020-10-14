@@ -69,7 +69,7 @@ func billBatch() *pgx.Batch {
 }
 
 // InsertMember inserts a new assembly member into the database
-func InsertMember(p models.Person) error {
+func InsertMember(p models.Person) {
 	// send to postgresql table
 	query := `INSERT INTO members (name, picture_url, chamber, district, member_url, contacts, member_id, party, general_assembly)
 				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
@@ -90,12 +90,14 @@ func InsertMember(p models.Person) error {
 		p.Chamber,
 		p.District,
 		p.URL,
-		p.Contacts,
+		pq.Array(p.Contacts),
 		p.MemberID,
 		p.Party,
 		p.GeneralAssembly}
-	billBatch().Queue(query, args, nil, nil)
-	return nil
+	_, err := postgreSQLClient().Exec(query, args...)
+	if err != nil {
+		panic(err)
+	}
 }
 
 // InsertBill inserts bill into postgresql
@@ -203,6 +205,30 @@ func GetBill(md models.BillMetadata) (bill models.Bill, err error) {
 	default:
 		return bill, err
 	}
+}
+
+// GetAllBills retrieves all bills from database
+func GetAllBills() (bills map[int64]models.Bill, err error) {
+	var client = postgreSQLClient()
+	query := `select assembly, chamber, number, title, short_summary, full_summary,
+	 house_primary_sponsor, senate_primary_sponsor, chief_sponsor, actions, actions_hash, url, bill_text
+	 from public.bills`
+	rows, err := client.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	var bill models.Bill
+	bills = make(map[int64]models.Bill)
+	for rows.Next() {
+		err = rows.Scan(&bill.Metadata.Assembly, &bill.Metadata.Chamber, &bill.Metadata.Number, &bill.Title, &bill.ShortSummary, &bill.FullSummary,
+			&bill.HousePrimarySponsor, &bill.SenatePrimarySponsor, &bill.ChiefSponsor,
+			&bill.Actions, &bill.ActionsHash, &bill.Metadata.URL, &bill.BillText)
+		if err != nil {
+			return nil, err
+		}
+		bills[bill.Metadata.Number] = bill
+	}
+	return bills, nil
 }
 
 // Finish commits everything to the database and closes conn

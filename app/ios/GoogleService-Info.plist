@@ -3,21 +3,21 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>311797979253-9pemophqb9dcctufj2m5mnusi52ja8tb.apps.googleusercontent.com</string>
+	<string>822198700398-g2r50g0b3u1pf5qrqqqo8ef10om2qf7m.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.311797979253-9pemophqb9dcctufj2m5mnusi52ja8tb</string>
+	<string>com.googleusercontent.apps.822198700398-g2r50g0b3u1pf5qrqqqo8ef10om2qf7m</string>
 	<key>API_KEY</key>
-	<string>AIzaSyD6Lhq3MkfmGQMUnM92lFWPYkcFQT6LokU</string>
+	<string>AIzaSyALDsN2IWM7n6MQahND8QsYH-m6I4J_h1M</string>
 	<key>GCM_SENDER_ID</key>
-	<string>311797979253</string>
+	<string>822198700398</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>net.codealizer.domino</string>
+	<string>us.odysseyapp.odyssey</string>
 	<key>PROJECT_ID</key>
-	<string>project-domino-8b97e</string>
+	<string>odyssey-899fd</string>
 	<key>STORAGE_BUCKET</key>
-	<string>project-domino-8b97e.appspot.com</string>
+	<string>odyssey-899fd.appspot.com</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -29,8 +29,8 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:311797979253:ios:1c97a3456f6113e60cc03c</string>
+	<string>1:822198700398:ios:6bfb7b6559066d6d94997f</string>
 	<key>DATABASE_URL</key>
-	<string>https://project-domino-8b97e.firebaseio.com</string>
+	<string>https://odyssey-899fd.firebaseio.com</string>
 </dict>
 </plist>
