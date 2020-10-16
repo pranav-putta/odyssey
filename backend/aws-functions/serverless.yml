@@ -1,4 +1,4 @@
-service: odyssey
+service: odyssey-backend
 
 provider:
   name: aws
@@ -17,13 +17,38 @@ provider:
 #  artifact: my-service-code.zip
 
 functions:
-  getReps:
-    handler: dist/handler.get_reps
+  userExists:
+    handler: dist/handler.user_exists
     events:
       - http:
-          path: get-reps
+          path: user-exists
           method: get
           cors: true
+  newUser:
+    handler: dist/handler.new_user
+    events:
+      - http:
+          path: new-user
+          method: post
+          cors: true
+  refresh:
+    handler: dist/handler.refresh
+    events:
+      - http:
+          path: refresh
+          method: post
+          cors: true
+  randBills:
+    handler: dist/handler.rand_bills
+    events:
+      - http:
+          path: rand-bills
+          method: get
+          cors: true
+
+plugins:
+  - serverless-offline
+  
 #   you can add any of the following events
 #   events:
 #     - http:

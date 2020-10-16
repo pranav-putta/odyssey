@@ -29,6 +29,7 @@ import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import { GridList } from './components/GridList';
 import { topics } from '../tmp/data';
+import { createUser, userExists } from '../../util';
 
 // state type definitions
 type State = {
@@ -76,6 +77,7 @@ class LoginScreen extends React.Component<Props, State> {
   continueButtonHeight: Animated.AnimatedInterpolation;
   keyboardDidShowListener: EmitterSubscription;
   keyboardDidHideListener: EmitterSubscription;
+  backgroundImageOpacity: Animated.AnimatedInterpolation;
 
   // generated animated views
   AnimatableAnimatedView: Animatable.AnimatableComponent<any, any>;
@@ -106,7 +108,7 @@ class LoginScreen extends React.Component<Props, State> {
       hasLoginStarted: false,
       phoneNumber: '',
       phoneNumberFormatted: '',
-      verification: Array(6).fill('-'),
+      verification: Array(6).fill(' '),
       verificationText: '',
       currentPageProgress: 0,
       age: -1,
@@ -146,6 +148,10 @@ class LoginScreen extends React.Component<Props, State> {
     this.loginContainerBorderRadius = this.state.animation.interpolate({
       inputRange: [0, 1],
       outputRange: [20, 2],
+    });
+    this.backgroundImageOpacity = this.state.animation.interpolate({
+      inputRange: [0, 1],
+      outputRange: ['rgba(0, 0, 0, 1)', 'rgba(0, 0, 0, 0.65)'],
     });
 
     // generate custom animated views
@@ -287,10 +293,9 @@ class LoginScreen extends React.Component<Props, State> {
 
     const checkUserExists = (uuid: string) => {
       // check if user exists
-      functions()
-        .httpsCallable('userExists')({ uuid: uuid })
+      userExists(uuid)
         .then((response) => {
-          if (response.data.result) {
+          if (response) {
             // if user already exists
             this.completeLogin();
           } else {
@@ -341,22 +346,21 @@ class LoginScreen extends React.Component<Props, State> {
     Keyboard.dismiss();
     this.toggleProgress(true);
 
-    functions()
-      .httpsCallable('newUser')({
-        uuid: this.state.uid,
-        phoneNumber: this.state.phoneNumber,
-        name: this.state.name,
-        age: this.state.age,
-        address: this.state.address,
-        selectedTopics: this.state.selectedTopics,
-      })
+    createUser({
+      uid: this.state.uid,
+      phoneNumber: this.state.phoneNumber,
+      name: this.state.name,
+      age: this.state.age,
+      address: this.state.address,
+      selectedTopics: this.state.selectedTopics,
+    })
       .then((response) => {
-        if (response.data.result) {
+        if (response) {
           // if user is done creating
           this.completeLogin();
         } else {
           // if user doesn't exist, collect data
-          Alert.alert(JSON.stringify(response.data.error));
+          Alert.alert(JSON.stringify(response));
         }
       })
       .catch((error) => {
@@ -595,7 +599,7 @@ class LoginScreen extends React.Component<Props, State> {
           keyboardType="phone-pad"
           value={this.state.verificationText}
           onChangeText={(text: string) => {
-            var newVerifs = Array(6).fill('-');
+            var newVerifs = Array(6).fill(' ');
             if (text.length > 6) {
               text = text.substr(0, 6);
             }
@@ -933,6 +937,25 @@ class LoginScreen extends React.Component<Props, State> {
   render() {
     return (
       <View style={styles.container}>
+        <Image
+          source={require('../../assets/images/login_bg.jpg')}
+          style={{
+            width: '100%',
+            height: '100%',
+            position: 'absolute',
+            resizeMode: 'cover',
+          }}
+        />
+        <Animatable.View
+          animation="fadeIn"
+          delay={250}
+          style={{
+            width: '100%',
+            height: '100%',
+            position: 'absolute',
+            backgroundColor: 'rgba(0, 0, 0, 0.65)',
+          }}
+        />
         <ProgressHUD visible={this.state.showProgress} />
         {Platform.select({
           ios: (
@@ -948,9 +971,9 @@ class LoginScreen extends React.Component<Props, State> {
 
         <this.AnimatableImage
           animation="lightSpeedIn"
-          duration={500}
+          duration={600}
           iterationCount={1}
-          source={require('../../assets/images/dominoes.png')}
+          source={require('../../assets/images/login_ic.png')}
           style={styles.logoImage}
         />
         <Animatable.Text
@@ -1011,7 +1034,6 @@ class LoginScreen extends React.Component<Props, State> {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   logoImage: {
     height: '2%',
@@ -1028,7 +1050,7 @@ const styles = StyleSheet.create({
     color: colors.dominoTextColor,
   },
   captionText: {
-    fontSize: 30,
+    fontSize: 28,
     fontWeight: 'bold',
     marginLeft: '10%',
     color: colors.dominoCaptionColor,
@@ -1144,7 +1166,7 @@ const styles = StyleSheet.create({
   verificationBox: {
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.textInputBackground,
+    backgroundColor: '#e0e0e0',
     height: 60,
     width: 40,
     borderRadius: 10,

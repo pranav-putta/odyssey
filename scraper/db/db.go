@@ -105,8 +105,8 @@ func InsertBill(b models.Bill) {
 	// send to postgresql table
 	query := `INSERT INTO bills (assembly, chamber, number, title, short_summary, full_summary,
 			sponsor_ids, house_primary_sponsor, senate_primary_sponsor, chief_sponsor, actions,
-			actions_hash, url, last_updated, bill_text)
-				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+			actions_hash, url, last_updated, bill_text, category, committee)
+				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
 				ON CONFLICT (assembly, chamber, number) 
 				DO 
 					UPDATE SET assembly = $1,
@@ -123,7 +123,9 @@ func InsertBill(b models.Bill) {
 						actions_hash = $12,
 						url = $13,
 						last_updated = $14,
-						bill_text = $15;`
+						bill_text = $15,
+						category = $16,
+						committee = $17;`
 
 	args := []interface{}{
 		b.Metadata.Assembly,
@@ -141,6 +143,8 @@ func InsertBill(b models.Bill) {
 		b.Metadata.URL,
 		time.Now().UnixNano() / 1000000,
 		b.BillText,
+		b.Category,
+		b.CommitteeID,
 	}
 	_, err := postgreSQLClient().Exec(query, args...)
 	if err != nil {
@@ -191,13 +195,13 @@ func GetBill(md models.BillMetadata) (bill models.Bill, err error) {
 	// get client
 	var client = postgreSQLClient()
 	query := `select assembly, chamber, number, title, short_summary, full_summary,
-	 house_primary_sponsor, senate_primary_sponsor, chief_sponsor, actions, actions_hash, url, bill_text
-	 from public.bills where assembly=$1 and chamber=$2 and number=$3`
+	 house_primary_sponsor, senate_primary_sponsor, chief_sponsor, actions, actions_hash, url, bill_text, category,
+	 committee from public.bills where assembly=$1 and chamber=$2 and number=$3`
 	row := client.QueryRow(query, md.Assembly, md.Chamber, md.Number)
 
 	switch err := row.Scan(&bill.Metadata.Assembly, &bill.Metadata.Chamber, &bill.Metadata.Number, &bill.Title, &bill.ShortSummary, &bill.FullSummary,
 		&bill.HousePrimarySponsor, &bill.SenatePrimarySponsor, &bill.ChiefSponsor,
-		&bill.Actions, &bill.ActionsHash, &bill.Metadata.URL, &bill.BillText); err {
+		&bill.Actions, &bill.ActionsHash, &bill.Metadata.URL, &bill.BillText, &bill.Category, &bill.CommitteeID); err {
 	case sql.ErrNoRows:
 		return bill, errors.New("item not found")
 	case nil:

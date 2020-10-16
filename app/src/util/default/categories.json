@@ -1,0 +1,110 @@
+{
+  "Agriculture": {
+    "bgColor": "#9eed99",
+    "categoryColor": "#68d67850",
+    "categoryTextColor": "#68d678",
+    "image": "https://i.imgur.com/dd2pTST.jpg"
+  },
+  "Justice": {
+    "bgColor": "#9eed99",
+    "categoryColor": "#68d67850",
+    "categoryTextColor": "#68d678",
+    "image": "https://i.imgur.com/dd2pTST.jpg"
+  },
+  "Economy": {
+    "bgColor": "#9eed99",
+    "categoryColor": "#68d67850",
+    "categoryTextColor": "#68d678",
+    "image": "https://i.imgur.com/dd2pTST.jpg"
+  },
+  "K-12": {
+    "bgColor": "#9eed99",
+    "categoryColor": "#68d67850",
+    "categoryTextColor": "#68d678",
+    "image": "https://i.imgur.com/dd2pTST.jpg"
+  },
+  "College": {
+    "bgColor": "#9eed99",
+    "categoryColor": "#68d67850",
+    "categoryTextColor": "#68d678",
+    "image": "https://i.imgur.com/dd2pTST.jpg"
+  },
+  "Energy": {
+    "bgColor": "#9eed99",
+    "categoryColor": "#68d67850",
+    "categoryTextColor": "#68d678",
+    "image": "https://i.imgur.com/dd2pTST.jpg"
+  },
+  "Healthcare": {
+    "bgColor": "#9eed99",
+    "categoryColor": "#68d67850",
+    "categoryTextColor": "#68d678",
+    "image": "https://i.imgur.com/dd2pTST.jpg"
+  },
+  "Infrastructure": {
+    "bgColor": "#9eed99",
+    "categoryColor": "#68d67850",
+    "categoryTextColor": "#68d678",
+    "image": "https://i.imgur.com/dd2pTST.jpg"
+  },
+  "Internal": {
+    "bgColor": "#9eed99",
+    "categoryColor": "#68d67850",
+    "categoryTextColor": "#68d678",
+    "image": "https://i.imgur.com/dd2pTST.jpg"
+  },
+  "Labor": {
+    "bgColor": "#9eed99",
+    "categoryColor": "#68d67850",
+    "categoryTextColor": "#68d678",
+    "image": "https://i.imgur.com/dd2pTST.jpg"
+  },
+  "Pensions": {
+    "bgColor": "#9eed99",
+    "categoryColor": "#68d67850",
+    "categoryTextColor": "#68d678",
+    "image": "https://i.imgur.com/dd2pTST.jpg"
+  },
+  "Utility": {
+    "bgColor": "#9eed99",
+    "categoryColor": "#68d67850",
+    "categoryTextColor": "#68d678",
+    "image": "https://i.imgur.com/dd2pTST.jpg"
+  },
+  "Government": {
+    "bgColor": "#9eed99",
+    "categoryColor": "#68d67850",
+    "categoryTextColor": "#68d678",
+    "image": "https://i.imgur.com/dd2pTST.jpg"
+  },
+  "Taxes": {
+    "bgColor": "#9eed99",
+    "categoryColor": "#68d67850",
+    "categoryTextColor": "#68d678",
+    "image": "https://i.imgur.com/dd2pTST.jpg"
+  },
+  "Tech": {
+    "bgColor": "#9eed99",
+    "categoryColor": "#68d67850",
+    "categoryTextColor": "#68d678",
+    "image": "https://i.imgur.com/dd2pTST.jpg"
+  },
+  "VA": {
+    "bgColor": "#9eed99",
+    "categoryColor": "#68d67850",
+    "categoryTextColor": "#68d678",
+    "image": "https://i.imgur.com/dd2pTST.jpg"
+  },
+  "Other": {
+    "bgColor": "#9eed99",
+    "categoryColor": "#68d67850",
+    "categoryTextColor": "#68d678",
+    "image": "https://i.imgur.com/dd2pTST.jpg"
+  },
+  "DNE": {
+    "bgColor": "#9eed99",
+    "categoryColor": "#68d67850",
+    "categoryTextColor": "#68d678",
+    "image": "https://i.imgur.com/dd2pTST.jpg"
+  }
+}

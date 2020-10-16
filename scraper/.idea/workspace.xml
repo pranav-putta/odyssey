@@ -20,32 +20,70 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="fa24d2c0-492c-4fa1-b7d6-ab13f4d87ac9" name="Default Changelist" comment="database updates done">
-      <change beforePath="$PROJECT_DIR$/../app/ios/GoogleService-Info.plist" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/GoogleService-Info.plist" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../app/ios/app/Images.xcassets/AppIcon.appiconset/1024.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../app/ios/app/Images.xcassets/AppIcon.appiconset/120-1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../app/ios/app/Images.xcassets/AppIcon.appiconset/120.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../app/ios/app/Images.xcassets/AppIcon.appiconset/180.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../app/ios/app/Images.xcassets/AppIcon.appiconset/40.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../app/ios/app/Images.xcassets/AppIcon.appiconset/58.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../app/ios/app/Images.xcassets/AppIcon.appiconset/60.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../app/ios/app/Images.xcassets/AppIcon.appiconset/80.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../app/ios/app/Images.xcassets/AppIcon.appiconset/87.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/categories.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dbtable_bills_create.sql" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dbtable_members_create.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/ios/Podfile" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/Podfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/ios/Podfile.lock" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/Podfile.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/ios/Pods/Pods.xcodeproj/project.pbxproj" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/Pods/Pods.xcodeproj/project.pbxproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/ios/Pods/Pods.xcodeproj/xcuserdata/pranavputta.xcuserdatad/xcschemes/xcschememanagement.plist" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/Pods/Pods.xcodeproj/xcuserdata/pranavputta.xcuserdatad/xcschemes/xcschememanagement.plist" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app-appTests/Pods-app-appTests-acknowledgements.markdown" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app-appTests/Pods-app-appTests-acknowledgements.markdown" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app-appTests/Pods-app-appTests-acknowledgements.plist" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app-appTests/Pods-app-appTests-acknowledgements.plist" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app-appTests/Pods-app-appTests.debug.xcconfig" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app-appTests/Pods-app-appTests.debug.xcconfig" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app-appTests/Pods-app-appTests.release.xcconfig" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app-appTests/Pods-app-appTests.release.xcconfig" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app-tvOS/Pods-app-tvOS.debug.xcconfig" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app-tvOS/Pods-app-tvOS.debug.xcconfig" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app-tvOS/Pods-app-tvOS.release.xcconfig" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app-tvOS/Pods-app-tvOS.release.xcconfig" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app-tvOSTests/Pods-app-tvOSTests.debug.xcconfig" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app-tvOSTests/Pods-app-tvOSTests.debug.xcconfig" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app-tvOSTests/Pods-app-tvOSTests.release.xcconfig" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app-tvOSTests/Pods-app-tvOSTests.release.xcconfig" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app/Pods-app-acknowledgements.markdown" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app/Pods-app-acknowledgements.markdown" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app/Pods-app-acknowledgements.plist" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app/Pods-app-acknowledgements.plist" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app/Pods-app.debug.xcconfig" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app/Pods-app.debug.xcconfig" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app/Pods-app.release.xcconfig" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app/Pods-app.release.xcconfig" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../app/ios/app.xcodeproj/project.pbxproj" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/app.xcodeproj/project.pbxproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/ios/app/Info.plist" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/app/Info.plist" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/ios/app.xcodeproj/xcshareddata/xcschemes/app.xcscheme" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/app.xcodeproj/xcshareddata/xcschemes/app.xcscheme" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/ios/app.xcworkspace/contents.xcworkspacedata" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/app.xcworkspace/contents.xcworkspacedata" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/ios/app/AppDelegate.m" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/app/AppDelegate.m" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/ios/app/Images.xcassets/AppIcon.appiconset/Contents.json" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/app/Images.xcassets/AppIcon.appiconset/Contents.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../app/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/../app/package-lock.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../app/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../app/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/App.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/App.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/apis/index.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/apis/representativeAPI.ts" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../app/src/assets/colors.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/assets/colors.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/src/assets/images/transport.png" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/assets/images/transport.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/models/LocalStorage.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/models/Representative.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/models/Representative.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/models/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/models/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/routes/routes.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/routes/routes.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/screens/home/bill/BillDetailScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/screens/home/bill/BillDetailScreen.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../app/src/screens/home/bill/BillScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/screens/home/bill/BillScreen.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../app/src/screens/home/bill/components/BillSmallCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/screens/home/bill/components/BillSmallCard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/screens/home/bill/components/RepExpandedCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/screens/home/bill/components/RepExpandedCard.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../app/src/screens/launch/LaunchScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/screens/launch/LaunchScreen.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../backend/.firebaserc" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../backend/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../backend/firebase.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../backend/functions/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../backend/functions/package-lock.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../backend/functions/package.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../backend/functions/src/index.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../backend/functions/tsconfig.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../backend/functions/tslint.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../backend/package.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/screens/login/LoginScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/screens/login/LoginScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/screens/tmp/data.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/tsconfig.json" beforeDir="false" afterPath="$PROJECT_DIR$/../app/tsconfig.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../backend/aws-functions/dist/handler.js" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/aws-functions/dist/handler.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../backend/aws-functions/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/aws-functions/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../backend/aws-functions/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/aws-functions/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../backend/aws-functions/serverless.yml" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/aws-functions/serverless.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../backend/aws-functions/src/handler.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/aws-functions/src/handler.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../backend/aws-functions/src/index.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../backend/aws-functions/tsconfig.json" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/aws-functions/tsconfig.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../backend/gcloud-functions/functions/src/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/gcloud-functions/functions/src/index.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/controllers/bill-controller.go" beforeDir="false" afterPath="$PROJECT_DIR$/controllers/bill-controller.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/controllers/person-controller.go" beforeDir="false" afterPath="$PROJECT_DIR$/controllers/person-controller.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/db/const.go" beforeDir="false" afterPath="$PROJECT_DIR$/db/const.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/db/db.go" beforeDir="false" afterPath="$PROJECT_DIR$/db/db.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scraper.go" beforeDir="false" afterPath="$PROJECT_DIR$/scraper.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dbcreate.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/bill-model.go" beforeDir="false" afterPath="$PROJECT_DIR$/models/bill-model.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/scraper.test.go" beforeDir="false" afterPath="$PROJECT_DIR$/scraper.test.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -87,6 +125,8 @@
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
+      <recent name="$PROJECT_DIR$/controllers" />
       <recent name="$PROJECT_DIR$/scraper" />
     </key>
   </component>
@@ -148,78 +188,86 @@
       <screen x="0" y="23" width="1920" height="988" />
     </state>
     <state x="424" y="179" width="1071" height="724" key="#com.intellij.execution.impl.EditConfigurationsDialog/-1440.111.1440.877/0.23.1920.988@0.23.1920.988" timestamp="1601966685278" />
-    <state x="723" y="231" key="#xdebugger.evaluate" timestamp="1602109152921">
+    <state x="723" y="231" key="#xdebugger.evaluate" timestamp="1602760440391">
       <screen x="0" y="23" width="1920" height="995" />
     </state>
-    <state x="723" y="231" key="#xdebugger.evaluate/-1440.111.1440.877/0.23.1920.995@0.23.1920.995" timestamp="1602109152921" />
-    <state width="1878" height="330" key="GridCell.Tab.0.bottom" timestamp="1602654333297">
-      <screen x="0" y="23" width="1920" height="988" />
+    <state x="723" y="231" key="#xdebugger.evaluate/-1440.111.1440.877/0.23.1920.995@0.23.1920.995" timestamp="1602760440391" />
+    <state width="918" height="264" key="GridCell.Tab.0.bottom" timestamp="1602809641637">
+      <screen x="0" y="23" width="1920" height="997" />
     </state>
     <state width="918" height="266" key="GridCell.Tab.0.bottom/-1440.111.1440.877/0.23.1920.986@0.23.1920.986" timestamp="1601979869553" />
     <state width="1878" height="330" key="GridCell.Tab.0.bottom/-1440.111.1440.877/0.23.1920.988@0.23.1920.988" timestamp="1602654333297" />
     <state width="918" height="264" key="GridCell.Tab.0.bottom/-1440.111.1440.877/0.23.1920.989@0.23.1920.989" timestamp="1602488060998" />
     <state width="1878" height="266" key="GridCell.Tab.0.bottom/-1440.111.1440.877/0.23.1920.991@0.23.1920.991" timestamp="1602018211770" />
-    <state width="918" height="333" key="GridCell.Tab.0.bottom/-1440.111.1440.877/0.23.1920.995@0.23.1920.995" timestamp="1602112908150" />
-    <state width="1878" height="266" key="GridCell.Tab.0.bottom/-1440.111.1440.877/0.23.1920.996@0.23.1920.996" timestamp="1602109120667" />
-    <state width="918" height="266" key="GridCell.Tab.0.bottom/-1440.111.1440.877/0.23.1920.997@0.23.1920.997" timestamp="1602225238862" />
-    <state width="1878" height="330" key="GridCell.Tab.0.center" timestamp="1602654333295">
-      <screen x="0" y="23" width="1920" height="988" />
+    <state width="1878" height="331" key="GridCell.Tab.0.bottom/-1440.111.1440.877/0.23.1920.994@0.23.1920.994" timestamp="1602756339764" />
+    <state width="1878" height="264" key="GridCell.Tab.0.bottom/-1440.111.1440.877/0.23.1920.995@0.23.1920.995" timestamp="1602762076589" />
+    <state width="918" height="265" key="GridCell.Tab.0.bottom/-1440.111.1440.877/0.23.1920.996@0.23.1920.996" timestamp="1602745509981" />
+    <state width="918" height="264" key="GridCell.Tab.0.bottom/-1440.111.1440.877/0.23.1920.997@0.23.1920.997" timestamp="1602809641637" />
+    <state width="918" height="264" key="GridCell.Tab.0.center" timestamp="1602809641635">
+      <screen x="0" y="23" width="1920" height="997" />
     </state>
     <state width="918" height="266" key="GridCell.Tab.0.center/-1440.111.1440.877/0.23.1920.986@0.23.1920.986" timestamp="1601979869553" />
     <state width="1878" height="330" key="GridCell.Tab.0.center/-1440.111.1440.877/0.23.1920.988@0.23.1920.988" timestamp="1602654333295" />
     <state width="918" height="264" key="GridCell.Tab.0.center/-1440.111.1440.877/0.23.1920.989@0.23.1920.989" timestamp="1602488060997" />
     <state width="1878" height="266" key="GridCell.Tab.0.center/-1440.111.1440.877/0.23.1920.991@0.23.1920.991" timestamp="1602018211769" />
-    <state width="918" height="333" key="GridCell.Tab.0.center/-1440.111.1440.877/0.23.1920.995@0.23.1920.995" timestamp="1602112908148" />
-    <state width="1878" height="266" key="GridCell.Tab.0.center/-1440.111.1440.877/0.23.1920.996@0.23.1920.996" timestamp="1602109120664" />
-    <state width="918" height="266" key="GridCell.Tab.0.center/-1440.111.1440.877/0.23.1920.997@0.23.1920.997" timestamp="1602225238860" />
-    <state width="1878" height="330" key="GridCell.Tab.0.left" timestamp="1602654333295">
-      <screen x="0" y="23" width="1920" height="988" />
+    <state width="1878" height="331" key="GridCell.Tab.0.center/-1440.111.1440.877/0.23.1920.994@0.23.1920.994" timestamp="1602756339762" />
+    <state width="1878" height="264" key="GridCell.Tab.0.center/-1440.111.1440.877/0.23.1920.995@0.23.1920.995" timestamp="1602762076588" />
+    <state width="918" height="265" key="GridCell.Tab.0.center/-1440.111.1440.877/0.23.1920.996@0.23.1920.996" timestamp="1602745509980" />
+    <state width="918" height="264" key="GridCell.Tab.0.center/-1440.111.1440.877/0.23.1920.997@0.23.1920.997" timestamp="1602809641635" />
+    <state width="918" height="264" key="GridCell.Tab.0.left" timestamp="1602809641634">
+      <screen x="0" y="23" width="1920" height="997" />
     </state>
     <state width="918" height="266" key="GridCell.Tab.0.left/-1440.111.1440.877/0.23.1920.986@0.23.1920.986" timestamp="1601979869552" />
     <state width="1878" height="330" key="GridCell.Tab.0.left/-1440.111.1440.877/0.23.1920.988@0.23.1920.988" timestamp="1602654333295" />
     <state width="918" height="264" key="GridCell.Tab.0.left/-1440.111.1440.877/0.23.1920.989@0.23.1920.989" timestamp="1602488060996" />
     <state width="1878" height="266" key="GridCell.Tab.0.left/-1440.111.1440.877/0.23.1920.991@0.23.1920.991" timestamp="1602018211768" />
-    <state width="918" height="333" key="GridCell.Tab.0.left/-1440.111.1440.877/0.23.1920.995@0.23.1920.995" timestamp="1602112908147" />
-    <state width="1878" height="266" key="GridCell.Tab.0.left/-1440.111.1440.877/0.23.1920.996@0.23.1920.996" timestamp="1602109120663" />
-    <state width="918" height="266" key="GridCell.Tab.0.left/-1440.111.1440.877/0.23.1920.997@0.23.1920.997" timestamp="1602225238859" />
-    <state width="1878" height="330" key="GridCell.Tab.0.right" timestamp="1602654333296">
-      <screen x="0" y="23" width="1920" height="988" />
+    <state width="1878" height="331" key="GridCell.Tab.0.left/-1440.111.1440.877/0.23.1920.994@0.23.1920.994" timestamp="1602756339761" />
+    <state width="1878" height="264" key="GridCell.Tab.0.left/-1440.111.1440.877/0.23.1920.995@0.23.1920.995" timestamp="1602762076587" />
+    <state width="918" height="265" key="GridCell.Tab.0.left/-1440.111.1440.877/0.23.1920.996@0.23.1920.996" timestamp="1602745509979" />
+    <state width="918" height="264" key="GridCell.Tab.0.left/-1440.111.1440.877/0.23.1920.997@0.23.1920.997" timestamp="1602809641634" />
+    <state width="918" height="264" key="GridCell.Tab.0.right" timestamp="1602809641636">
+      <screen x="0" y="23" width="1920" height="997" />
     </state>
     <state width="918" height="266" key="GridCell.Tab.0.right/-1440.111.1440.877/0.23.1920.986@0.23.1920.986" timestamp="1601979869553" />
     <state width="1878" height="330" key="GridCell.Tab.0.right/-1440.111.1440.877/0.23.1920.988@0.23.1920.988" timestamp="1602654333296" />
     <state width="918" height="264" key="GridCell.Tab.0.right/-1440.111.1440.877/0.23.1920.989@0.23.1920.989" timestamp="1602488060997" />
     <state width="1878" height="266" key="GridCell.Tab.0.right/-1440.111.1440.877/0.23.1920.991@0.23.1920.991" timestamp="1602018211770" />
-    <state width="918" height="333" key="GridCell.Tab.0.right/-1440.111.1440.877/0.23.1920.995@0.23.1920.995" timestamp="1602112908148" />
-    <state width="1878" height="266" key="GridCell.Tab.0.right/-1440.111.1440.877/0.23.1920.996@0.23.1920.996" timestamp="1602109120666" />
-    <state width="918" height="266" key="GridCell.Tab.0.right/-1440.111.1440.877/0.23.1920.997@0.23.1920.997" timestamp="1602225238861" />
-    <state width="1878" height="330" key="GridCell.Tab.1.bottom" timestamp="1602654333299">
-      <screen x="0" y="23" width="1920" height="988" />
+    <state width="1878" height="331" key="GridCell.Tab.0.right/-1440.111.1440.877/0.23.1920.994@0.23.1920.994" timestamp="1602756339763" />
+    <state width="1878" height="264" key="GridCell.Tab.0.right/-1440.111.1440.877/0.23.1920.995@0.23.1920.995" timestamp="1602762076588" />
+    <state width="918" height="265" key="GridCell.Tab.0.right/-1440.111.1440.877/0.23.1920.996@0.23.1920.996" timestamp="1602745509980" />
+    <state width="918" height="264" key="GridCell.Tab.0.right/-1440.111.1440.877/0.23.1920.997@0.23.1920.997" timestamp="1602809641636" />
+    <state width="1878" height="331" key="GridCell.Tab.1.bottom" timestamp="1602761213991">
+      <screen x="0" y="23" width="1920" height="995" />
     </state>
     <state width="918" height="330" key="GridCell.Tab.1.bottom/-1440.111.1440.877/0.23.1920.986@0.23.1920.986" timestamp="1601978700663" />
     <state width="1878" height="330" key="GridCell.Tab.1.bottom/-1440.111.1440.877/0.23.1920.988@0.23.1920.988" timestamp="1602654333299" />
     <state width="1878" height="330" key="GridCell.Tab.1.bottom/-1440.111.1440.877/0.23.1920.989@0.23.1920.989" timestamp="1602487859999" />
-    <state width="918" height="333" key="GridCell.Tab.1.bottom/-1440.111.1440.877/0.23.1920.995@0.23.1920.995" timestamp="1602112908158" />
-    <state width="1878" height="330" key="GridCell.Tab.1.center" timestamp="1602654333298">
-      <screen x="0" y="23" width="1920" height="988" />
+    <state width="1878" height="331" key="GridCell.Tab.1.bottom/-1440.111.1440.877/0.23.1920.994@0.23.1920.994" timestamp="1602756340113" />
+    <state width="1878" height="331" key="GridCell.Tab.1.bottom/-1440.111.1440.877/0.23.1920.995@0.23.1920.995" timestamp="1602761213991" />
+    <state width="1878" height="331" key="GridCell.Tab.1.center" timestamp="1602761213989">
+      <screen x="0" y="23" width="1920" height="995" />
     </state>
     <state width="918" height="330" key="GridCell.Tab.1.center/-1440.111.1440.877/0.23.1920.986@0.23.1920.986" timestamp="1601978700662" />
     <state width="1878" height="330" key="GridCell.Tab.1.center/-1440.111.1440.877/0.23.1920.988@0.23.1920.988" timestamp="1602654333298" />
     <state width="1878" height="330" key="GridCell.Tab.1.center/-1440.111.1440.877/0.23.1920.989@0.23.1920.989" timestamp="1602487859999" />
-    <state width="918" height="333" key="GridCell.Tab.1.center/-1440.111.1440.877/0.23.1920.995@0.23.1920.995" timestamp="1602112908151" />
-    <state width="1878" height="330" key="GridCell.Tab.1.left" timestamp="1602654333297">
-      <screen x="0" y="23" width="1920" height="988" />
+    <state width="1878" height="331" key="GridCell.Tab.1.center/-1440.111.1440.877/0.23.1920.994@0.23.1920.994" timestamp="1602756340112" />
+    <state width="1878" height="331" key="GridCell.Tab.1.center/-1440.111.1440.877/0.23.1920.995@0.23.1920.995" timestamp="1602761213989" />
+    <state width="1878" height="331" key="GridCell.Tab.1.left" timestamp="1602761213989">
+      <screen x="0" y="23" width="1920" height="995" />
     </state>
     <state width="918" height="330" key="GridCell.Tab.1.left/-1440.111.1440.877/0.23.1920.986@0.23.1920.986" timestamp="1601978700661" />
     <state width="1878" height="330" key="GridCell.Tab.1.left/-1440.111.1440.877/0.23.1920.988@0.23.1920.988" timestamp="1602654333297" />
     <state width="1878" height="330" key="GridCell.Tab.1.left/-1440.111.1440.877/0.23.1920.989@0.23.1920.989" timestamp="1602487859998" />
-    <state width="918" height="333" key="GridCell.Tab.1.left/-1440.111.1440.877/0.23.1920.995@0.23.1920.995" timestamp="1602112908150" />
-    <state width="1878" height="330" key="GridCell.Tab.1.right" timestamp="1602654333299">
-      <screen x="0" y="23" width="1920" height="988" />
+    <state width="1878" height="331" key="GridCell.Tab.1.left/-1440.111.1440.877/0.23.1920.994@0.23.1920.994" timestamp="1602756340112" />
+    <state width="1878" height="331" key="GridCell.Tab.1.left/-1440.111.1440.877/0.23.1920.995@0.23.1920.995" timestamp="1602761213989" />
+    <state width="1878" height="331" key="GridCell.Tab.1.right" timestamp="1602761213990">
+      <screen x="0" y="23" width="1920" height="995" />
     </state>
     <state width="918" height="330" key="GridCell.Tab.1.right/-1440.111.1440.877/0.23.1920.986@0.23.1920.986" timestamp="1601978700662" />
     <state width="1878" height="330" key="GridCell.Tab.1.right/-1440.111.1440.877/0.23.1920.988@0.23.1920.988" timestamp="1602654333299" />
     <state width="1878" height="330" key="GridCell.Tab.1.right/-1440.111.1440.877/0.23.1920.989@0.23.1920.989" timestamp="1602487859999" />
-    <state width="918" height="333" key="GridCell.Tab.1.right/-1440.111.1440.877/0.23.1920.995@0.23.1920.995" timestamp="1602112908157" />
+    <state width="1878" height="331" key="GridCell.Tab.1.right/-1440.111.1440.877/0.23.1920.994@0.23.1920.994" timestamp="1602756340113" />
+    <state width="1878" height="331" key="GridCell.Tab.1.right/-1440.111.1440.877/0.23.1920.995@0.23.1920.995" timestamp="1602761213990" />
     <state x="938" y="156" key="SettingsEditor" timestamp="1601971746206">
       <screen x="0" y="23" width="1920" height="988" />
     </state>
@@ -229,6 +277,10 @@
     </state>
     <state width="960" height="493" key="XDebugger.FullValuePopup/-1440.111.1440.877/0.23.1920.986@0.23.1920.986" timestamp="1601977833456" />
     <state width="960" height="494" key="XDebugger.FullValuePopup/-1440.111.1440.877/0.23.1920.988@0.23.1920.988" timestamp="1601977405580" />
+    <state x="0" y="23" width="960" height="993" key="dock-window-1" timestamp="1602751082640">
+      <screen x="0" y="23" width="1920" height="994" />
+    </state>
+    <state x="0" y="23" width="960" height="993" key="dock-window-1/-1440.111.1440.877/0.23.1920.994@0.23.1920.994" timestamp="1602751082640" />
     <state x="1147" y="149" width="586" height="735" key="find.popup" timestamp="1601971726468">
       <screen x="0" y="23" width="1920" height="988" />
     </state>
@@ -238,21 +290,21 @@
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/scraper.test.go</url>
-          <line>14</line>
-          <option name="timeStamp" value="1" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/controllers/person-controller.go</url>
           <line>77</line>
           <option name="timeStamp" value="2" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/controllers/bill-controller.go</url>
+          <line>174</line>
+          <option name="timeStamp" value="14" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
     <watches-manager>
       <configuration name="GoApplicationRunConfiguration">
-        <watch expression="err" language="go" />
-        <watch expression="response" language="go" />
+        <watch expression="getCategoriesJson()" language="go" />
+        <watch expression="_categoriesJson" language="go" />
       </configuration>
     </watches-manager>
   </component>

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	ody "pranavputta.me/oddysey/scraper/controllers"
+
 	//db "pranavputta.me/oddysey/scraper/db"
 	"time"
 )

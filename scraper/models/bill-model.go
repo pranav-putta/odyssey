@@ -50,6 +50,8 @@ const (
 type Bill struct {
 	Metadata             BillMetadata
 	Title                string
+	Category             BillCategory
+	CommitteeID          string
 	ShortSummary         string
 	FullSummary          string
 	SponsorIDs           []int
@@ -83,6 +85,30 @@ type BillAction struct {
 	Description string `jsonb:"description,omitempty"`
 	Tag         Tag    `jsonb:"tag,omitempty"`
 }
+
+// BillCategory enum
+type BillCategory string
+
+const (
+	Agriculture                  BillCategory = "Agriculture"
+	CriminalCivilJustice                      = "Justice"
+	EconomyFinance                            = "Economy"
+	ElementarySecondaryEducation              = "K-12"
+	HigherEducation                           = "College"
+	EnergyEnvironment                         = "Energy"
+	Healthcare                                = "Healthcare"
+	Infrastructure                            = "Infrastructure"
+	Internal                                  = "Internal"
+	LaborCommerce                             = "Labor"
+	Pensions                                  = "Pensions"
+	PublicUtilities                           = "Utility"
+	StateLocalGovernment                      = "Government"
+	Taxation                                  = "Taxes"
+	Technology                                = "Tech"
+	VeteransAffairs                           = "VA"
+	OtherCategory                             = "Other"
+	DNE                                       = "DNE"
+)
 
 // BillVoteEvent stores the voting outcome of a pdf
 type BillVoteEvent struct {

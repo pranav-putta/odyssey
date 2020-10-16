@@ -4,8 +4,11 @@ package controllers
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -20,6 +23,40 @@ import (
 
 var x int
 var bills []models.Bill
+var _categoriesJson map[string]string
+
+// getCategoriesJson converts the human readable map and inverses key
+// 					 value pairs for the map to be legible by the computer
+func getCategoriesJson() map[string]string {
+	if len(_categoriesJson) == 0 {
+		// load json file into an empty map
+		jsonFile, err := os.Open("categories.json")
+		if err != nil {
+			fmt.Println(err)
+		}
+		byteValue, _ := ioutil.ReadAll(jsonFile)
+		var data map[string]interface{}
+		err = json.Unmarshal(byteValue, &data)
+		if err != nil {
+			fmt.Println(err)
+		}
+		err = jsonFile.Close()
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		// initialize map
+		_categoriesJson = make(map[string]string)
+		// loop through each key in map
+		for k, v := range data {
+			// type assert that v is a string array of committeeIDs
+			for _, f := range v.([]interface{}) {
+				_categoriesJson[strconv.Itoa(int(f.(float64)))] = k
+			}
+		}
+	}
+	return _categoriesJson
+}
 
 // BillCallback is a function to be called when bill information is retrieved
 type BillCallback func(models.Bill, error)
@@ -134,12 +171,14 @@ func onBillDetailsResponse(e *colly.HTMLElement, callback BillCallback) {
 	// if actions are different, update actions as well and decide whether to update votes and full text
 	if shouldUpdateActions || shouldUpdateAll {
 		// bill actions
-		actionsTemp := buildActions(doc)
+		actionsTemp, category, committee := buildActions(doc)
 		updateText, updateVotes := checkActionsForUpdates(actionsTemp, bill.Actions)
 
 		// update actions into bill doc
 		bill.Actions = actionsTemp
+		bill.Category = category
 		bill.ActionsHash = hash
+		bill.CommitteeID = committee
 
 		if updateText || shouldUpdateAll {
 			// create the url for full text
@@ -279,8 +318,10 @@ func buildSponsors(doc *goquery.Selection) (sponsors []int, housePrimaryID int, 
 }
 
 // generate the list of actions for this bill
-func buildActions(doc *goquery.Selection) (actions []models.BillAction) {
+func buildActions(doc *goquery.Selection) (actions []models.BillAction, category models.BillCategory, committee string) {
 	actionsTable := doc.Find(`a[name="actions"] ~ table`).First().Find("tr")
+	category = models.DNE
+	committee = ""
 	actionsTable.Each(func(i int, s *goquery.Selection) {
 		td := s.Find(`td.content`)
 		// if not heading row
@@ -290,23 +331,29 @@ func buildActions(doc *goquery.Selection) (actions []models.BillAction) {
 			// convert date into utc milliseconds
 			var millis int64 = -1
 			if err == nil {
-				millis = (date.UTC().UnixNano() / 1000000)
+				millis = date.UTC().UnixNano() / 1000000
 			}
 			// legislative body of action
 			chamber := td.Eq(1).Text()
-			// action
+			// action text
 			action := td.Eq(2).Text()
+			// tag
+			tag := tagAction(action)
 
+			// check if action points to category
+			if tag == models.Assigned {
+				category, committee = identifyBillCategory(td.Eq(2))
+			}
 			// append to list
 			actions = append(actions, models.BillAction{
 				Date:        millis,
 				Chamber:     chamber,
 				Description: action,
-				Tag:         tagAction(action)})
+				Tag:         tag})
 		}
 	})
 	// TODO: match sponsors with actions in the future
-	return actions
+	return actions, category, committee
 }
 
 // scrape data from full bill text html
@@ -365,7 +412,28 @@ func tagAction(action string) models.Tag {
 	return models.Other
 }
 
-// check action labels for indication that a vote or ammendment may have happened
+// identifyBillCategory determines the bill category according to the committee "assigned to"
+func identifyBillCategory(action *goquery.Selection) (models.BillCategory, string) {
+	href, exists := action.Find(`a`).Attr("href")
+	if !exists {
+		return models.DNE, ""
+	}
+	// get committeeID using regex
+	r := regexp.MustCompile("committeeID=([0-9]+)")
+	tmp := strings.Split(r.FindString(href), "=")
+	if len(tmp) <= 1 {
+		return models.DNE, ""
+	}
+
+	// create type assertion that
+	cat, ok := getCategoriesJson()[tmp[1]]
+	if !ok {
+		return models.DNE, tmp[1]
+	}
+	return models.BillCategory(cat), tmp[1]
+}
+
+// check action labels for indication that a vote or amendment may have happened
 func checkActionsForUpdates(old []models.BillAction, new []models.BillAction) (updateText bool, updateVotes bool) {
 	start := len(old)
 	updateText, updateVotes = false, false

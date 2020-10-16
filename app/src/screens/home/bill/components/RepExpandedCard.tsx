@@ -1,15 +1,11 @@
 import React from 'react';
 import Modal from 'react-native-modal';
 import { View, StyleSheet, Image, Text } from 'react-native';
+import { Representative } from '../../../../models';
 
 type Props = {
   visible: boolean;
-  info: {
-    name: string;
-    image: string;
-    phoneNumber: string;
-    address: string;
-  };
+  info: Representative | undefined;
   dismiss: () => void;
 };
 
@@ -27,12 +23,19 @@ class RepExpandedCard extends React.Component<Props, State> {
         animationIn="zoomInUp"
         animationOut="fadeOut"
       >
-        <View style={styles.container}>
-          <Image source={{ uri: this.props.info.image }} style={styles.image} />
-          <Text>{this.props.info.name}</Text>
-          <Text>Phone Number: {this.props.info.phoneNumber}</Text>
-          <Text>Office: {this.props.info.address}</Text>
-        </View>
+        {this.props.info ? (
+          <View style={styles.container}>
+            <Image
+              source={{ uri: this.props.info.picture_url }}
+              style={styles.image}
+            />
+            <Text>{this.props.info.name}</Text>
+            <Text>Phone Number: {this.props.info.phoneNumber}</Text>
+            <Text>Office: {this.props.info.address}</Text>
+          </View>
+        ) : (
+          <View></View>
+        )}
       </Modal>
     );
   }

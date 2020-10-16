@@ -22,6 +22,16 @@ import TouchableScale from 'react-native-touchable-scale';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CommentItem from './components/CommentItem';
 import { TextInput } from 'react-native-gesture-handler';
+import { Bill } from '../../../models/Bill';
+import { Category } from '../../../models/Category';
+import { NavigationContainer } from '@react-navigation/native';
+import {
+  createStackNavigator,
+  StackNavigationOptions,
+} from '@react-navigation/stack';
+import routes from '../../../routes/routes';
+import BillInfoScreen from './info/BillInfoScreen';
+import BillVotingScreen from './vote/BillVotingScreen';
 
 export type Measure = {
   x: number;
@@ -30,7 +40,8 @@ export type Measure = {
   height: number;
 };
 type Props = {
-  item: BillItem | undefined;
+  item: Bill;
+  category: Category;
   measure: Measure | undefined;
   expanded: boolean;
   onClose: () => void;
@@ -51,6 +62,26 @@ type State = {
   vote: Vote;
 };
 
+type ScreenOptions = {
+  infoOptions: StackNavigationOptions;
+  votingOptions: StackNavigationOptions;
+};
+
+const options: ScreenOptions = {
+  infoOptions: {
+    header: undefined,
+    headerShown: false,
+    gestureEnabled: true,
+  },
+  votingOptions: {
+    header: undefined,
+    headerShown: false,
+    gestureEnabled: true,
+  },
+};
+
+const Stack = createStackNavigator();
+
 const width = Dimensions.get('screen').width;
 const height = Dimensions.get('screen').height;
 
@@ -60,14 +91,10 @@ class BillDetailScreen extends React.Component<Props, State> {
   screenMarginTop: Animated.AnimatedInterpolation;
   textOpacity: Animated.AnimatedInterpolation;
   contentMargin: Animated.AnimatedInterpolation;
-  tabBarHeight: Animated.AnimatedInterpolation;
-  tabBarOpacity: Animated.AnimatedInterpolation;
   borderRadius: Animated.AnimatedInterpolation;
 
-  yayAnimation: Animated.Value;
-  noAnimation: Animated.Value;
-
   AnimatedTouchableScale: Animated.AnimatedComponent<TouchableScale>;
+
 
   constructor(props: Props) {
     super(props);
@@ -105,22 +132,11 @@ class BillDetailScreen extends React.Component<Props, State> {
       inputRange: [0, 1],
       outputRange: ['5%', '0%'],
     });
-    this.tabBarHeight = this.state.animation.interpolate({
-      inputRange: [0, 1],
-      outputRange: ['0%', '8%'],
-    });
-    this.tabBarOpacity = this.state.animation.interpolate({
-      inputRange: [0, 0.25],
-      outputRange: [0, 1],
-    });
 
     this.borderRadius = this.state.animation.interpolate({
       inputRange: [0, 1],
       outputRange: [40, 0],
     });
-
-    this.yayAnimation = new Animated.Value(0);
-    this.noAnimation = new Animated.Value(0);
 
     // generate animated components
     this.AnimatedTouchableScale = Animated.createAnimatedComponent(
@@ -147,7 +163,6 @@ class BillDetailScreen extends React.Component<Props, State> {
   collapse = () => {
     this.setState({ numberLines: 5 });
     this.setState({ showTabBar: false });
-    this.onTabPress(BillFloatingTabKey.info);
     this.props.onStartClose();
 
     Animated.timing(this.state.animation, {
@@ -158,391 +173,6 @@ class BillDetailScreen extends React.Component<Props, State> {
       this.props.onClose();
       this.setState({ expanded: false });
     });
-  };
-
-  // generate information page
-  infoPage = (item: BillItem) => {
-    return (
-      <View style={{ flex: 1 }}>
-        {this.closeButton()}
-        <Animated.View
-          style={[styles.voteButton, { opacity: this.state.animation }]}
-        >
-          <TouchableScale
-            style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
-            onPress={() => {
-              this.setState({ activeTab: BillFloatingTabKey.voting });
-            }}
-          >
-            <Text style={styles.voteText}>Vote!</Text>
-          </TouchableScale>
-        </Animated.View>
-        <Animated.View
-          style={[
-            styles.imageContainer,
-            {
-              borderTopLeftRadius: this.borderRadius,
-              borderTopRightRadius: this.borderRadius,
-            },
-          ]}
-        >
-          <Image style={styles.image} source={item.image} />
-        </Animated.View>
-        <Animated.View
-          style={[
-            styles.content,
-            {
-              margin: this.contentMargin,
-              borderBottomRightRadius: this.borderRadius,
-              borderBottomLeftRadius: this.borderRadius,
-            },
-          ]}
-        >
-          <View style={styles.categoriesContainer}>
-            <Text style={styles.number}>{item.id}</Text>
-            <View
-              style={[styles.category, { backgroundColor: item.categoryColor }]}
-            >
-              <Text
-                style={[styles.categoryText, { color: item.categoryTextColor }]}
-              >
-                {item.category}
-              </Text>
-            </View>
-          </View>
-          <Text style={styles.title}>{item.title}</Text>
-          <ScrollView>
-            <Text ellipsizeMode="tail" style={styles.synopsis}>
-              {item.description}
-            </Text>
-          </ScrollView>
-        </Animated.View>
-      </View>
-    );
-  };
-
-  comment = () => {
-    return (
-      <View
-        style={{
-          borderRadius: 10,
-          marginTop: '2.5%',
-          padding: '5%',
-          paddingBottom: '2.5%',
-          borderWidth: 1,
-          borderColor: colors.textInputBackground,
-        }}
-      >
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-          }}
-        >
-          <Image
-            style={{ width: 40, height: 40, borderRadius: 40 }}
-            source={{
-              uri:
-                'https://ilhousedems.com/wp-content/uploads/2020/02/Gonzalez.jpg',
-            }}
-          />
-          <View
-            style={{ marginHorizontal: 10, justifyContent: 'space-between' }}
-          >
-            <Text style={{ fontWeight: 'bold' }}>Edgar Gonzales</Text>
-            <Text>September 4, 2020</Text>
-          </View>
-          <View
-            style={{
-              backgroundColor: '#ff5252',
-              margin: '2.5%',
-              position: 'absolute',
-              justifyContent: 'center',
-              alignItems: 'center',
-              right: 0,
-              borderRadius: 5,
-            }}
-          >
-            <Text style={{ color: 'white', fontWeight: 'bold' }}>Against</Text>
-          </View>
-        </View>
-        <Text style={{ padding: '2.5%' }}>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla
-          ultricies lorem ac pellentesque dignissim.
-        </Text>
-        <View>
-          <TouchableOpacity
-            style={{
-              marginHorizontal: '2.5%',
-              width: 50,
-              padding: 5,
-              //backgroundColor: '#cfd8dc',
-              borderRadius: 5,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}
-          >
-            <Icon name="like2" type="antdesign" size={18} color="black" />
-            <Text>10</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  };
-
-  // generate voting page
-  votingPage = () => {
-    const AnimatedTouchableOpacity = Animated.createAnimatedComponent(
-      TouchableOpacity
-    );
-
-    const animateVoting = (vote: Vote) => {
-      const current = this.state.vote;
-      const anim = vote == Vote.Yes ? this.yayAnimation : this.noAnimation;
-      if (current == vote) {
-        Animated.timing(anim, {
-          toValue: 0,
-          useNativeDriver: false,
-          duration: 250,
-        }).start();
-        this.setState({ vote: Vote.None });
-      } else if (current != vote) {
-        let yes = 1;
-        let no = 0;
-        if (vote == Vote.No) {
-          yes = 0;
-          no = 1;
-        }
-        Animated.parallel([
-          Animated.timing(this.yayAnimation, {
-            toValue: yes,
-            useNativeDriver: false,
-            duration: 250,
-          }),
-          Animated.timing(this.noAnimation, {
-            toValue: no,
-            useNativeDriver: false,
-            duration: 250,
-          }),
-        ]).start();
-        this.setState({ vote: vote });
-      } else if (current == Vote.None) {
-        Animated.timing(anim, {
-          toValue: 1,
-          useNativeDriver: false,
-          duration: 250,
-        }).start();
-        this.setState({ vote: vote });
-      }
-    };
-    return (
-      <View style={{ flex: 1, backgroundColor: 'white' }}>
-        <SafeAreaView />
-        <View style={{ flexDirection: 'row' }}>
-          <Animated.View
-            style={[styles.backButton, { opacity: this.state.animation }]}
-          >
-            <TouchableOpacity
-              style={styles.backButtonTouchable}
-              onPress={() => {
-                this.setState({ activeTab: BillFloatingTabKey.info });
-              }}
-            >
-              <Icon size={26} name="arrow-left" type="feather" color="black" />
-            </TouchableOpacity>
-          </Animated.View>
-
-          <Text
-            style={{
-              alignSelf: 'center',
-              fontSize: 30,
-              fontWeight: 'bold',
-            }}
-          >
-            Vote
-          </Text>
-        </View>
-
-        <View
-          style={{ marginHorizontal: '10%', marginTop: '5%', height: '72.5%' }}
-        >
-          <View
-            style={{
-              flexDirection: 'row',
-              borderRadius: 10,
-            }}
-          >
-            <AnimatedTouchableOpacity
-              style={{
-                flex: 1,
-                justifyContent: 'center',
-                alignItems: 'center',
-                padding: '10%',
-                backgroundColor: this.yayAnimation.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [colors.textInputBackground, '#00e676'],
-                }),
-                borderTopLeftRadius: 10,
-                borderBottomLeftRadius: 10,
-              }}
-              onPress={() => {
-                animateVoting(Vote.Yes);
-              }}
-            >
-              <Animated.Text
-                style={{
-                  fontSize: 25,
-                  fontWeight: 'bold',
-                  color: this.yayAnimation.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: ['black', 'white'],
-                  }),
-                }}
-              >
-                Yes
-              </Animated.Text>
-            </AnimatedTouchableOpacity>
-            <View
-              style={{
-                height: '100%',
-                width: 0.5,
-              }}
-            />
-            <AnimatedTouchableOpacity
-              style={{
-                flex: 1,
-                justifyContent: 'center',
-                alignItems: 'center',
-                padding: '10%',
-                backgroundColor: this.noAnimation.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [colors.textInputBackground, '#ff5252'],
-                }),
-                borderTopRightRadius: 10,
-                borderBottomRightRadius: 10,
-              }}
-              onPress={() => {
-                animateVoting(Vote.No);
-              }}
-            >
-              <Animated.Text
-                style={{
-                  fontSize: 25,
-                  fontWeight: 'bold',
-                  color: this.noAnimation.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: ['black', 'white'],
-                  }),
-                }}
-              >
-                No
-              </Animated.Text>
-            </AnimatedTouchableOpacity>
-          </View>
-          <Text style={{ marginTop: '5%', fontSize: 20, fontWeight: 'bold' }}>
-            Comments
-          </Text>
-          <ScrollView>
-            {this.comment()}
-            {this.comment()}
-          </ScrollView>
-        </View>
-        <View
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            width: '100%',
-            height: '12%',
-            backgroundColor: '#546e7a',
-            borderTopLeftRadius: 25,
-            borderTopRightRadius: 25,
-            padding: '5%',
-            alignItems: 'center',
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-          }}
-        >
-          <TextInput
-            placeholder="Write your opinion"
-            placeholderTextColor="#e0e0e0"
-            style={{ fontSize: 20, color: colors.textInputBackground }}
-          />
-          <TouchableOpacity
-            style={{
-              backgroundColor: '#2196f3',
-              padding: 7.5,
-              borderRadius: 30,
-            }}
-          >
-            <Icon
-              size={30}
-              name="arrow-right"
-              style={{ fontWeight: 'bold' }}
-              type="feather"
-              color="white"
-            />
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  };
-
-  // generate research page
-  researchPage = () => {
-    return <View></View>;
-  };
-
-  // generate current tab from state
-  currentTabPage = (item: BillItem) => {
-    switch (this.state.activeTab) {
-      case BillFloatingTabKey.info: {
-        return this.infoPage(item);
-      }
-      case BillFloatingTabKey.voting: {
-        return this.votingPage();
-      }
-    }
-  };
-
-  // called when tab { 'info', 'voting', 'research' } is clicked
-  onTabPress = (key: string) => {
-    this.setState({ activeTab: key });
-  };
-
-  // generate the close button
-  closeButton = () => {
-    return (
-      <Animated.View
-        style={[styles.closeButton, { opacity: this.state.animation }]}
-      >
-        <TouchableOpacity
-          style={styles.backButtonTouchable}
-          onPress={() => {
-            this.collapse();
-          }}
-        >
-          <Icon size={26} name="close" type="evilicon" color="black" />
-        </TouchableOpacity>
-      </Animated.View>
-    );
-  };
-
-  backButton = () => {
-    return (
-      <Animated.View
-        style={[styles.backButton, { opacity: this.state.animation }]}
-      >
-        <TouchableOpacity
-          style={styles.backButtonTouchable}
-          onPress={() => {
-            this.setState({ activeTab: BillFloatingTabKey.info });
-          }}
-        >
-          <Icon size={26} name="arrow-left" type="feather" color="black" />
-        </TouchableOpacity>
-      </Animated.View>
-    );
   };
 
   render() {
@@ -571,7 +201,6 @@ class BillDetailScreen extends React.Component<Props, State> {
           style={[
             styles.container,
             {
-              backgroundColor: this.props.item.bgColor,
               width: this.screenWidth,
               height: this.screenHeight,
               marginTop: this.screenMarginTop,
@@ -582,8 +211,25 @@ class BillDetailScreen extends React.Component<Props, State> {
           {Platform.select({
             ios: <StatusBar barStyle="light-content" />,
           })}
-
-          {this.currentTabPage(this.props.item)}
+          <Stack.Navigator>
+            <Stack.Screen name={routes.billInfo} options={options.infoOptions}>
+              {(props) => (
+                <BillInfoScreen
+                  {...props}
+                  borderRadius={this.borderRadius}
+                  category={this.props.category}
+                  item={this.props.item}
+                  collapse={this.collapse}
+                  contentMargin={this.contentMargin}
+                />
+              )}
+            </Stack.Screen>
+            <Stack.Screen
+              name={routes.billVoting}
+              component={BillVotingScreen}
+              options={options.votingOptions}
+            />
+          </Stack.Navigator>
         </Animated.View>
       );
     } else {
@@ -598,7 +244,6 @@ const styles = StyleSheet.create({
     marginTop: '89%',
     alignSelf: 'center',
     borderRadius: 40,
-    backgroundColor: colors.cards.temp,
   },
 
   imageContainer: {

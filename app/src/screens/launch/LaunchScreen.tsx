@@ -4,10 +4,8 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-community/async-storage';
 import { globalStyles, storage } from '../../assets';
 import routes from '../../routes/routes';
-import functions from '@react-native-firebase/functions';
-import { fetchUser, storeUser, User } from '../../models';
-import app from '@react-native-firebase/app';
-import { findReps } from '../../apis';
+import { refresh } from '../../util/NetworkHandler';
+import { firebase } from '@react-native-firebase/functions';
 
 type Props = {
   navigation: StackNavigationProp<any, any>;
@@ -21,11 +19,7 @@ class LaunchScreen extends React.Component<Props> {
     AsyncStorage.getItem(storage.userSignedIn)
       .then((signedIn) => {
         if (signedIn && signedIn == 'true') {
-          this.refresh()
-            .then(() => {})
-            .catch((err) => {
-              console.log(err);
-            });
+          refresh();
           navigation.navigate(routes.home);
         } else {
           // user is not signed in
@@ -37,17 +31,6 @@ class LaunchScreen extends React.Component<Props> {
         navigation.navigate(routes.login);
       });
   }
-
-  refresh = async () => {
-    let out = await functions().httpsCallable('getReps')({
-      address: "261 dover circle, lake forest"
-    });
-    console.log(out.data);
-    /*
-    let user: User = data.data.result;
-    storeUser(user);
-    let reps = await findReps(user.address);*/
-  };
 
   render() {
     return (

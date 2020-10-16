@@ -8,55 +8,74 @@ import { SharedElement } from 'react-navigation-shared-element';
 import TouchableScale from 'react-native-touchable-scale';
 import { Measure } from '../BillDetailScreen';
 import { Icon } from 'react-native-elements';
+import { Bill } from '../../../../models/Bill';
+import { Category } from '../../../../models/Category';
 type State = {};
 
 type Props = {
   index: number;
-  item: BillItem;
-  onPress: (item: BillItem, index: number, measure: Measure) => void;
+  item: Bill;
+  category: Category;
+  onPress: (
+    item: Bill,
+    index: number,
+    measure: Measure,
+    category: Category
+  ) => void;
 };
 
 const BillSmallCard = (item: Props) => {
   let ref = createRef<View>();
+
+  let formatBillNumber = () => {
+    let num = item.item.number.toString();
+    while (num.length < 4) num = '0' + num;
+    return item.item.chamber == 'house' ? 'HB' : 'SB' + num;
+  };
 
   return (
     <View style={[styles.container]} ref={ref}>
       <TouchableWithoutFeedback
         style={[
           styles.touchableContainer,
-          { backgroundColor: item.item.bgColor },
+          { backgroundColor: item.category.bgColor },
         ]}
         onPress={() => {
           ref.current?.measureInWindow((x, y, w, h) => {
-            item.onPress(item.item, item.index, {
-              x: x,
-              y: y,
-              width: w,
-              height: h,
-            });
+            item.onPress(
+              item.item,
+              item.index,
+              {
+                x: x,
+                y: y,
+                width: w,
+                height: h,
+              },
+              item.category
+            );
           });
         }}
       >
         <SharedElement
           style={styles.imageContainer}
-          id={`item.${item.item.id}.photo`}
+          id={`item.${item.item.number}.photo`}
         >
-          <Image style={styles.image} source={item.item.image} />
+          <Image style={styles.image} source={{ uri: item.category.image }} />
         </SharedElement>
         <View style={styles.content}>
           <View style={styles.categoriesContainer}>
-            <Text style={styles.number}>{item.item.id}</Text>
+            <Text style={styles.number}>{formatBillNumber()}</Text>
 
             <View
               style={[
                 styles.category,
-                { backgroundColor: item.item.categoryColor },
+                { backgroundColor: item.category.categoryColor },
               ]}
             >
               <Text
                 style={[
                   styles.categoryText,
-                  { color: item.item.categoryTextColor },
+                  { color: item.category.categoryTextColor },
                 ]}
               >
                 {item.item.category}
@@ -65,7 +84,7 @@ const BillSmallCard = (item: Props) => {
           </View>
           <Text style={styles.title}>{item.item.title}</Text>
           <Text ellipsizeMode="tail" style={styles.synopsis}>
-            {item.item.description}
+            {item.item.short_summary}
           </Text>
         </View>
       </TouchableWithoutFeedback>
@@ -79,7 +98,7 @@ const contentBorderRadius = 30;
 const styles = StyleSheet.create({
   container: {
     width: '98%',
-    height: '80%',
+    height: '85%',
     marginTop: '5%',
     alignSelf: 'center',
   },

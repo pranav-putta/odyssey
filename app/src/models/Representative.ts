@@ -1,7 +1,7 @@
 export interface Representative {
   name: string;
-  image: string;
+  picture_url: string;
   phoneNumber: string;
   address: string;
-  title: string;
+  chamber: string;
 }

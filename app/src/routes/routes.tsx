@@ -3,6 +3,8 @@ enum routes {
   login = 'login',
   home = 'home',
   billDetails = 'billDetails',
+  billInfo = 'billInfo',
+  billVoting = 'billVoting',
 }
 
 enum homeRoutes {
@@ -15,4 +17,4 @@ enum billTabRoutes {
 }
 
 export default routes;
-export {homeRoutes, billTabRoutes};
+export { homeRoutes, billTabRoutes };
