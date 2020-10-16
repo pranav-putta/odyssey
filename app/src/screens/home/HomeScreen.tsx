@@ -1,20 +1,38 @@
 import React from 'react';
 import { View, StatusBar, StyleSheet, Alert, Platform } from 'react-native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import TabBar, { TabKey, TabModel } from '../../components/TabBar';
 import BillScreen from './bill/BillScreen';
-import DiscussionScreen from './community/CommunityScreen';
-import TabBar, { TabKey } from '../../components/TabBar';
-import { TabRouter } from '@react-navigation/native';
-import BillListScreen from './bill/BillScreen';
 import ProfileScreen from './profile/ProfileScreen';
 import CommunityScreen from './community/CommunityScreen';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 type State = {
   showTabs: boolean;
-  current: string;
+  selectedTab: string;
 };
 type Props = { navigation: StackNavigationProp<any, any> };
+
+const tabs: TabModel[] = [
+  {
+    icon: { name: 'trello', type: 'feather' },
+    label: 'Bills',
+    tkey: TabKey.bills,
+    width: 40,
+  },
+  {
+    icon: { name: 'search', type: 'feather' },
+    label: 'Search',
+    tkey: TabKey.search,
+    width: 70,
+  },
+  {
+    icon: { name: 'user', type: 'feather' },
+    label: 'Me',
+    tkey: TabKey.profile,
+    width: 50,
+  },
+];
 
 const Tab = createBottomTabNavigator();
 class HomeScreen extends React.Component<Props, State> {
@@ -23,41 +41,44 @@ class HomeScreen extends React.Component<Props, State> {
 
     this.state = {
       showTabs: true,
-      current: TabKey.bills,
+      selectedTab: TabKey.bills,
     };
   }
 
-  tabPressed = (tab: string) => {
-    this.setState({ current: tab });
-  };
-
-  currentScreen = () => {
-    switch (this.state.current) {
-      case TabKey.bills: {
-        return (
-          <BillListScreen
-            navigation={this.props.navigation}
-            toggleTabs={() => {
-              this.setState({ showTabs: !this.state.showTabs });
-            }}
-          />
-        );
-      }
-      case TabKey.profile: {
-        return <ProfileScreen navigation={this.props.navigation} />;
-      }
-      case TabKey.search: {
-        return <CommunityScreen />;
-      }
-      default: {
-        return <View></View>;
-      }
-    }
-  };
-
   render() {
     return (
-      <View style={styles.container}>
+      <View style={StyleSheet.absoluteFillObject}>
+        <Tab.Navigator
+          tabBar={(props) => (
+            <TabBar
+              show={this.state.showTabs}
+              current={this.state.selectedTab}
+              tabPressed={(tab) => {
+                this.setState({ selectedTab: tab });
+                props.navigation.navigate(tab);
+              }}
+              tabs={tabs}
+            />
+          )}
+        >
+          <Tab.Screen name={TabKey.bills}>
+            {(props) => (
+              <BillScreen
+                navigation={props.navigation}
+                toggleTabs={(show: boolean) => {
+                  this.setState({ showTabs: show });
+                }}
+              />
+            )}
+          </Tab.Screen>
+          <Tab.Screen name={TabKey.search}>
+            {(props) => <CommunityScreen />}
+          </Tab.Screen>
+
+          <Tab.Screen name={TabKey.profile}>
+            {(props) => <ProfileScreen navigation={props.navigation} />}
+          </Tab.Screen>
+        </Tab.Navigator>
         {Platform.select({
           ios: (
             <StatusBar
@@ -67,21 +88,9 @@ class HomeScreen extends React.Component<Props, State> {
             />
           ),
         })}
-        <TabBar
-          show={this.state.showTabs}
-          current={this.state.current}
-          tabPressed={this.tabPressed}
-        />
-        {this.currentScreen()}
       </View>
     );
   }
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
 
 export default HomeScreen;

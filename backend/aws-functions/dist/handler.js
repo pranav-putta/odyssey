@@ -25,7 +25,7 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 var __importStar = (this && this.__importStar) || function (mod) {
     if (mod && mod.__esModule) return mod;
     var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
     __setModuleDefault(result, mod);
     return result;
 };
@@ -268,14 +268,7 @@ exports.rand_bills = function (event) {
             switch (_a.label) {
                 case 0:
                     pgPool = new pg_1.default.Pool(pgConfig);
-                    return [2 /*return*/, pgPool
-                            .connect()
-                            .then(function (res) {
-                            console.log("connected!");
-                        })
-                            .catch(function (err) {
-                            console.log(err);
-                        })];
+                    return [4 /*yield*/, pgPool.query("select * from public.bills where category != 'Other' and category != 'DNE' order by random() limit 20")];
                 case 1:
                     bills = _a.sent();
                     return [4 /*yield*/, pgPool.end()];

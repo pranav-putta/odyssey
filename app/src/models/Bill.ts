@@ -12,6 +12,12 @@ export interface BillAction {
 
 export interface BillVotingEvent {}
 
+export function formatBillNumber(item: Bill) {
+  let num = item.number.toString();
+  while (num.length < 4) num = '0' + num;
+  return item.chamber == 'house' ? 'HB' : 'SB' + num;
+}
+
 export interface Bill {
   assembly: number;
   chamber: string;
@@ -30,4 +36,5 @@ export interface Bill {
   bill_text: BillFullText;
   actions: BillAction[];
   voting_events: BillVotingEvent[];
+  formatted_bill_number: '';
 }

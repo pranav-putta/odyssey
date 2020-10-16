@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   Animated,
+  Dimensions,
   Image,
   Platform,
   ScrollView,
@@ -11,17 +12,18 @@ import {
   View,
 } from 'react-native';
 import { Icon } from 'react-native-elements';
-import { colors } from '../../../../assets';
-import { Bill } from '../../../../models/Bill';
-import { Category } from '../../../../models/Category';
+import { colors } from '../../../assets';
+import { Bill, formatBillNumber } from '../../../models/Bill';
+import { Category } from '../../../models/Category';
 import TouchableScale from 'react-native-touchable-scale';
+import { SharedElement } from 'react-navigation-shared-element';
+import { BillInfoScreenProps, BillInfoScreenRouteProp } from './BillScreen';
 
+const width = Dimensions.get('screen').width;
+const height = Dimensions.get('screen').height;
 interface Props {
-  category: Category;
-  item: Bill;
-  borderRadius: Animated.AnimatedInterpolation;
-  contentMargin: Animated.AnimatedInterpolation;
-  collapse: () => void;
+  route: BillInfoScreenRouteProp;
+  navigation: BillInfoScreenProps;
 }
 
 type State = {
@@ -41,58 +43,29 @@ export default class BillInfoScreen extends React.Component<Props, State> {
     };
   }
 
-  formatBillNumber = (item: Bill) => {
-    let num = item.number.toString();
-    while (num.length < 4) num = '0' + num;
-    return item.chamber == 'house' ? 'HB' : 'SB' + num;
-  };
-
   render() {
-    let item = this.props.item;
-    let category = this.props.category;
+    const { bill, category } = this.props.route.params;
     return (
-      <Animated.View
+      <View
         style={{
           flex: 1,
-          backgroundColor: this.props.category.bgColor,
-          borderRadius: this.props.borderRadius,
+          backgroundColor: category.bgColor,
         }}
       >
-        <Animated.View
-          style={[styles.voteButton, { opacity: this.state.animation }]}
-        >
+        <View style={styles.voteButton}>
           <TouchableScale
             style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
             onPress={() => {}}
           >
             <Text style={styles.voteText}>Vote!</Text>
           </TouchableScale>
-        </Animated.View>
-        <Animated.View
-          style={[
-            styles.imageContainer,
-            {
-              borderTopLeftRadius: this.props.borderRadius,
-              borderTopRightRadius: this.props.borderRadius,
-            },
-          ]}
-        >
+        </View>
+        <View style={styles.imageContainer}>
           <Image style={styles.image} source={{ uri: category.image }} />
-        </Animated.View>
-        <Animated.View
-          style={[
-            styles.content,
-            {
-              margin: this.props.contentMargin,
-              borderBottomRightRadius: this.props.borderRadius,
-              borderBottomLeftRadius: this.props.borderRadius,
-            },
-          ]}
-        >
+        </View>
+        <View style={[styles.content]}>
           <View style={styles.categoriesContainer}>
-            <Text style={styles.number}>
-              {this.formatBillNumber(this.props.item)}
-            </Text>
+            <Text style={styles.number}>{formatBillNumber(bill)}</Text>
             <View
               style={[
                 styles.category,
@@ -105,37 +78,34 @@ export default class BillInfoScreen extends React.Component<Props, State> {
                   { color: category.categoryTextColor },
                 ]}
               >
-                {item.category}
+                {bill.category}
               </Text>
             </View>
           </View>
-          <Text style={styles.title}>{item.title}</Text>
+          <Text style={styles.title}>{bill.title}</Text>
+
           <ScrollView>
             <Text ellipsizeMode="tail" style={styles.synopsis}>
-              {item.short_summary}
+              {bill.short_summary}
             </Text>
           </ScrollView>
-        </Animated.View>
+        </View>
         {this.closeButton()}
-      </Animated.View>
+      </View>
     );
   }
 
   // generate the close button
   closeButton = () => {
     return (
-      <Animated.View
-        style={[styles.closeButton, { opacity: this.state.animation }]}
+      <TouchableOpacity
+        style={styles.closeButton}
+        onPress={() => {
+          this.props.navigation.goBack();
+        }}
       >
-        <TouchableOpacity
-          style={styles.backButtonTouchable}
-          onPress={() => {
-            this.props.collapse();
-          }}
-        >
-          <Icon size={26} name="close" type="evilicon" color="black" />
-        </TouchableOpacity>
-      </Animated.View>
+        <Icon size={26} name="arrow-left" type="feather" color="black" />
+      </TouchableOpacity>
     );
   };
 }
@@ -161,6 +131,7 @@ const styles = StyleSheet.create({
     height: '100%',
     borderTopLeftRadius: 40,
     borderTopRightRadius: 40,
+    flex: 1,
   },
   content: {
     backgroundColor: 'white',
@@ -218,11 +189,13 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: 40,
     height: 40,
-    right: '6%',
+    left: '6%',
     top: '6%',
     zIndex: 100,
     backgroundColor: colors.textInputBackground,
     borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   backButton: {
     width: 40,

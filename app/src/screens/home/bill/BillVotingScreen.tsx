@@ -13,12 +13,20 @@ import {
   TextInput,
 } from 'react-native-gesture-handler';
 import { Icon } from 'react-native-elements';
-import { colors } from '../../../../assets';
-import { BillFloatingTabKey } from '../../../../components/BillFloatingTabs';
+import { colors } from '../../../assets';
 
 interface Props {}
 
-interface State {}
+interface State {
+  animation: Animated.Value;
+  vote: Vote;
+}
+
+enum Vote {
+  Yes,
+  No,
+  None,
+}
 
 export default class BillVotingScreen extends React.Component<Props, State> {
   yayAnimation: Animated.Value;
@@ -28,6 +36,11 @@ export default class BillVotingScreen extends React.Component<Props, State> {
     super(props);
     this.yayAnimation = new Animated.Value(0);
     this.noAnimation = new Animated.Value(0);
+
+    this.state = {
+      animation: new Animated.Value(0),
+      vote: Vote.None,
+    };
   }
 
   comment = () => {
@@ -105,12 +118,7 @@ export default class BillVotingScreen extends React.Component<Props, State> {
       <Animated.View
         style={[styles.backButton, { opacity: this.state.animation }]}
       >
-        <TouchableOpacity
-          style={styles.backButtonTouchable}
-          onPress={() => {
-            this.setState({ activeTab: BillFloatingTabKey.info });
-          }}
-        >
+        <TouchableOpacity style={styles.backButtonTouchable}>
           <Icon size={26} name="arrow-left" type="feather" color="black" />
         </TouchableOpacity>
       </Animated.View>
@@ -170,9 +178,7 @@ export default class BillVotingScreen extends React.Component<Props, State> {
           >
             <TouchableOpacity
               style={styles.backButtonTouchable}
-              onPress={() => {
-                this.setState({ activeTab: BillFloatingTabKey.info });
-              }}
+              onPress={() => {}}
             >
               <Icon size={26} name="arrow-left" type="feather" color="black" />
             </TouchableOpacity>

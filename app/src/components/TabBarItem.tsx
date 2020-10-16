@@ -5,14 +5,10 @@ import {
   StyleProp,
   ViewStyle,
   Animated,
-  Alert,
-} from 'react-native';
-import {
-  TouchableWithoutFeedback,
   TouchableOpacity,
-} from 'react-native-gesture-handler';
-import {Icon} from 'react-native-elements';
-import {TabKey} from './TabBar';
+} from 'react-native';
+import { Icon } from 'react-native-elements';
+import { act } from 'react-test-renderer';
 
 type TabItemProps = {
   style?: StyleProp<ViewStyle>;
@@ -25,7 +21,7 @@ type TabItemProps = {
   textColor: string;
   width: number;
   tkey: string;
-  active: string;
+  active: boolean;
   onPress: (tkey: string) => void;
 };
 
@@ -44,8 +40,8 @@ class TabBarItem extends React.Component<TabItemProps, TabItemState> {
   constructor(props: TabItemProps) {
     super(props);
     this.state = {
-      animation: new Animated.Value(0),
-      expanded: false,
+      animation: new Animated.Value(props.active ? 1 : 0),
+      expanded: props.active,
     };
 
     // set up label width and margin left animation
@@ -66,7 +62,7 @@ class TabBarItem extends React.Component<TabItemProps, TabItemState> {
   }
   // expand tab function
   expand = () => {
-    this.setState({expanded: true}, () => {
+    this.setState({ expanded: true }, () => {
       Animated.timing(this.state.animation, {
         toValue: 1,
         useNativeDriver: false,
@@ -76,7 +72,7 @@ class TabBarItem extends React.Component<TabItemProps, TabItemState> {
   };
 
   collapse = () => {
-    this.setState({expanded: false}, () => {
+    this.setState({ expanded: false }, () => {
       Animated.timing(this.state.animation, {
         toValue: 0,
         useNativeDriver: false,
@@ -85,48 +81,54 @@ class TabBarItem extends React.Component<TabItemProps, TabItemState> {
     });
   };
 
-  render() {
-    // destructure for convenience
-    const {textColor, icon, label, tkey, active, onPress} = this.props;
+  componentDidUpdate() {
     // is this tab active
-    const isActive = active == tkey;
     // if the tab is not active and is expanded, collapse it
-    if (!isActive && this.state.expanded) {
+    if (!this.props.active && this.state.expanded) {
       this.collapse();
-    } else if (isActive && !this.state.expanded) {
+    } else if (this.props.active && !this.state.expanded) {
       this.expand();
     }
+  }
+
+  render() {
+    // destructure for convenience
+    const { textColor, icon, label, tkey, active, onPress } = this.props;
+
     return (
       <View style={tabStyles.container}>
         <TouchableOpacity
-          disabled={isActive}
+          disabled={active}
           onPress={() => {
-            if (!isActive) {
+            if (!active) {
               this.expand();
               onPress(tkey);
             }
           }}
-          style={[tabStyles.tabTouchable]}>
+          style={[tabStyles.tabTouchable]}
+        >
           <Animated.View
             style={[
               tabStyles.tabComponets,
               {
                 backgroundColor: this.backgroundColor,
               },
-            ]}>
+            ]}
+          >
             <Icon
               type={icon.type}
               name={icon.name}
               color={this.state.expanded ? textColor : 'black'}
-              style={{fontWeight: '200'}}
+              style={{ fontWeight: '200' }}
             />
             <Animated.Text
               numberOfLines={1}
               ellipsizeMode={'clip'}
               style={[
                 tabStyles.label,
-                {width: this.labelWidth, color: textColor},
-              ]}>
+                { width: this.labelWidth, color: textColor },
+              ]}
+            >
               {label}
             </Animated.Text>
           </Animated.View>
@@ -151,7 +153,12 @@ const tabStyles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 20,
   },
-  label: {textAlign: 'center', marginLeft: 5, fontWeight: '600', fontSize: 16},
+  label: {
+    textAlign: 'center',
+    marginLeft: 5,
+    fontWeight: '600',
+    fontSize: 16,
+  },
 });
 
 export default TabBarItem;

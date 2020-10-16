@@ -181,16 +181,8 @@ const get_reps = async (address: string) => {
 export const rand_bills = async (event: any = {}): Promise<any> => {
   //let uuid = event["queryStringParameters"].uuid;
   let pgPool = new pg.Pool(pgConfig);
-  return pgPool
-    .connect()
-    .then((res) => {
-      console.log("connected!");
-    })
-    .catch((err) => {
-      console.log(err);
-    });
   let bills = await pgPool.query(
-    "select * from public.bills order by random() limit 20"
+    "select * from public.bills where category != 'Other' and category != 'DNE' order by random() limit 20"
   );
   await pgPool.end();
 

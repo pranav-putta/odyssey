@@ -30,15 +30,18 @@ const awsURLs = {
 /**
  * refreshes all pertinent user data in the background
  */
-export async function refresh(uid: string): Promise<any> {
+export async function refresh(): Promise<any> {
   if (!isNetworkAvailable()) {
     return {};
   }
   let version = await fetchDataVersion();
-  Axios.post(awsURLs.refresh, { uid: uid, version: version })
+  Axios.post(awsURLs.refresh, {
+    uid: firebase.auth().currentUser?.uid,
+    version: version,
+  })
     .then((res) => {
       let user: User = res.data.userData;
-      let reps = res.data.reps.members;
+      let reps = res.data.reps;
       let version = res.data.version;
       storeUser(user);
       storeRepresentative(reps);
