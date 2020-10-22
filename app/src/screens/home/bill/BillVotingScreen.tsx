@@ -1,437 +1,620 @@
 import React from 'react';
 import {
-  View,
-  Image,
-  Text,
+  Alert,
   Animated,
-  SafeAreaView,
-  StyleSheet,
-} from 'react-native';
-import {
-  TouchableOpacity,
   ScrollView,
-  TextInput,
-} from 'react-native-gesture-handler';
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { Icon } from 'react-native-elements';
+import FastImage from 'react-native-fast-image';
 import { colors } from '../../../assets';
-
-interface Props {}
-
-interface State {
-  animation: Animated.Value;
-  vote: Vote;
-}
+import dateformat from 'dateformat';
+import ProgressHUD from '../../../components/ProgressHUD';
+import { BillData, Comment } from '../../../models/BillData';
+import {
+  fetchUser,
+  getBillData,
+  likeComment,
+  setBillVote,
+} from '../../../util';
+import {
+  BillDetailsVoteScreenProps,
+  BillDetailVoteScreenRouteProps,
+} from './BillDetailsStack';
+import { User } from '../../../models';
 
 enum Vote {
-  Yes,
-  No,
-  None,
+  None = -1,
+  Yes = 0,
+  No = 1,
+}
+type Props = {
+  navigation: BillDetailsVoteScreenProps;
+  route: BillDetailVoteScreenRouteProps;
+};
+type State = {
+  vote: Vote;
+  billData: BillData;
+  progress: boolean;
+  user?: User;
+};
+
+const AnimatedTouchableOpacity = Animated.createAnimatedComponent(
+  TouchableOpacity
+);
+
+function ButtonGroup(props: {
+  buttons: string[];
+  activeColors: string[];
+  inactiveColor: string;
+  activeIndex: number;
+  onPress: (index: number) => void;
+}) {
+  let borderRadius = 5;
+  let animations = props.buttons.map(
+    () => React.useRef(new Animated.Value(0)).current
+  );
+  return (
+    <View style={styles.buttonGroup}>
+      {props.buttons.map((val, ind) => {
+        let bgColor = animations[ind].interpolate({
+          inputRange: [0, 1],
+          outputRange: [props.inactiveColor, props.activeColors[ind]],
+        });
+        let textColor = animations[ind].interpolate({
+          inputRange: [0, 1],
+          outputRange: ['black', 'white'],
+        });
+
+        Animated.timing(animations[ind], {
+          toValue: props.activeIndex == ind ? 1 : 0,
+          useNativeDriver: false,
+          duration: 200,
+        }).start();
+
+        return (
+          <AnimatedTouchableOpacity
+            key={val}
+            onPress={() => {
+              if (ind != props.activeIndex) {
+                Animated.timing(animations[ind], {
+                  toValue: 1,
+                  useNativeDriver: false,
+                  duration: 200,
+                }).start();
+                if (props.activeIndex != -1) {
+                  Animated.timing(animations[props.activeIndex], {
+                    toValue: 0,
+                    useNativeDriver: false,
+                    duration: 200,
+                  }).start();
+                }
+                props.onPress(ind);
+              } else {
+                Animated.timing(animations[ind], {
+                  toValue: 0,
+                  useNativeDriver: false,
+                  duration: 200,
+                }).start();
+                props.onPress(-1);
+              }
+            }}
+            style={[
+              styles.button,
+              {
+                backgroundColor: bgColor,
+                borderTopLeftRadius: ind == 0 ? borderRadius : 0,
+                borderBottomLeftRadius: ind == 0 ? borderRadius : 0,
+                borderBottomRightRadius:
+                  ind == props.buttons.length - 1 ? borderRadius : 0,
+                borderTopRightRadius:
+                  ind == props.buttons.length - 1 ? borderRadius : 0,
+                //borderRightWidth: ind == 0 ? 0.5 : 0,
+                //borderColor: 'gray',
+              },
+            ]}
+          >
+            <Animated.Text style={[styles.buttonText, { color: textColor }]}>
+              {val}
+            </Animated.Text>
+          </AnimatedTouchableOpacity>
+        );
+      })}
+    </View>
+  );
 }
 
-export default class BillVotingScreen extends React.Component<Props, State> {
-  yayAnimation: Animated.Value;
-  noAnimation: Animated.Value;
-
+export default class VoteScreen extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
-    this.yayAnimation = new Animated.Value(0);
-    this.noAnimation = new Animated.Value(0);
-
     this.state = {
-      animation: new Animated.Value(0),
       vote: Vote.None,
+      billData: {
+        bill_id: props.route.params.bill.number,
+        comments: [],
+        votes: {},
+      },
+      progress: false,
+      user: undefined,
     };
   }
 
-  comment = () => {
+  componentDidMount() {
+    this.reload();
+    this.props.navigation.addListener('focus', () => {
+      this.reload();
+    });
+  }
+
+  reload = () => {
+    this.setState({ progress: true });
+    getBillData(this.props.route.params.bill).then(async (val) => {
+      this.setState({ billData: val, progress: false });
+
+      let user = await fetchUser();
+      this.setState({ user: user });
+      if (Object.keys(val.votes).includes(user.uid)) {
+        this.setState({ vote: val.votes[user.uid] });
+      }
+    });
+  };
+
+  render() {
+    let comments = this.state.billData.comments;
+    let top = undefined;
+    let max = -1;
+    for (const comment of comments) {
+      if (Object.keys(comment.likes).length > max) {
+        top = comment;
+        max = Object.keys(comment.likes).length;
+      }
+    }
     return (
-      <View
-        style={{
-          borderRadius: 10,
-          marginTop: '2.5%',
-          padding: '5%',
-          paddingBottom: '2.5%',
-          borderWidth: 1,
-          borderColor: colors.textInputBackground,
-        }}
-      >
+      <View style={styles.container}>
+        <ProgressHUD visible={this.state.progress} />
+        <View style={styles.header}>
+          {this.closeButton()}
+          <Text style={styles.headerText}>Vote</Text>
+        </View>
+        <ButtonGroup
+          buttons={['Yes', 'No']}
+          activeColors={['#69f0ae', '#ff8a80']}
+          inactiveColor={'#fff'}
+          activeIndex={this.state.vote}
+          onPress={(index) => {
+            this.setState({ vote: index }, () => {
+              setBillVote(this.props.route.params.bill, this.state.vote);
+            });
+          }}
+        />
+        {top ? (
+          <ScrollView style={{ marginTop: '10%' }} nestedScrollEnabled={true}>
+            {this.topComment(top)}
+            {this.comments(comments)}
+          </ScrollView>
+        ) : (
+          <View
+            style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
+          >
+            <Text style={{ fontFamily: 'Futura', fontSize: 24 }}>
+              No comments yet!
+            </Text>
+          </View>
+        )}
+
+        {this.newComment()}
+      </View>
+    );
+  }
+
+  topComment = (top: Comment) => {
+    return (
+      <View style={styles.topComment}>
+        <Icon
+          type="font-awesome-5"
+          name="quote-right"
+          size={60}
+          color={colors.textInputBackground}
+          containerStyle={styles.bigQuoteFloatingIcon}
+        />
+        <Icon
+          type="font-awesome-5"
+          name="quote-left"
+          size={20}
+          color={'white'}
+          containerStyle={styles.quoteIcon}
+        />
+        <Text
+          style={{
+            fontFamily: 'Futura',
+            fontSize: 20,
+            marginTop: '5%',
+            lineHeight: 20,
+          }}
+          ellipsizeMode="tail"
+          numberOfLines={3}
+        >
+          {top.text}
+        </Text>
         <View
           style={{
             flexDirection: 'row',
-            alignItems: 'center',
           }}
         >
-          <Image
-            style={{ width: 40, height: 40, borderRadius: 40 }}
+          <FastImage
+            style={styles.profile}
             source={{
               uri:
-                'https://ilhousedems.com/wp-content/uploads/2020/02/Gonzalez.jpg',
+                'https://media.vanityfair.com/photos/5dd70131e78810000883f587/7:3/w_1953,h_837,c_limit/baby-yoda-craze.jpg',
             }}
           />
-          <View
-            style={{ marginHorizontal: 10, justifyContent: 'space-between' }}
-          >
-            <Text style={{ fontWeight: 'bold' }}>Edgar Gonzales</Text>
-            <Text>September 4, 2020</Text>
-          </View>
-          <View
-            style={{
-              backgroundColor: '#ff5252',
-              margin: '2.5%',
-              position: 'absolute',
-              justifyContent: 'center',
-              alignItems: 'center',
-              right: 0,
-              borderRadius: 5,
-            }}
-          >
-            <Text style={{ color: 'white', fontWeight: 'bold' }}>Against</Text>
+          <View style={styles.profileName}>
+            <View style={{ flexDirection: 'row' }}>
+              <Text
+                style={{
+                  fontFamily: 'Futura',
+                  fontSize: 16,
+                  fontWeight: '600',
+                }}
+              >
+                {top.name}
+              </Text>
+              <View
+                style={{
+                  backgroundColor: this.voteToColor(this.state.vote),
+                  paddingVertical: 2,
+                  paddingHorizontal: 8,
+                  marginLeft: 8,
+                  borderRadius: 5,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                <Text
+                  style={{
+                    fontFamily: 'Futura',
+                    color: 'white',
+                    fontWeight: '500',
+                  }}
+                >
+                  {this.voteToText(this.state.vote)}
+                </Text>
+              </View>
+            </View>
+
+            <Text
+              style={{
+                fontFamily: 'Futura',
+                fontSize: 15,
+                color: 'gray',
+              }}
+            >
+              Top Comment
+            </Text>
           </View>
         </View>
-        <Text style={{ padding: '2.5%' }}>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla
-          ultricies lorem ac pellentesque dignissim.
-        </Text>
-        <View>
-          <TouchableOpacity
+      </View>
+    );
+  };
+
+  voteToText = (vote: Vote) => {
+    switch (vote) {
+      case Vote.No:
+        return 'Against';
+      case Vote.Yes:
+        return 'For';
+      case Vote.None:
+        return 'Abstain';
+    }
+  };
+
+  voteToColor = (vote: Vote) => {
+    switch (vote) {
+      case Vote.No:
+        return '#ff8a80';
+      case Vote.Yes:
+        return '#69f0ae';
+      case Vote.None:
+        return colors.textInputBackground;
+    }
+  };
+
+  comment = (comment: Comment, index: number) => {
+    let formattedDate = dateformat(new Date(comment.date), 'mmm dd, yyyy');
+    let isLiked = this.state.user
+      ? comment.likes[this.state.user.uid] !== undefined &&
+        comment.likes[this.state.user.uid]
+      : false;
+    return (
+      <View
+        key={comment.name + comment.text}
+        style={{
+          flexDirection: 'row',
+        }}
+      >
+        <FastImage
+          style={styles.profile}
+          source={{
+            uri:
+              'https://media.vanityfair.com/photos/5dd70131e78810000883f587/7:3/w_1953,h_837,c_limit/baby-yoda-craze.jpg',
+          }}
+        />
+        <View
+          style={{
+            padding: '1%',
+            paddingHorizontal: '5%',
+            marginTop: '5%',
+            flex: 1,
+          }}
+        >
+          <View
             style={{
-              marginHorizontal: '2.5%',
-              width: 50,
-              padding: 5,
-              //backgroundColor: '#cfd8dc',
-              borderRadius: 5,
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'space-between',
             }}
           >
-            <Icon name="like2" type="antdesign" size={18} color="black" />
-            <Text>10</Text>
-          </TouchableOpacity>
+            <Text
+              style={{
+                fontFamily: 'Futura',
+                fontSize: 16,
+                fontWeight: '600',
+              }}
+            >
+              {comment.name}
+            </Text>
+            <View
+              style={{
+                backgroundColor: this.voteToColor(this.state.vote),
+                paddingVertical: 3,
+                paddingHorizontal: 8,
+                borderRadius: 5,
+              }}
+            >
+              <Text
+                style={{
+                  fontFamily: 'Futura',
+                  color: 'white',
+                  fontWeight: '500',
+                }}
+              >
+                {this.voteToText(this.state.vote)}
+              </Text>
+            </View>
+            <Text
+              style={{
+                fontFamily: 'Futura',
+                fontSize: 12,
+                color: '#9e9e9e',
+              }}
+            >
+              {formattedDate}
+            </Text>
+          </View>
+          <Text
+            style={{
+              fontFamily: 'Futura',
+              fontSize: 15,
+              lineHeight: 20,
+              marginTop: '2.5%',
+            }}
+          >
+            {comment.text}
+          </Text>
+          <View style={{ flexDirection: 'row', marginTop: '2.5%' }}>
+            <TouchableOpacity
+              style={{
+                backgroundColor: colors.textInputBackground,
+                padding: '2.5%',
+                borderRadius: 5,
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}
+              onPress={() => {
+                if (this.state.user) {
+                  let billData = this.state.billData;
+                  billData.comments[index].likes[
+                    this.state.user.uid
+                  ] = !billData.comments[index].likes[this.state.user.uid];
+                  this.setState({ billData: billData });
+                  likeComment(
+                    this.props.route.params.bill,
+                    index,
+                    billData.comments[index].likes[this.state.user.uid]
+                  );
+                }
+              }}
+            >
+              <Icon
+                type="ionicon"
+                color={isLiked ? colors.republican : 'black'}
+                name={isLiked ? 'heart-sharp' : 'heart-outline'}
+                size={16}
+              />
+              <Text
+                style={{
+                  fontFamily: 'Futura',
+                  fontWeight: '500',
+                  paddingLeft: '2.5%',
+                }}
+              >
+                {Object.values(comment.likes).filter(Boolean).length}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     );
   };
 
-  backButton = () => {
+  comments = (comments: Comment[]) => {
     return (
-      <Animated.View
-        style={[styles.backButton, { opacity: this.state.animation }]}
-      >
-        <TouchableOpacity style={styles.backButtonTouchable}>
-          <Icon size={26} name="arrow-left" type="feather" color="black" />
-        </TouchableOpacity>
-      </Animated.View>
+      <View style={styles.commentBox}>
+        {comments.map((val, i) => this.comment(val, i))}
+      </View>
     );
   };
 
-  render() {
-    const AnimatedTouchableOpacity = Animated.createAnimatedComponent(
-      TouchableOpacity
-    );
-
-    const animateVoting = (vote: Vote) => {
-      const current = this.state.vote;
-      const anim = vote == Vote.Yes ? this.yayAnimation : this.noAnimation;
-      if (current == vote) {
-        Animated.timing(anim, {
-          toValue: 0,
-          useNativeDriver: false,
-          duration: 250,
-        }).start();
-        this.setState({ vote: Vote.None });
-      } else if (current != vote) {
-        let yes = 1;
-        let no = 0;
-        if (vote == Vote.No) {
-          yes = 0;
-          no = 1;
-        }
-        Animated.parallel([
-          Animated.timing(this.yayAnimation, {
-            toValue: yes,
-            useNativeDriver: false,
-            duration: 250,
-          }),
-          Animated.timing(this.noAnimation, {
-            toValue: no,
-            useNativeDriver: false,
-            duration: 250,
-          }),
-        ]).start();
-        this.setState({ vote: vote });
-      } else if (current == Vote.None) {
-        Animated.timing(anim, {
-          toValue: 1,
-          useNativeDriver: false,
-          duration: 250,
-        }).start();
-        this.setState({ vote: vote });
-      }
-    };
+  newComment = () => {
     return (
-      <View style={{ flex: 1, backgroundColor: 'white' }}>
-        <SafeAreaView />
-        <View style={{ flexDirection: 'row' }}>
-          <Animated.View
-            style={[styles.backButton, { opacity: this.state.animation }]}
-          >
-            <TouchableOpacity
-              style={styles.backButtonTouchable}
-              onPress={() => {}}
-            >
-              <Icon size={26} name="arrow-left" type="feather" color="black" />
-            </TouchableOpacity>
-          </Animated.View>
-
-          <Text
-            style={{
-              alignSelf: 'center',
-              fontSize: 30,
-              fontWeight: 'bold',
-            }}
-          >
-            Vote
-          </Text>
-        </View>
-
-        <View
-          style={{ marginHorizontal: '10%', marginTop: '5%', height: '72.5%' }}
+      <View
+        style={{
+          width: '100%',
+          height: '10%',
+          backgroundColor: 'white',
+          padding: '2.5%',
+          paddingHorizontal: '7.5%',
+          shadowColor: 'black',
+          shadowOpacity: 0.25,
+          shadowOffset: { width: 0, height: 1 },
+          shadowRadius: 7.5,
+        }}
+      >
+        <TouchableOpacity
+          style={{
+            backgroundColor: colors.textInputBackground,
+            borderRadius: 10,
+            flexDirection: 'row',
+          }}
+          onPress={() => {
+            this.props.navigation.push('Comment', {
+              bill: this.props.route.params.bill,
+            });
+          }}
         >
+          <Text
+            style={{ margin: '4%', flex: 5, fontSize: 16, color: '#9e9e9e' }}
+          >
+            Share your thoughts
+          </Text>
           <View
             style={{
-              flexDirection: 'row',
+              backgroundColor: '#448aff',
+              justifyContent: 'center',
+              alignItems: 'center',
+              flex: 1,
               borderRadius: 10,
             }}
           >
-            <AnimatedTouchableOpacity
-              style={{
-                flex: 1,
-                justifyContent: 'center',
-                alignItems: 'center',
-                padding: '10%',
-                backgroundColor: this.yayAnimation.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [colors.textInputBackground, '#00e676'],
-                }),
-                borderTopLeftRadius: 10,
-                borderBottomLeftRadius: 10,
-              }}
-              onPress={() => {
-                animateVoting(Vote.Yes);
-              }}
-            >
-              <Animated.Text
-                style={{
-                  fontSize: 25,
-                  fontWeight: 'bold',
-                  color: this.yayAnimation.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: ['black', 'white'],
-                  }),
-                }}
-              >
-                Yes
-              </Animated.Text>
-            </AnimatedTouchableOpacity>
-            <View
-              style={{
-                height: '100%',
-                width: 0.5,
-              }}
-            />
-            <AnimatedTouchableOpacity
-              style={{
-                flex: 1,
-                justifyContent: 'center',
-                alignItems: 'center',
-                padding: '10%',
-                backgroundColor: this.noAnimation.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [colors.textInputBackground, '#ff5252'],
-                }),
-                borderTopRightRadius: 10,
-                borderBottomRightRadius: 10,
-              }}
-              onPress={() => {
-                animateVoting(Vote.No);
-              }}
-            >
-              <Animated.Text
-                style={{
-                  fontSize: 25,
-                  fontWeight: 'bold',
-                  color: this.noAnimation.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: ['black', 'white'],
-                  }),
-                }}
-              >
-                No
-              </Animated.Text>
-            </AnimatedTouchableOpacity>
+            <Icon type="feather" name="send" size={24} color={'white'} />
           </View>
-          <Text style={{ marginTop: '5%', fontSize: 20, fontWeight: 'bold' }}>
-            Comments
-          </Text>
-          <ScrollView>
-            {this.comment()}
-            {this.comment()}
-          </ScrollView>
-        </View>
-        <View
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            width: '100%',
-            height: '12%',
-            backgroundColor: '#546e7a',
-            borderTopLeftRadius: 25,
-            borderTopRightRadius: 25,
-            padding: '5%',
-            alignItems: 'center',
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-          }}
-        >
-          <TextInput
-            placeholder="Write your opinion"
-            placeholderTextColor="#e0e0e0"
-            style={{ fontSize: 20, color: colors.textInputBackground }}
-          />
-          <TouchableOpacity
-            style={{
-              backgroundColor: '#2196f3',
-              padding: 7.5,
-              borderRadius: 30,
-            }}
-          >
-            <Icon
-              size={30}
-              name="arrow-right"
-              style={{ fontWeight: 'bold' }}
-              type="feather"
-              color="white"
-            />
-          </TouchableOpacity>
-        </View>
+        </TouchableOpacity>
       </View>
     );
-  }
+  };
+
+  // generate the close button
+  closeButton = () => {
+    return (
+      <TouchableOpacity
+        style={styles.closeButton}
+        onPress={() => {
+          this.props.navigation.goBack();
+        }}
+      >
+        <Icon size={26} name="arrow-left" type="feather" color="black" />
+      </TouchableOpacity>
+    );
+  };
 }
 
 const styles = StyleSheet.create({
+  card: {
+    flex: 1,
+  },
   container: {
-    width: '78.2%',
-    height: '46%',
-    marginTop: '89%',
-    alignSelf: 'center',
-    borderRadius: 40,
-    backgroundColor: colors.cards.temp,
-  },
-
-  imageContainer: {
-    width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
     flex: 1,
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-    borderTopLeftRadius: 40,
-    borderTopRightRadius: 40,
-  },
-  content: {
-    backgroundColor: 'white',
-    borderRadius: 20,
-    paddingVertical: '5%',
-    paddingBottom: '2%',
-    paddingHorizontal: '7.5%',
-    flex: 2,
-    shadowColor: 'black',
-    shadowOpacity: 0.5,
-    shadowRadius: 15,
-    shadowOffset: { width: 0, height: 2.5 },
-  },
-  number: {
-    fontFamily: 'Roboto-Light',
-    fontWeight: '400',
-    fontSize: 16,
-    color: colors.blueGray,
-  },
-  title: {
-    fontSize: 20,
-    fontFamily: 'Futura-CondensedLight',
-    fontWeight: '700',
-    marginTop: '5%',
-  },
-  categoriesContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  category: {
-    backgroundColor: colors.finishButtonIconColor,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: '2%',
-    paddingHorizontal: '4%',
-    borderRadius: 20,
-  },
-  categoryText: { color: 'white', fontWeight: 'bold' },
-  header: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginTop: '10%',
-  },
-  synopsis: {
-    flex: 1,
-    flexWrap: 'wrap',
-    textAlignVertical: 'center',
-    marginTop: '5%',
-    fontSize: 15,
-    fontWeight: '200',
-    fontFamily: 'Futura',
+    marginTop: '7.5%',
   },
   closeButton: {
-    position: 'absolute',
     width: 40,
     height: 40,
-    right: '6%',
-    top: '6%',
     zIndex: 100,
-    backgroundColor: colors.textInputBackground,
-    borderRadius: 20,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    marginHorizontal: 20,
-  },
-  backButtonTouchable: {
-    width: '100%',
-    height: '100%',
+    borderRadius: 12.5,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  voteButton: {
-    position: 'absolute',
-    right: '7%',
-    bottom: '3%',
-    padding: '4%',
-    justifyContent: 'center',
+  header: {
+    flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 10,
-    backgroundColor: colors.votingBackgroundColor,
+    marginTop: '5%',
+    marginHorizontal: '7.5%',
+  },
+  headerText: {
+    marginLeft: '5%',
+    fontFamily: 'Futura',
+    fontWeight: '600',
+    fontSize: 26,
+  },
+  buttonGroup: {
+    width: '85%',
+    height: '10%',
+    marginHorizontal: '7.5%',
+
+    flexDirection: 'row',
+    marginTop: '5%',
     shadowColor: 'black',
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    zIndex: 150,
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 1 },
   },
-  voteText: {
-    color: 'white',
-    fontSize: 24,
-    fontWeight: 'bold',
+  button: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  buttonText: {
+    fontWeight: '600',
+    fontSize: 25,
+  },
+  topComment: {
+    width: '96%',
+    borderRadius: 10,
+    paddingVertical: '5%',
+    paddingHorizontal: '7.5%',
+    shadowColor: 'black',
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 1 },
+    backgroundColor: 'white',
+    marginHorizontal: '2%',
+  },
+  commentBox: {
+    width: '100%',
+    borderRadius: 10,
+
+    paddingVertical: '2.5%',
+    paddingHorizontal: '7.5%',
+    backgroundColor: 'white',
+    marginTop: '5%',
+  },
+  quoteIcon: {
+    width: 35,
+    height: 35,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#0091ea',
+    borderRadius: 5,
+    shadowColor: 'black',
+    shadowOpacity: 0.55,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 1 },
+  },
+  profile: { width: 45, height: 45, marginTop: '5%', borderRadius: 40 },
+  profileName: {
+    justifyContent: 'flex-end',
+    padding: '1%',
+    paddingHorizontal: '5%',
+    flex: 1,
+  },
+  bigQuoteFloatingIcon: {
+    position: 'absolute',
+    bottom: '10%',
+    right: '10%',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

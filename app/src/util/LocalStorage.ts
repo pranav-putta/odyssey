@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-community/async-storage';
 import { User } from '../models';
+import { Bill } from '../models/Bill';
 import { Category } from '../models/Category';
 import { Representative } from '../models/Representative';
 import categories from './default/categories.json';
@@ -15,6 +16,15 @@ export async function storeUser(user: User) {
   } catch (err) {
     throw err;
   }
+}
+
+export async function storeBillLike(bill: Bill, liked: boolean) {
+  let user = await fetchUser();
+  if (!user.liked) {
+    user.liked = {};
+  }
+  user.liked[bill.number] = liked;
+  await storeUser(user);
 }
 
 export async function storeRepresentative(reps: Representative[]) {

@@ -45,10 +45,58 @@ functions:
           path: rand-bills
           method: get
           cors: true
+  likedBills:
+    handler: dist/handler.liked_bills
+    events:
+      - http:
+          path: liked-bills
+          method: post
+          cors: true
+  search:
+    handler: dist/handler.search
+    events:
+      - http:
+          path: search
+          method: post
+          cors: true
+  like:
+    handler: dist/handler.like
+    events:
+      - http:
+          path: like
+          method: post
+          cors: true
+  vote:
+    handler: dist/handler.vote
+    events:
+      - http:
+          path: vote
+          method: post
+          cors: true
+  addComment:
+    handler: dist/handler.add_comment
+    events:
+      - http:
+          path: add-comment
+          method: post
+          cors: true
+  getBillData:
+    handler: dist/handler.get_bill_data
+    events:
+      - http:
+          path: get-bill-data
+          method: post
+          cors: true
+  likeComment:
+    handler: dist/handler.like_comment
+    events:
+      - http:
+          path: like-comment
+          method: post
+          cors: true
 
 plugins:
   - serverless-offline
-  
 #   you can add any of the following events
 #   events:
 #     - http:

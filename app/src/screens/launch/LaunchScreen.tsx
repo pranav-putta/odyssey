@@ -6,6 +6,7 @@ import { globalStyles, storage } from '../../assets';
 import routes from '../../routes/routes';
 import { refresh } from '../../util/NetworkHandler';
 import { firebase } from '@react-native-firebase/functions';
+import Global from '../../util/global';
 
 type Props = {
   navigation: StackNavigationProp<any, any>;
@@ -19,8 +20,10 @@ class LaunchScreen extends React.Component<Props> {
     AsyncStorage.getItem(storage.userSignedIn)
       .then((signedIn) => {
         if (signedIn && signedIn == 'true') {
-          refresh();
-          navigation.navigate(routes.home);
+          refresh().finally(async () => {
+            Global.setCategories();
+            navigation.navigate(routes.home);
+          });
         } else {
           // user is not signed in
           navigation.navigate(routes.login);

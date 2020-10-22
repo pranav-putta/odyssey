@@ -69,7 +69,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.refresh = exports.rand_bills = exports.new_user = exports.user_exists = void 0;
+exports.like_comment = exports.get_bill_data = exports.add_comment = exports.vote = exports.like = exports.search = exports.refresh = exports.liked_bills = exports.rand_bills = exports.new_user = exports.user_exists = void 0;
 var axios_1 = __importDefault(require("axios"));
 var pg_1 = __importDefault(require("pg"));
 var querystring_1 = __importDefault(require("querystring"));
@@ -282,6 +282,44 @@ exports.rand_bills = function (event) {
         });
     });
 };
+/**
+ * generates random bill
+ * @param event
+ */
+exports.liked_bills = function (event) {
+    if (event === void 0) { event = {}; }
+    return __awaiter(void 0, void 0, void 0, function () {
+        var data, likedBills, ids, params, i, pgPool, bills, response;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    data = JSON.parse(event.body);
+                    likedBills = data.user.liked;
+                    ids = [];
+                    Object.keys(likedBills).forEach(function (val) {
+                        if (likedBills[val]) {
+                            ids.push(val);
+                        }
+                    });
+                    params = [];
+                    for (i = 1; i <= ids.length; i++) {
+                        params.push("$" + i);
+                    }
+                    pgPool = new pg_1.default.Pool(pgConfig);
+                    return [4 /*yield*/, pgPool.query("select * from public.bills where number IN (" + params.join(",") + ")", ids)];
+                case 1:
+                    bills = _a.sent();
+                    return [4 /*yield*/, pgPool.end()];
+                case 2:
+                    _a.sent();
+                    response = {
+                        bills: bills.rows,
+                    };
+                    return [2 /*return*/, { statusCode: 200, body: JSON.stringify(response) }];
+            }
+        });
+    });
+};
 exports.refresh = function (event) {
     if (event === void 0) { event = {}; }
     return __awaiter(void 0, void 0, void 0, function () {
@@ -347,6 +385,344 @@ exports.refresh = function (event) {
                 case 1: 
                 // look for document with specified uid
                 return [2 /*return*/, _a.sent()];
+            }
+        });
+    });
+};
+var SearchBy;
+(function (SearchBy) {
+    SearchBy[SearchBy["title"] = 0] = "title";
+    SearchBy[SearchBy["category"] = 1] = "category";
+    SearchBy[SearchBy["number"] = 2] = "number";
+})(SearchBy || (SearchBy = {}));
+exports.search = function (event) {
+    if (event === void 0) { event = {}; }
+    return __awaiter(void 0, void 0, void 0, function () {
+        var pgPool, data, searchBy, searchQuery, query, bills, response;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    pgPool = new pg_1.default.Pool(pgConfig);
+                    data = JSON.parse(event.body);
+                    searchBy = data.searchBy;
+                    searchQuery = data.query;
+                    query = "select * from public.bills where " + searchBy + " ILIKE '%" + searchQuery + "%' limit 25";
+                    console.log(query);
+                    return [4 /*yield*/, pgPool.query(query)];
+                case 1:
+                    bills = _a.sent();
+                    return [4 /*yield*/, pgPool.end()];
+                case 2:
+                    _a.sent();
+                    response = {
+                        bills: bills.rows,
+                    };
+                    return [2 /*return*/, { statusCode: 200, body: JSON.stringify(response) }];
+            }
+        });
+    });
+};
+exports.like = function (event) {
+    if (event === void 0) { event = {}; }
+    return __awaiter(void 0, void 0, void 0, function () {
+        var data, uid, billID, liked, client, existParams, response, err_1, params;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    data = JSON.parse(event.body);
+                    uid = data.uid;
+                    billID = data.bill_id;
+                    liked = data.liked;
+                    // set up dynamodb client
+                    aws.config.update(aws_config_1.default.aws_remote_config);
+                    client = new aws.DynamoDB.DocumentClient();
+                    existParams = {
+                        TableName: aws_config_1.default.aws_table_name,
+                        Key: {
+                            uid: uid,
+                        },
+                        UpdateExpression: "set #liked = :val",
+                        ConditionExpression: "attribute_not_exists(#liked)",
+                        ExpressionAttributeNames: {
+                            "#liked": "liked",
+                        },
+                        ExpressionAttributeValues: {
+                            ":val": {},
+                        },
+                    };
+                    _a.label = 1;
+                case 1:
+                    _a.trys.push([1, 3, , 4]);
+                    return [4 /*yield*/, client.update(existParams).promise()];
+                case 2:
+                    response = _a.sent();
+                    if (response.$response.error) {
+                        return [2 /*return*/, createError(JSON.stringify(response.$response.error))];
+                    }
+                    return [3 /*break*/, 4];
+                case 3:
+                    err_1 = _a.sent();
+                    return [3 /*break*/, 4];
+                case 4:
+                    params = {
+                        TableName: aws_config_1.default.aws_table_name,
+                        Key: {
+                            uid: uid,
+                        },
+                        UpdateExpression: "set liked.#bill_id = :liked",
+                        ExpressionAttributeNames: {
+                            "#bill_id": billID,
+                        },
+                        ExpressionAttributeValues: {
+                            ":liked": liked,
+                        },
+                    };
+                    return [4 /*yield*/, client.update(params).promise()];
+                case 5:
+                    response = _a.sent();
+                    if (response.$response.error) {
+                        return [2 /*return*/, createError(JSON.stringify(response.$response.error))];
+                    }
+                    else {
+                        return [2 /*return*/, createSuccess({ result: true })];
+                    }
+                    return [2 /*return*/];
+            }
+        });
+    });
+};
+exports.vote = function (event) {
+    if (event === void 0) { event = {}; }
+    return __awaiter(void 0, void 0, void 0, function () {
+        var data, uid, billID, vote, client, exists, query, response, params, input, params;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    data = JSON.parse(event.body);
+                    uid = data.uid;
+                    billID = data.bill_id;
+                    vote = data.vote;
+                    // set up dynamodb client
+                    aws.config.update(aws_config_1.default.aws_remote_config);
+                    client = new aws.DynamoDB.DocumentClient();
+                    exists = {
+                        TableName: aws_config_1.default.aws_voting_table_name,
+                        KeyConditionExpression: "bill_id = :bill_id",
+                        ExpressionAttributeValues: {
+                            ":bill_id": billID.toString(),
+                        },
+                    };
+                    return [4 /*yield*/, client.query(exists).promise()];
+                case 1:
+                    query = _a.sent();
+                    if (!(((!query.$response.error && query.Count) || 0) > 0)) return [3 /*break*/, 3];
+                    params = {
+                        TableName: aws_config_1.default.aws_voting_table_name,
+                        Key: {
+                            bill_id: billID.toString(),
+                        },
+                        UpdateExpression: "set #votes.#uid = :vote",
+                        ExpressionAttributeNames: {
+                            "#votes": "votes",
+                            "#uid": uid,
+                        },
+                        ExpressionAttributeValues: {
+                            ":vote": vote,
+                        },
+                    };
+                    return [4 /*yield*/, client.update(params).promise()];
+                case 2:
+                    response = _a.sent();
+                    return [3 /*break*/, 5];
+                case 3:
+                    input = {};
+                    input[uid] = vote;
+                    params = {
+                        TableName: aws_config_1.default.aws_voting_table_name,
+                        Key: {
+                            bill_id: billID.toString(),
+                        },
+                        UpdateExpression: "set #votes = :vote, #comments = :comments",
+                        ExpressionAttributeNames: {
+                            "#votes": "votes",
+                            "#comments": "comments",
+                        },
+                        ExpressionAttributeValues: {
+                            ":vote": input,
+                            ":comments": [],
+                        },
+                    };
+                    return [4 /*yield*/, client.update(params).promise()];
+                case 4:
+                    response = _a.sent();
+                    _a.label = 5;
+                case 5:
+                    if (response.$response.error) {
+                        return [2 /*return*/, createError(JSON.stringify(response.$response.error))];
+                    }
+                    else {
+                        return [2 /*return*/, createSuccess({ result: true })];
+                    }
+                    return [2 /*return*/];
+            }
+        });
+    });
+};
+exports.add_comment = function (event) {
+    if (event === void 0) { event = {}; }
+    return __awaiter(void 0, void 0, void 0, function () {
+        var data, uid, billID, comment, client, exists, query, response, params, params;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    data = JSON.parse(event.body);
+                    uid = data.uid;
+                    billID = data.bill_id;
+                    comment = data.comment;
+                    comment.uid = uid;
+                    // set up dynamodb client
+                    aws.config.update(aws_config_1.default.aws_remote_config);
+                    client = new aws.DynamoDB.DocumentClient();
+                    exists = {
+                        TableName: aws_config_1.default.aws_voting_table_name,
+                        KeyConditionExpression: "bill_id = :bill_id",
+                        ExpressionAttributeValues: {
+                            ":bill_id": billID.toString(),
+                        },
+                    };
+                    return [4 /*yield*/, client.query(exists).promise()];
+                case 1:
+                    query = _a.sent();
+                    if (!(((!query.$response.error && query.Count) || 0) > 0)) return [3 /*break*/, 3];
+                    params = {
+                        TableName: aws_config_1.default.aws_voting_table_name,
+                        Key: {
+                            bill_id: billID.toString(),
+                        },
+                        UpdateExpression: "set #comments = list_append(#comments, :comment)",
+                        ExpressionAttributeNames: {
+                            "#comments": "comments",
+                        },
+                        ExpressionAttributeValues: {
+                            ":comment": [comment],
+                        },
+                    };
+                    return [4 /*yield*/, client.update(params).promise()];
+                case 2:
+                    response = _a.sent();
+                    return [3 /*break*/, 5];
+                case 3:
+                    params = {
+                        TableName: aws_config_1.default.aws_voting_table_name,
+                        Key: {
+                            bill_id: billID.toString(),
+                        },
+                        UpdateExpression: "set #votes = :vote, #comments = :comments",
+                        ExpressionAttributeNames: {
+                            "#votes": "votes",
+                            "#comments": "comments",
+                        },
+                        ExpressionAttributeValues: {
+                            ":vote": {},
+                            ":comments": [comment],
+                        },
+                    };
+                    return [4 /*yield*/, client.update(params).promise()];
+                case 4:
+                    response = _a.sent();
+                    _a.label = 5;
+                case 5:
+                    if (response.$response.error) {
+                        return [2 /*return*/, createError(JSON.stringify(response.$response.error))];
+                    }
+                    else {
+                        return [2 /*return*/, createSuccess({ result: true })];
+                    }
+                    return [2 /*return*/];
+            }
+        });
+    });
+};
+exports.get_bill_data = function (event) {
+    if (event === void 0) { event = {}; }
+    return __awaiter(void 0, void 0, void 0, function () {
+        var data, billID, client, exists, query;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    data = JSON.parse(event.body);
+                    billID = data.bill_id;
+                    // set up dynamodb client
+                    aws.config.update(aws_config_1.default.aws_remote_config);
+                    client = new aws.DynamoDB.DocumentClient();
+                    exists = {
+                        TableName: aws_config_1.default.aws_voting_table_name,
+                        Key: {
+                            bill_id: billID.toString(),
+                        },
+                    };
+                    return [4 /*yield*/, client.get(exists).promise()];
+                case 1:
+                    query = _a.sent();
+                    if (query.$response.data && query.$response.data.Item) {
+                        // bill exists
+                        return [2 /*return*/, createSuccess({
+                                success: true,
+                                bill: query.$response.data.Item,
+                            })];
+                    }
+                    else {
+                        // send empty response
+                        console.log("here");
+                        return [2 /*return*/, createSuccess({
+                                success: true,
+                                bill: { bill_id: billID, comments: [], votes: {} },
+                            })];
+                    }
+                    return [2 /*return*/];
+            }
+        });
+    });
+};
+exports.like_comment = function (event) {
+    if (event === void 0) { event = {}; }
+    return __awaiter(void 0, void 0, void 0, function () {
+        var data, billID, commentIndex, uid, liked, client, params, response;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    data = JSON.parse(event.body);
+                    billID = data.bill_id;
+                    commentIndex = data.comment_index;
+                    uid = data.uid;
+                    liked = data.liked;
+                    // set up dynamodb client
+                    aws.config.update(aws_config_1.default.aws_remote_config);
+                    client = new aws.DynamoDB.DocumentClient();
+                    params = {
+                        TableName: aws_config_1.default.aws_voting_table_name,
+                        Key: {
+                            bill_id: billID.toString(),
+                        },
+                        UpdateExpression: "set #comments[" + commentIndex + "].likes.#uid = :value",
+                        ExpressionAttributeNames: {
+                            "#comments": "comments",
+                            "#uid": uid,
+                        },
+                        ExpressionAttributeValues: {
+                            ":value": liked,
+                        },
+                    };
+                    return [4 /*yield*/, client.update(params).promise()];
+                case 1:
+                    response = _a.sent();
+                    if (response.$response.error) {
+                        return [2 /*return*/, createError(JSON.stringify(response.$response.error))];
+                    }
+                    else {
+                        return [2 /*return*/, createSuccess({ result: true })];
+                    }
+                    return [2 /*return*/];
             }
         });
     });

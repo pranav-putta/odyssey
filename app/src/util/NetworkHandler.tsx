@@ -1,6 +1,8 @@
 import functions, { firebase } from '@react-native-firebase/functions';
 import {
   fetchDataVersion,
+  fetchUser,
+  storeBillLike,
   storeDataVersion,
   storeRepresentative,
   storeUser,
@@ -10,6 +12,7 @@ import NetInfo from '@react-native-community/netinfo';
 import Axios from 'axios';
 import auth from '@react-native-firebase/auth';
 import { Bill } from '../models/Bill';
+import { BillData, Comment, Vote } from '../models/BillData';
 
 export async function isNetworkAvailable() {
   const response = await NetInfo.fetch();
@@ -25,6 +28,17 @@ const awsURLs = {
     'https://tde26c6cp5.execute-api.us-east-2.amazonaws.com/prod/refresh',
   randBills:
     'https://tde26c6cp5.execute-api.us-east-2.amazonaws.com/prod/rand-bills',
+  search: 'https://tde26c6cp5.execute-api.us-east-2.amazonaws.com/prod/search',
+  like: 'https://tde26c6cp5.execute-api.us-east-2.amazonaws.com/prod/like',
+  likedBills:
+    'https://tde26c6cp5.execute-api.us-east-2.amazonaws.com/prod/liked-bills',
+  billData:
+    'https://tde26c6cp5.execute-api.us-east-2.amazonaws.com/prod/get-bill-data',
+  vote: 'https://tde26c6cp5.execute-api.us-east-2.amazonaws.com/prod/vote',
+  addComment:
+    'https://tde26c6cp5.execute-api.us-east-2.amazonaws.com/prod/add-comment',
+  likeComment:
+    'https://tde26c6cp5.execute-api.us-east-2.amazonaws.com/prod/like-comment',
 };
 
 /**
@@ -35,7 +49,7 @@ export async function refresh(): Promise<any> {
     return {};
   }
   let version = await fetchDataVersion();
-  Axios.post(awsURLs.refresh, {
+  return Axios.post(awsURLs.refresh, {
     uid: firebase.auth().currentUser?.uid,
     version: version,
   })
@@ -101,5 +115,176 @@ export async function randomBills(): Promise<Bill[]> {
     .catch((err) => {
       console.log(JSON.stringify(err));
       return [];
+    });
+}
+
+export async function likedBills(): Promise<Bill[]> {
+  if (!isNetworkAvailable()) {
+    return [];
+  }
+  return Axios.post(awsURLs.likedBills, { user: await fetchUser() })
+    .then((response) => {
+      if (response.status == 200) {
+        return response.data.bills;
+      } else {
+        return [];
+      }
+    })
+    .catch((err) => {
+      console.log(JSON.stringify(err));
+      return [];
+    });
+}
+
+export async function search(searchBy: string, query: string): Promise<Bill[]> {
+  if (!isNetworkAvailable()) {
+    return [];
+  }
+  return Axios.post(awsURLs.search, { searchBy: searchBy, query: query })
+    .then((response) => {
+      if (response.status == 200) {
+        return response.data.bills;
+      } else {
+        return [];
+      }
+    })
+    .catch((err) => {
+      console.log(JSON.stringify(err));
+      return [];
+    });
+}
+
+/**
+ * convert bill number to bill identifier
+ */
+export async function likeBill(bill: Bill, liked: boolean): Promise<any> {
+  if (!isNetworkAvailable()) {
+    return [];
+  }
+  let user = await fetchUser();
+  let uid = user.uid;
+  return Axios.post(awsURLs.like, {
+    bill_id: bill.number,
+    uid: uid,
+    liked: liked,
+  })
+    .then((response) => {
+      if (response.status == 200) {
+        return true;
+      } else {
+        return [];
+      }
+    })
+    .catch((err) => {
+      console.log(JSON.stringify(err));
+      return [];
+    });
+}
+
+export async function getBillData(bill: Bill): Promise<BillData> {
+  if (!isNetworkAvailable()) {
+    return {
+      bill_id: bill.number,
+      comments: [],
+      votes: {},
+    };
+  }
+  return Axios.post(awsURLs.billData, {
+    bill_id: bill.number,
+  })
+    .then((response) => {
+      if (response.status == 200) {
+        return response.data.bill;
+      } else {
+        return {
+          bill_id: bill.number,
+          comments: [],
+          votes: {},
+        };
+      }
+    })
+    .catch((err) => {
+      console.log(JSON.stringify(err));
+      return [];
+    });
+}
+
+export async function setBillVote(bill: Bill, vote: Vote): Promise<any> {
+  if (!isNetworkAvailable()) {
+    return false;
+  }
+  let user = await fetchUser();
+  let uid = user.uid;
+  return Axios.post(awsURLs.vote, {
+    bill_id: bill.number,
+    uid: uid,
+    vote: vote,
+  })
+    .then((response) => {
+      if (response.status == 200) {
+        return true;
+      } else {
+        return [];
+      }
+    })
+    .catch((err) => {
+      console.log(JSON.stringify(err));
+      return [];
+    });
+}
+
+export async function addComment(
+  bill: Bill,
+  comment: Comment
+): Promise<boolean> {
+  if (!isNetworkAvailable()) {
+    return false;
+  }
+  let user = await fetchUser();
+  let uid = user.uid;
+  return Axios.post(awsURLs.addComment, {
+    bill_id: bill.number,
+    uid: uid,
+    comment: comment,
+  })
+    .then((response) => {
+      if (response.status == 200) {
+        return true;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(JSON.stringify(err));
+      return false;
+    });
+}
+
+export async function likeComment(
+  bill: Bill,
+  index: number,
+  value: boolean
+): Promise<boolean> {
+  if (!isNetworkAvailable()) {
+    return false;
+  }
+  let user = await fetchUser();
+  let uid = user.uid;
+  return Axios.post(awsURLs.likeComment, {
+    bill_id: bill.number,
+    uid: uid,
+    comment_index: index,
+    liked: value,
+  })
+    .then((response) => {
+      if (response.status == 200) {
+        return true;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(JSON.stringify(err));
+      return false;
     });
 }

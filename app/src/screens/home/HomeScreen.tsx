@@ -1,9 +1,9 @@
 import React from 'react';
 import { View, StatusBar, StyleSheet, Alert, Platform } from 'react-native';
 import TabBar, { TabKey, TabModel } from '../../components/TabBar';
-import BillScreen from './bill/BillScreen';
+import BillScreen from './bill/BillTab';
 import ProfileScreen from './profile/ProfileScreen';
-import CommunityScreen from './community/CommunityScreen';
+import SearchScreen from './search/SearchTab';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
@@ -35,7 +35,7 @@ const tabs: TabModel[] = [
 ];
 
 const Tab = createBottomTabNavigator();
-class HomeScreen extends React.Component<Props, State> {
+class HomeScreen extends React.PureComponent<Props, State> {
   constructor(props: Props) {
     super(props);
 
@@ -72,7 +72,14 @@ class HomeScreen extends React.Component<Props, State> {
             )}
           </Tab.Screen>
           <Tab.Screen name={TabKey.search}>
-            {(props) => <CommunityScreen />}
+            {(props) => (
+              <SearchScreen
+                navigation={props.navigation}
+                toggleTabs={(show: boolean) => {
+                  this.setState({ showTabs: show });
+                }}
+              />
+            )}
           </Tab.Screen>
 
           <Tab.Screen name={TabKey.profile}>

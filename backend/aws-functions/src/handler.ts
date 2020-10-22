@@ -192,6 +192,39 @@ export const rand_bills = async (event: any = {}): Promise<any> => {
   return { statusCode: 200, body: JSON.stringify(response) };
 };
 
+/**
+ * generates random bill
+ * @param event
+ */
+export const liked_bills = async (event: any = {}): Promise<any> => {
+  let data = JSON.parse(event.body);
+  let likedBills = data.user.liked;
+
+  let ids: string[] = [];
+  Object.keys(likedBills).forEach((val) => {
+    if (likedBills[val]) {
+      ids.push(val);
+    }
+  });
+
+  let params = [];
+  for (var i = 1; i <= ids.length; i++) {
+    params.push("$" + i);
+  }
+
+  let pgPool = new pg.Pool(pgConfig);
+  let bills = await pgPool.query(
+    "select * from public.bills where number IN (" + params.join(",") + ")",
+    ids
+  );
+  await pgPool.end();
+
+  const response = {
+    bills: bills.rows,
+  };
+  return { statusCode: 200, body: JSON.stringify(response) };
+};
+
 export const refresh = async (event: any = {}): Promise<any> => {
   interface ResponseBody {
     userData: any;
@@ -253,4 +286,284 @@ export const refresh = async (event: any = {}): Promise<any> => {
     .catch((err) => {
       return createError(JSON.stringify(err));
     });
+};
+
+enum SearchBy {
+  title,
+  category,
+  number,
+}
+
+export const search = async (event: any = {}): Promise<any> => {
+  let pgPool = new pg.Pool(pgConfig);
+  let data = JSON.parse(event.body);
+
+  let searchBy = data.searchBy;
+  let searchQuery: string = data.query;
+
+  let query = `select * from public.bills where ${searchBy} ILIKE '%${searchQuery}%' limit 25`;
+  console.log(query);
+  let bills = await pgPool.query(query);
+  await pgPool.end();
+
+  const response = {
+    bills: bills.rows,
+  };
+
+  return { statusCode: 200, body: JSON.stringify(response) };
+};
+
+export const like = async (event: any = {}): Promise<any> => {
+  let data = JSON.parse(event.body);
+  let uid = data.uid;
+  let billID = data.bill_id;
+  let liked = data.liked;
+
+  // set up dynamodb client
+  aws.config.update(awsconfig.aws_remote_config);
+  var client = new aws.DynamoDB.DocumentClient();
+
+  const existParams: DocumentClient.UpdateItemInput = {
+    TableName: awsconfig.aws_table_name,
+    Key: {
+      uid: uid,
+    },
+    UpdateExpression: "set #liked = :val",
+    ConditionExpression: "attribute_not_exists(#liked)",
+    ExpressionAttributeNames: {
+      "#liked": "liked",
+    },
+    ExpressionAttributeValues: {
+      ":val": {},
+    },
+  };
+  let response;
+  try {
+    response = await client.update(existParams).promise();
+    if (response.$response.error) {
+      return createError(JSON.stringify(response.$response.error));
+    }
+  } catch (err) {
+    // ignore error
+  }
+
+  const params: DocumentClient.UpdateItemInput = {
+    TableName: awsconfig.aws_table_name,
+    Key: {
+      uid: uid,
+    },
+    UpdateExpression: "set liked.#bill_id = :liked",
+    ExpressionAttributeNames: {
+      "#bill_id": billID,
+    },
+    ExpressionAttributeValues: {
+      ":liked": liked,
+    },
+  };
+  response = await client.update(params).promise();
+  if (response.$response.error) {
+    return createError(JSON.stringify(response.$response.error));
+  } else {
+    return createSuccess({ result: true });
+  }
+};
+
+export const vote = async (event: any = {}): Promise<any> => {
+  let data = JSON.parse(event.body);
+  let uid = data.uid;
+  let billID: number = data.bill_id;
+  let vote = data.vote;
+
+  // set up dynamodb client
+  aws.config.update(awsconfig.aws_remote_config);
+  var client = new aws.DynamoDB.DocumentClient();
+
+  // check if bill exists
+  const exists: DocumentClient.QueryInput = {
+    TableName: awsconfig.aws_voting_table_name,
+    KeyConditionExpression: "bill_id = :bill_id",
+    ExpressionAttributeValues: {
+      ":bill_id": billID.toString(),
+    },
+  };
+  // look for document with specified uid
+  let query = await client.query(exists).promise();
+
+  let response;
+  if (((!query.$response.error && query.Count) || 0) > 0) {
+    // bill exists, so update
+    const params: DocumentClient.UpdateItemInput = {
+      TableName: awsconfig.aws_voting_table_name,
+      Key: {
+        bill_id: billID.toString(),
+      },
+      UpdateExpression: "set #votes.#uid = :vote",
+      ExpressionAttributeNames: {
+        "#votes": "votes",
+        "#uid": uid,
+      },
+      ExpressionAttributeValues: {
+        ":vote": vote,
+      },
+    };
+    response = await client.update(params).promise();
+  } else {
+    let input: { [key: string]: string } = {};
+    input[uid] = vote;
+    // bill doesn't exist, so create
+    const params: DocumentClient.UpdateItemInput = {
+      TableName: awsconfig.aws_voting_table_name,
+      Key: {
+        bill_id: billID.toString(),
+      },
+      UpdateExpression: "set #votes = :vote, #comments = :comments",
+      ExpressionAttributeNames: {
+        "#votes": "votes",
+        "#comments": "comments",
+      },
+      ExpressionAttributeValues: {
+        ":vote": input,
+        ":comments": [],
+      },
+    };
+    response = await client.update(params).promise();
+  }
+
+  if (response.$response.error) {
+    return createError(JSON.stringify(response.$response.error));
+  } else {
+    return createSuccess({ result: true });
+  }
+};
+
+export const add_comment = async (event: any = {}): Promise<any> => {
+  let data = JSON.parse(event.body);
+  let uid = data.uid;
+  let billID: number = data.bill_id;
+  let comment = data.comment;
+  comment.uid = uid;
+
+  // set up dynamodb client
+  aws.config.update(awsconfig.aws_remote_config);
+  var client = new aws.DynamoDB.DocumentClient();
+
+  // check if bill exists
+  const exists: DocumentClient.QueryInput = {
+    TableName: awsconfig.aws_voting_table_name,
+    KeyConditionExpression: "bill_id = :bill_id",
+    ExpressionAttributeValues: {
+      ":bill_id": billID.toString(),
+    },
+  };
+  // look for document with specified uid
+  let query = await client.query(exists).promise();
+
+  let response;
+  if (((!query.$response.error && query.Count) || 0) > 0) {
+    // bill exists, so update
+    const params: DocumentClient.UpdateItemInput = {
+      TableName: awsconfig.aws_voting_table_name,
+      Key: {
+        bill_id: billID.toString(),
+      },
+      UpdateExpression: "set #comments = list_append(#comments, :comment)",
+      ExpressionAttributeNames: {
+        "#comments": "comments",
+      },
+      ExpressionAttributeValues: {
+        ":comment": [comment],
+      },
+    };
+    response = await client.update(params).promise();
+  } else {
+    // bill doesn't exist, so create
+    const params: DocumentClient.UpdateItemInput = {
+      TableName: awsconfig.aws_voting_table_name,
+      Key: {
+        bill_id: billID.toString(),
+      },
+      UpdateExpression: "set #votes = :vote, #comments = :comments",
+      ExpressionAttributeNames: {
+        "#votes": "votes",
+        "#comments": "comments",
+      },
+      ExpressionAttributeValues: {
+        ":vote": {},
+        ":comments": [comment],
+      },
+    };
+    response = await client.update(params).promise();
+  }
+
+  if (response.$response.error) {
+    return createError(JSON.stringify(response.$response.error));
+  } else {
+    return createSuccess({ result: true });
+  }
+};
+
+export const get_bill_data = async (event: any = {}): Promise<any> => {
+  let data = JSON.parse(event.body);
+  let billID: number = data.bill_id;
+
+  // set up dynamodb client
+  aws.config.update(awsconfig.aws_remote_config);
+  var client = new aws.DynamoDB.DocumentClient();
+
+  // check if bill exists
+  const exists: DocumentClient.GetItemInput = {
+    TableName: awsconfig.aws_voting_table_name,
+    Key: {
+      bill_id: billID.toString(),
+    },
+  };
+  // look for document with specified uid
+  let query = await client.get(exists).promise();
+  if (query.$response.data && query.$response.data.Item) {
+    // bill exists
+    return createSuccess({
+      success: true,
+      bill: query.$response.data.Item,
+    });
+  } else {
+    // send empty response
+    console.log("here");
+    return createSuccess({
+      success: true,
+      bill: { bill_id: billID, comments: [], votes: {} },
+    });
+  }
+};
+
+export const like_comment = async (event: any = {}): Promise<any> => {
+  let data = JSON.parse(event.body);
+  let billID: number = data.bill_id;
+  let commentIndex: number = data.comment_index;
+  let uid: string = data.uid;
+  let liked: boolean = data.liked;
+
+  // set up dynamodb client
+  aws.config.update(awsconfig.aws_remote_config);
+  var client = new aws.DynamoDB.DocumentClient();
+  // bill exists, so update
+  const params: DocumentClient.UpdateItemInput = {
+    TableName: awsconfig.aws_voting_table_name,
+    Key: {
+      bill_id: billID.toString(),
+    },
+    UpdateExpression: "set #comments[" + commentIndex + "].likes.#uid = :value",
+    ExpressionAttributeNames: {
+      "#comments": "comments",
+      "#uid": uid,
+    },
+    ExpressionAttributeValues: {
+      ":value": liked,
+    },
+  };
+  let response = await client.update(params).promise();
+  if (response.$response.error) {
+    return createError(JSON.stringify(response.$response.error));
+  } else {
+    return createSuccess({ result: true });
+  }
 };

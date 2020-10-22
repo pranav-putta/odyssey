@@ -36,5 +36,4 @@ export interface Bill {
   bill_text: BillFullText;
   actions: BillAction[];
   voting_events: BillVotingEvent[];
-  formatted_bill_number: '';
 }

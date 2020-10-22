@@ -1,6 +1,6 @@
-const pg = require('pg');
+const pg = require("pg");
 
-const pgConfig= {
+const pgConfig = {
   host: "odyssey.cnp1wrwnpclp.us-east-2.rds.amazonaws.com",
   port: 5432,
   user: "postgres",
@@ -12,10 +12,10 @@ const pgConfig= {
 
 let pgPool = new pg.Pool(pgConfig);
 pgPool
-    .connect()
-    .then((res) => {
-      console.log("connected!");
-    })
-    .catch((err) => {
-      console.log(err);
-    });
+  .connect()
+  .then((res) => {
+    console.log("connected!");
+  })
+  .catch((err) => {
+    console.log(err);
+  });

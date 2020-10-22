@@ -12,16 +12,16 @@
     "image": "https://static.vecteezy.com/system/resources/previews/000/101/294/original/vector-lady-justice.jpg"
   },
   "Economy": {
-    "bgColor": "#B7A68B",
-    "categoryColor": "#B7A68B50",
-    "categoryTextColor": "#B7A68B",
-    "image": "https://static.vecteezy.com/system/resources/previews/000/118/986/original/online-business-manager-workspace-vector-illustration.jpg"
+    "bgColor": "#03192E",
+    "categoryColor": "#03192E50",
+    "categoryTextColor": "#03192E",
+    "image": "https://static.vecteezy.com/system/resources/previews/000/172/083/original/the-investor-hand-vector.jpg"
   },
   "K-12": {
-    "bgColor": "#F0F1F3",
-    "categoryColor": "#F0F1F350",
-    "categoryTextColor": "#F0F1F3",
-    "image": "https://static.vecteezy.com/system/resources/thumbnails/000/117/521/small_2x/free-flat-education-vector-illustration.jpg"
+    "bgColor": "#FFB762",
+    "categoryColor": "#FFB76250",
+    "categoryTextColor": "#FFB762",
+    "image": "https://static.vecteezy.com/system/resources/thumbnails/000/578/748/small_2x/group-study.png"
   },
   "College": {
     "bgColor": "#FFFAD0",
@@ -36,10 +36,10 @@
     "image": "https://static.vecteezy.com/system/resources/previews/000/173/767/original/free-natural-resources-vector.jpg"
   },
   "Healthcare": {
-    "bgColor": "#C2E1F3",
-    "categoryColor": "#C2E1F350",
-    "categoryTextColor": "#C2E1F3",
-    "image": "https://static.vecteezy.com/system/resources/previews/000/109/498/original/free-medical-vector.jpg"
+    "bgColor": "#FAFAFA",
+    "categoryColor": "#FAFAFA50",
+    "categoryTextColor": "#FAFAFA",
+    "image": "https://image.freepik.com/free-vector/medical-workers-analyzing-electronic-record_1262-19834.jpg"
   },
   "Infrastructure": {
     "bgColor": "#49B6B3",

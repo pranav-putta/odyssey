@@ -6,7 +6,6 @@ import {
   View,
   ScrollView,
   StyleSheet,
-  Image,
   Dimensions,
   Animated,
 } from 'react-native';
@@ -19,13 +18,13 @@ import {
   Representative,
 } from '../../../models';
 import { Bill } from '../../../models/Bill';
-import { randomBills, refresh } from '../../../util';
+import { likedBills, randomBills, refresh } from '../../../util';
 import BillCard, { BillCardSpecs } from './components/BillCard';
-import RepExpandedCard from './components/RepExpandedCard';
+import FastImage from 'react-native-fast-image';
 // @ts-ignore
 import TouchableScale from 'react-native-touchable-scale';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { BillScreenStackParamList } from './BillScreen';
+import { BillScreenStackParamList } from './BillTab';
 import { Category } from '../../../models/Category';
 
 const width = Dimensions.get('screen').width;
@@ -45,6 +44,7 @@ interface State {
   representatives: Representative[];
   categories: any;
   focused: boolean;
+  likedBills: Bill[];
 }
 
 enum BillTabKey {
@@ -53,18 +53,22 @@ enum BillTabKey {
 }
 
 // carousel for new tab
-const NewTab = (props: {
+const BillCarousel = (props: {
   bills: Bill[];
   categories: any;
   onPress: (item: { bill: Bill; category: Category }) => void;
   focused: boolean;
+  carouselRef: React.RefObject<Carousel<Bill>>;
 }) => {
   const scrollX = React.useRef(new Animated.Value(0)).current;
   return (
     <Carousel
+      ref={props.carouselRef}
       enableMomentum={true}
       lockScrollWhileSnapping={true}
-      contentContainerCustomStyle={{ paddingTop: '2.5%' }}
+      contentContainerCustomStyle={{
+        paddingTop: '2.5%',
+      }}
       data={props.bills}
       renderItem={(item: { item: Bill; index: number }) => {
         let category = props.categories[item.item.category];
@@ -99,6 +103,8 @@ const NewTab = (props: {
 };
 
 export default class BillDiscoverScreen extends React.Component<Props, State> {
+  private carousel = React.createRef<Carousel<Bill>>();
+
   componentDidMount() {
     this.loadData();
   }
@@ -109,14 +115,9 @@ export default class BillDiscoverScreen extends React.Component<Props, State> {
       this.setState({ representatives: data });
       data = await fetchCategories();
       this.setState({ categories: data });
-      randomBills()
-        .then((result) => {
-          this.setState({ bills: result });
-          this.setState({ loaded: true });
-        })
-        .catch(() => {
-          this.setState({ bills: [] });
-        });
+      let bills = await randomBills();
+      let lbills = await likedBills();
+      this.setState({ bills: bills, loaded: true, likedBills: lbills });
     }
   };
 
@@ -133,6 +134,7 @@ export default class BillDiscoverScreen extends React.Component<Props, State> {
       repSelectedInfo: undefined,
       categories: {},
       focused: this.props.navigation.isFocused(),
+      likedBills: [],
     };
 
     this.props.navigation.addListener('blur', () => {
@@ -178,7 +180,13 @@ export default class BillDiscoverScreen extends React.Component<Props, State> {
   // view for liked tab
   likedTab = () => {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
         <Text style={{ fontSize: 24, marginBottom: '50%' }}>No Likes Yet!</Text>
       </View>
     );
@@ -188,17 +196,28 @@ export default class BillDiscoverScreen extends React.Component<Props, State> {
   currentTabContent = () => {
     if (this.state.currentTab == BillTabKey.new) {
       return (
-        <NewTab
+        <BillCarousel
+          carouselRef={this.carousel}
           bills={this.state.bills}
           categories={this.state.categories}
           onPress={(item) => {
-            this.props.navigation.push('Info', item);
+            this.props.navigation.push('Details', item);
           }}
           focused={this.state.focused}
         />
       );
     } else if (this.state.currentTab == BillTabKey.liked) {
-      return this.likedTab();
+      return (
+        <BillCarousel
+          carouselRef={this.carousel}
+          bills={this.state.likedBills}
+          categories={this.state.categories}
+          onPress={(item) => {
+            this.props.navigation.push('Details', item);
+          }}
+          focused={this.state.focused}
+        />
+      );
     }
   };
 
@@ -217,20 +236,11 @@ export default class BillDiscoverScreen extends React.Component<Props, State> {
       <TouchableScale
         style={styles.repcard}
         onPress={() => {
-          this.setState({
-            repSelectedInfo: {
-              picture_url: props.picture_url,
-              name: props.name,
-              phoneNumber: props.phoneNumber,
-              address: props.address,
-              chamber: props.chamber,
-            },
-          });
-          this.setState({ repSelected: true });
+          this.props.navigation.push('Rep', { rep: props });
         }}
       >
         <View style={{ flexDirection: 'row' }}>
-          <Image
+          <FastImage
             style={styles.repcardImage}
             source={{
               uri: props.picture_url,
@@ -292,20 +302,15 @@ export default class BillDiscoverScreen extends React.Component<Props, State> {
               onRefresh={() => {
                 this.setState({ refreshing: true });
                 refresh().finally(() => {
-                  this.loadData();
-                  this.setState({ refreshing: false });
+                  this.loadData().finally(() => {
+                    this.carousel.current?.snapToItem(0, true);
+                    this.setState({ refreshing: false });
+                  });
                 });
               }}
             />
           }
         >
-          <RepExpandedCard
-            visible={this.state.repSelected}
-            info={this.state.repSelectedInfo}
-            dismiss={() => {
-              this.setState({ repSelected: false });
-            }}
-          />
           <Text style={styles.discover}>Discover</Text>
           <View
             style={{
@@ -325,7 +330,7 @@ export default class BillDiscoverScreen extends React.Component<Props, State> {
           </View>
           {this.tabBar()}
           {this.currentTabContent()}
-          <View style={{ width: '100%', height: '11%', bottom: 0 }} />
+          <View style={{ width: '100%', height: '7.5%', bottom: 0 }} />
         </ScrollView>
       </SafeAreaView>
     );

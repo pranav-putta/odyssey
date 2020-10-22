@@ -1,18 +1,17 @@
-import React, { createRef } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  TouchableWithoutFeedback,
   Dimensions,
   Animated,
 } from 'react-native';
 import { colors } from '../../../../assets';
-import { Image } from 'react-native-animatable';
+import FastImage from 'react-native-fast-image'
 import { Bill, formatBillNumber } from '../../../../models/Bill';
 import { Category } from '../../../../models/Category';
 import { TouchableOpacity } from 'react-native-gesture-handler';
-import { SharedElement } from 'react-navigation-shared-element';
+
 type State = {};
 
 type Props = {
@@ -24,7 +23,6 @@ type Props = {
 };
 
 const screenWidth = Dimensions.get('screen').width;
-const screenHeight = Dimensions.get('screen').height;
 
 export const BillCardSpecs = {
   width: screenWidth * 0.8,
@@ -38,85 +36,87 @@ const AnimatedTouchableOpacity = Animated.createAnimatedComponent(
   TouchableOpacity
 );
 
-const BillCard = (props: Props) => {
-  const { bill, category, index, scrollX } = props;
-  const { width, spacing } = BillCardSpecs;
-  const fullSize = width + 2 * spacing;
-  const extraPadding = -index * spacing * 2;
-  const inputRange = [
-    (index - 1) * fullSize + extraPadding,
-    index * fullSize + extraPadding,
-    (index + 1) * fullSize + extraPadding,
-  ];
-  const translateX = scrollX.interpolate({
-    inputRange: inputRange,
-    outputRange: [width / 1.5, 0, -width / 1.5],
-  });
-  const contentShadowOpacity = scrollX.interpolate({
-    inputRange: inputRange,
-    outputRange: [0, 0.5, 0],
-  });
-  const perspective = scrollX.interpolate({
-    inputRange: inputRange,
-    outputRange: [800, 0, -800],
-  });
-  const rotateY = scrollX.interpolate({
-    inputRange: inputRange,
-    outputRange: ['10deg', '0deg', '0deg'],
-  });
-  return (
-    <AnimatedTouchableOpacity
-      style={[
-        styles.container,
-        {
-          backgroundColor: category.bgColor,
-        },
-      ]}
-      onPress={props.onPress}
-      activeOpacity={1}
-    >
-      <View style={styles.imageContainer}>
-        <Image style={styles.image} source={{ uri: category.image }} />
-      </View>
-      <Animated.View
+export default class BillCard extends React.PureComponent<Props, State> {
+  render() {
+    const { bill, category, index, scrollX, onPress } = this.props;
+    const { width, spacing } = BillCardSpecs;
+    const fullSize = width + 2 * spacing;
+    const extraPadding = -index * spacing * 2;
+    const inputRange = [
+      (index - 1) * fullSize + extraPadding,
+      index * fullSize + extraPadding,
+      (index + 1) * fullSize + extraPadding,
+    ];
+    const translateX = scrollX.interpolate({
+      inputRange: inputRange,
+      outputRange: [width / 1.5, 0, -width / 1.5],
+    });
+    const contentShadowOpacity = scrollX.interpolate({
+      inputRange: inputRange,
+      outputRange: [0, 0.5, 0],
+    });
+    const perspective = scrollX.interpolate({
+      inputRange: inputRange,
+      outputRange: [800, 0, -800],
+    });
+    const rotateY = scrollX.interpolate({
+      inputRange: inputRange,
+      outputRange: ['10deg', '0deg', '0deg'],
+    });
+    return (
+      <AnimatedTouchableOpacity
         style={[
-          styles.content,
+          styles.container,
           {
-            shadowOpacity: contentShadowOpacity,
-            transform: [
-              { translateX: translateX },
-              //  { rotateY: rotateY },
-            ],
+            backgroundColor: category.bgColor,
           },
         ]}
+        onPress={onPress}
+        activeOpacity={1}
       >
-        <View style={styles.categoriesContainer}>
-          <Text style={styles.number}>{formatBillNumber(bill)}</Text>
+        <View style={styles.imageContainer}>
+          <FastImage style={styles.image} source={{ uri: category.image }} />
+        </View>
+        <Animated.View
+          style={[
+            styles.content,
+            {
+              shadowOpacity: contentShadowOpacity,
+              transform: [
+                { translateX: translateX },
+                //  { rotateY: rotateY },
+              ],
+            },
+          ]}
+        >
+          <View style={styles.categoriesContainer}>
+            <Text style={styles.number}>{formatBillNumber(bill)}</Text>
 
-          <View
-            style={[
-              styles.category,
-              { backgroundColor: category.categoryColor },
-            ]}
-          >
-            <Text
+            <View
               style={[
-                styles.categoryText,
-                { color: category.categoryTextColor },
+                styles.category,
+                { backgroundColor: category.categoryColor },
               ]}
             >
-              {bill.category}
-            </Text>
+              <Text
+                style={[
+                  styles.categoryText,
+                  { color: category.categoryTextColor },
+                ]}
+              >
+                {bill.category}
+              </Text>
+            </View>
           </View>
-        </View>
-        <Text style={styles.title}>{bill.title}</Text>
-        <Text ellipsizeMode="tail" style={styles.synopsis}>
-          {bill.short_summary}
-        </Text>
-      </Animated.View>
-    </AnimatedTouchableOpacity>
-  );
-};
+          <Text style={styles.title}>{bill.title}</Text>
+          <Text ellipsizeMode="tail" style={styles.synopsis}>
+            {bill.short_summary}
+          </Text>
+        </Animated.View>
+      </AnimatedTouchableOpacity>
+    );
+  }
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -213,5 +213,3 @@ const styles = StyleSheet.create({
   },
   heartButtonIcon: {},
 });
-
-export default BillCard;

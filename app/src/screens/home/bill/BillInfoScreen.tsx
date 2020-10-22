@@ -1,47 +1,54 @@
 import React from 'react';
 import {
   Animated,
-  Dimensions,
-  Image,
-  Platform,
+  Linking,
   ScrollView,
-  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { Icon } from 'react-native-elements';
+import FastImage from 'react-native-fast-image';
 import { colors } from '../../../assets';
-import { Bill, formatBillNumber } from '../../../models/Bill';
-import { Category } from '../../../models/Category';
+import { formatBillNumber } from '../../../models/Bill';
+//@ts-ignore
 import TouchableScale from 'react-native-touchable-scale';
-import { SharedElement } from 'react-navigation-shared-element';
-import { BillInfoScreenProps, BillInfoScreenRouteProp } from './BillScreen';
+import { fetchUser, likeBill, storeBillLike } from '../../../util';
+import {
+  BillDetailInfoScreenRouteProps,
+  BillDetailsInfoScreenProps,
+} from './BillDetailsStack';
 
-const width = Dimensions.get('screen').width;
-const height = Dimensions.get('screen').height;
 interface Props {
-  route: BillInfoScreenRouteProp;
-  navigation: BillInfoScreenProps;
+  navigation: BillDetailsInfoScreenProps;
+  route: BillDetailInfoScreenRouteProps;
 }
 
 type State = {
   expanded: boolean;
   animation: Animated.Value;
   numberLines: number | undefined;
+  liked: boolean;
 };
 
-export default class BillInfoScreen extends React.Component<Props, State> {
+export default class BillInfoScreen extends React.PureComponent<Props, State> {
   constructor(props: Props) {
     super(props);
-
     this.state = {
       expanded: false,
       animation: new Animated.Value(0),
       numberLines: 5,
+      liked: false,
     };
+
+    fetchUser().then((user) => {
+      if (user.liked[props.route.params.bill.number]) {
+        this.setState({ liked: true });
+      }
+    });
   }
+  componentDidMount() {}
 
   render() {
     const { bill, category } = this.props.route.params;
@@ -49,19 +56,11 @@ export default class BillInfoScreen extends React.Component<Props, State> {
       <View
         style={{
           flex: 1,
-          backgroundColor: category.bgColor,
+          backgroundColor: 'white',
         }}
       >
-        <View style={styles.voteButton}>
-          <TouchableScale
-            style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
-            onPress={() => {}}
-          >
-            <Text style={styles.voteText}>Vote!</Text>
-          </TouchableScale>
-        </View>
         <View style={styles.imageContainer}>
-          <Image style={styles.image} source={{ uri: category.image }} />
+          <FastImage style={styles.image} source={{ uri: category.image }} />
         </View>
         <View style={[styles.content]}>
           <View style={styles.categoriesContainer}>
@@ -89,11 +88,98 @@ export default class BillInfoScreen extends React.Component<Props, State> {
               {bill.short_summary}
             </Text>
           </ScrollView>
+          <View
+            style={{
+              height: '10%',
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'flex-start',
+              marginBottom: '7%',
+            }}
+          >
+            <View style={styles.fullBill}>
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  alignItems: 'center',
+                  flexDirection: 'row',
+                  justifyContent: 'center',
+                }}
+                onPress={() => {
+                  Linking.canOpenURL(this.props.route.params.bill.url).then(
+                    (supported) => {
+                      if (supported) {
+                        Linking.openURL(this.props.route.params.bill.url);
+                      }
+                    }
+                  );
+                }}
+              >
+                <Icon
+                  type="feather"
+                  name="external-link"
+                  size={24}
+                  color="#0091ea"
+                />
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: '600',
+                    fontFamily: 'Futura',
+                    marginLeft: '10%',
+                  }}
+                >
+                  See full bill page
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.voteButton}>
+              <TouchableScale
+                style={{
+                  flex: 1,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+                onPress={() => {
+                  // @ts-ignore
+                  this.props.navigation.push('Vote', this.props.route.params);
+                }}
+              >
+                <Icon
+                  type="material-community"
+                  name="vote-outline"
+                  size={30}
+                  color="white"
+                />
+              </TouchableScale>
+            </View>
+          </View>
         </View>
         {this.closeButton()}
+        {this.likeButton()}
       </View>
     );
   }
+
+  likeButton = () => {
+    return (
+      <TouchableOpacity
+        style={styles.likeButton}
+        onPress={() => {
+          likeBill(this.props.route.params.bill, !this.state.liked);
+          storeBillLike(this.props.route.params.bill, !this.state.liked);
+          this.setState({ liked: !this.state.liked });
+        }}
+      >
+        <Icon
+          size={30}
+          name={this.state.liked ? 'heart-sharp' : 'heart-outline'}
+          type="ionicon"
+          color={this.state.liked ? colors.republican : 'black'}
+        />
+      </TouchableOpacity>
+    );
+  };
 
   // generate the close button
   closeButton = () => {
@@ -117,20 +203,25 @@ const styles = StyleSheet.create({
     marginTop: '89%',
     alignSelf: 'center',
     borderRadius: 40,
-    backgroundColor: colors.cards.temp,
+    backgroundColor: 'white',
   },
 
   imageContainer: {
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
+    zIndex: 2,
     flex: 1,
+    shadowColor: 'black',
+    shadowOpacity: 0.5,
+    shadowRadius: 15,
+    shadowOffset: { width: 0, height: 2.5 },
   },
   image: {
     width: '100%',
     height: '100%',
-    borderTopLeftRadius: 40,
-    borderTopRightRadius: 40,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
     flex: 1,
   },
   content: {
@@ -140,10 +231,8 @@ const styles = StyleSheet.create({
     paddingBottom: '2%',
     paddingHorizontal: '7.5%',
     flex: 2,
-    shadowColor: 'black',
-    shadowOpacity: 0.5,
-    shadowRadius: 15,
-    shadowOffset: { width: 0, height: 2.5 },
+
+    zIndex: 0,
   },
   number: {
     fontFamily: 'Roboto-Light',
@@ -184,6 +273,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '200',
     fontFamily: 'Futura',
+    textAlign: 'justify',
   },
   closeButton: {
     position: 'absolute',
@@ -193,9 +283,29 @@ const styles = StyleSheet.create({
     top: '6%',
     zIndex: 100,
     backgroundColor: colors.textInputBackground,
-    borderRadius: 20,
+    borderRadius: 12.5,
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: 'black',
+    shadowRadius: 5,
+    shadowOpacity: 0.45,
+    shadowOffset: { width: 0, height: 1 },
+  },
+  likeButton: {
+    position: 'absolute',
+    width: 50,
+    height: 50,
+    right: '6%',
+    top: '25%',
+    zIndex: 100,
+    backgroundColor: 'rgba(236, 239, 241, 0.9)',
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: 'black',
+    shadowRadius: 5,
+    shadowOpacity: 0.45,
+    shadowOffset: { width: 0, height: 1 },
   },
   backButton: {
     width: 40,
@@ -209,18 +319,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   voteButton: {
-    position: 'absolute',
-    right: '7%',
-    bottom: '3%',
-    padding: '4%',
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 10,
     backgroundColor: colors.votingBackgroundColor,
     shadowColor: 'black',
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
+    shadowOpacity: 0.25,
+    shadowRadius: 30,
     zIndex: 150,
+    flex: 1,
+  },
+  fullBill: {
+    padding: '4%',
+    justifyContent: 'center',
+    borderRadius: 10,
+    backgroundColor: 'white',
+    shadowColor: 'black',
+    shadowOpacity: 0.25,
+    shadowRadius: 30,
+    shadowOffset: { width: 0, height: 1 },
+    zIndex: 150,
+    flex: 4,
+    marginRight: '5%',
   },
   voteText: {
     color: 'white',

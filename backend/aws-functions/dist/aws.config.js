@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = {
     aws_table_name: "Users",
+    aws_voting_table_name: "BillData",
     aws_local_config: {},
     aws_remote_config: {
         accessKeyId: "AKIAUZLWNONBRXX3P63V",

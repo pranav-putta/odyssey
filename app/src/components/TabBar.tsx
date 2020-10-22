@@ -122,18 +122,20 @@ class TabBar extends React.Component<Props, State> {
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    height: '11%',
+    height: '8.5%',
     alignSelf: 'center',
     shadowColor: 'gray',
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0,
     shadowRadius: 5,
+    paddingTop: '1%',
     paddingBottom: '2%',
     //borderRadius: 10,
     backgroundColor: 'white',
     flexDirection: 'row',
     justifyContent: 'space-evenly',
     position: 'absolute',
+    alignItems: 'flex-start',
   },
 });
 
