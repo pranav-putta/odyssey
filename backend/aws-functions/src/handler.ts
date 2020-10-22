@@ -569,7 +569,5 @@ export const like_comment = async (event: any = {}): Promise<any> => {
 };
 
 export const upload_pfp = async (event: any = {}): Promise<any> => {
-  let data = JSON.parse(event.body);
-  let uid: string = data.uid;
-  console.log(JSON.stringify(data));
+  console.log(event);
 };

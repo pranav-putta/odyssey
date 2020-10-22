@@ -730,11 +730,8 @@ exports.like_comment = function (event) {
 exports.upload_pfp = function (event) {
     if (event === void 0) { event = {}; }
     return __awaiter(void 0, void 0, void 0, function () {
-        var data, uid;
         return __generator(this, function (_a) {
-            data = JSON.parse(event.body);
-            uid = data.uid;
-            console.log(JSON.stringify(data));
+            console.log(event);
             return [2 /*return*/];
         });
     });
