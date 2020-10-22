@@ -7,9 +7,9 @@ import { TabNavigationState } from '@react-navigation/native';
 
 // key enum for each tab
 export enum TabKey {
-  bills = 'bills',
-  search = 'search',
-  profile = 'profile',
+  bills = 'Bills',
+  search = 'Search',
+  profile = 'Profile',
 }
 
 export interface TabModel {

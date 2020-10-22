@@ -13,6 +13,7 @@ import Axios from 'axios';
 import auth from '@react-native-firebase/auth';
 import { Bill } from '../models/Bill';
 import { BillData, Comment, Vote } from '../models/BillData';
+import ImageResizer from 'react-native-image-resizer';
 
 export async function isNetworkAvailable() {
   const response = await NetInfo.fetch();
@@ -39,6 +40,8 @@ const awsURLs = {
     'https://tde26c6cp5.execute-api.us-east-2.amazonaws.com/prod/add-comment',
   likeComment:
     'https://tde26c6cp5.execute-api.us-east-2.amazonaws.com/prod/like-comment',
+  uploadPFP:
+    'https://tde26c6cp5.execute-api.us-east-2.amazonaws.com/prod/upload-pfp',
 };
 
 /**
@@ -287,4 +290,36 @@ export async function likeComment(
       console.log(JSON.stringify(err));
       return false;
     });
+}
+
+export async function uploadPFP(user: User, photo: string) {
+  const data = {
+    uri: photo,
+    text: 'image/jpeg',
+    name: `${user.uid}_pfp.jpg`,
+  };
+  if (!isNetworkAvailable()) {
+    return false;
+  }
+
+  var body = new FormData();
+  body.append('uid', user.uid);
+  body.append('pfp', data);
+  console.log('her');
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST', 'http://localhost:3000/prod/upload-pfp');
+  xhr.send(body);
+  /*return Axios.post('http://localhost:3000/prod/upload-pfp', body)
+    .then((response) => {
+      console.log(JSON.stringify(response.request));
+      if (response.status == 200) {
+        return true;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(JSON.stringify(err));
+      return false;
+    });*/
 }

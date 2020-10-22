@@ -116,9 +116,15 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-  <key>LSApplicationQueriesSchemes</key>
-  <array>
-    <string>tel</string>
-  </array>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>tel</string>
+	</array>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Used tos select a profile picture</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Used to select a profile picture</string>
+	<key></key>
+	<string></string>
 </dict>
 </plist>

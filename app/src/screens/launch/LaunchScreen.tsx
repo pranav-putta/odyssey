@@ -5,16 +5,26 @@ import AsyncStorage from '@react-native-community/async-storage';
 import { globalStyles, storage } from '../../assets';
 import routes from '../../routes/routes';
 import { refresh } from '../../util/NetworkHandler';
-import { firebase } from '@react-native-firebase/functions';
 import Global from '../../util/global';
+import { LaunchScreenProps } from '../../App';
 
 type Props = {
-  navigation: StackNavigationProp<any, any>;
+  navigation: LaunchScreenProps;
 };
 
 class LaunchScreen extends React.Component<Props> {
+  constructor(props: Props) {
+    super(props);
+    this.props.navigation.addListener('focus', () => {
+      this.chooseRoute();
+    });
+  }
+
   componentDidMount() {
-    //functions().useFunctionsEmulator("http://localhost:5001")
+    this.chooseRoute();
+  }
+
+  chooseRoute() {
     const { navigation } = this.props;
     // check if user is signed in
     AsyncStorage.getItem(storage.userSignedIn)
@@ -22,16 +32,16 @@ class LaunchScreen extends React.Component<Props> {
         if (signedIn && signedIn == 'true') {
           refresh().finally(async () => {
             Global.setCategories();
-            navigation.navigate(routes.home);
+            navigation.navigate('Home');
           });
         } else {
           // user is not signed in
-          navigation.navigate(routes.login);
+          navigation.navigate('Login');
         }
       })
       .catch(() => {
         // something went wrong, route to login
-        navigation.navigate(routes.login);
+        navigation.navigate('Login');
       });
   }
 

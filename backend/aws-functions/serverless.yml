@@ -94,6 +94,13 @@ functions:
           path: like-comment
           method: post
           cors: true
+  uploadPFP:
+    handler: dist/handler.upload_pfp
+    events:
+      - http:
+          path: upload-pfp
+          method: post
+          cors: true
 
 plugins:
   - serverless-offline

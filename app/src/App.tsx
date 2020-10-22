@@ -1,8 +1,9 @@
 import React from 'react';
-import {NavigationContainer} from '@react-navigation/native';
+import { NavigationContainer } from '@react-navigation/native';
 import {
   createStackNavigator,
   StackNavigationOptions,
+  StackNavigationProp,
 } from '@react-navigation/stack';
 import LaunchScreen from './screens/launch/LaunchScreen';
 import LoginScreen from './screens/login/LoginScreen';
@@ -21,7 +22,11 @@ const options: ScreenOptions = {
     headerShown: false,
     gestureEnabled: false,
   },
-  loginOptions: {header: undefined, gestureEnabled: false, headerShown: false},
+  loginOptions: {
+    header: undefined,
+    gestureEnabled: false,
+    headerShown: false,
+  },
   homeOptions: {
     header: undefined,
     gestureEnabled: false,
@@ -29,24 +34,34 @@ const options: ScreenOptions = {
   },
 };
 
-const Stack = createStackNavigator();
+type AppStackParams = {
+  Launch: undefined;
+  Login: undefined;
+  Home: undefined;
+};
+
+export type LaunchScreenProps = StackNavigationProp<AppStackParams, 'Launch'>;
+export type HomeScreenProps = StackNavigationProp<AppStackParams, 'Home'>;
+export type LoginScreenProps = StackNavigationProp<AppStackParams, 'Login'>;
+
+const Stack = createStackNavigator<AppStackParams>();
 
 function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator>
         <Stack.Screen
-          name={routes.launch}
+          name="Launch"
           component={LaunchScreen}
           options={options.launchOptions}
         />
         <Stack.Screen
-          name={routes.login}
+          name="Login"
           component={LoginScreen}
           options={options.loginOptions}
         />
         <Stack.Screen
-          name={routes.home}
+          name="Home"
           component={HomeScreen}
           options={options.homeOptions}
         />

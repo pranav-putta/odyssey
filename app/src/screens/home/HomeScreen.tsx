@@ -6,12 +6,15 @@ import ProfileScreen from './profile/ProfileScreen';
 import SearchScreen from './search/SearchTab';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import ProfileTab from './profile/ProfileTab';
+import { RouteProp } from '@react-navigation/native';
+import { HomeScreenProps } from '../../App';
 
 type State = {
   showTabs: boolean;
   selectedTab: string;
 };
-type Props = { navigation: StackNavigationProp<any, any> };
+type Props = { navigation: HomeScreenProps };
 
 const tabs: TabModel[] = [
   {
@@ -34,7 +37,19 @@ const tabs: TabModel[] = [
   },
 ];
 
-const Tab = createBottomTabNavigator();
+type HomeScreenTabParams = {
+  Bills: undefined;
+  Search: undefined;
+  Profile: undefined;
+};
+
+export type ProfileTabScreenProps = StackNavigationProp<
+  HomeScreenTabParams,
+  'Profile'
+>;
+export type ProfileScreenRouteProps = RouteProp<HomeScreenTabParams, 'Profile'>;
+
+const Tab = createBottomTabNavigator<HomeScreenTabParams>();
 class HomeScreen extends React.PureComponent<Props, State> {
   constructor(props: Props) {
     super(props);
@@ -61,7 +76,7 @@ class HomeScreen extends React.PureComponent<Props, State> {
             />
           )}
         >
-          <Tab.Screen name={TabKey.bills}>
+          <Tab.Screen name="Bills">
             {(props) => (
               <BillScreen
                 navigation={props.navigation}
@@ -71,7 +86,7 @@ class HomeScreen extends React.PureComponent<Props, State> {
               />
             )}
           </Tab.Screen>
-          <Tab.Screen name={TabKey.search}>
+          <Tab.Screen name="Search">
             {(props) => (
               <SearchScreen
                 navigation={props.navigation}
@@ -82,8 +97,15 @@ class HomeScreen extends React.PureComponent<Props, State> {
             )}
           </Tab.Screen>
 
-          <Tab.Screen name={TabKey.profile}>
-            {(props) => <ProfileScreen navigation={props.navigation} />}
+          <Tab.Screen name="Profile">
+            {(props) => (
+              <ProfileTab
+                navigation={props.navigation}
+                toggleTabs={(show: boolean) => {
+                  this.setState({ showTabs: show });
+                }}
+              />
+            )}
           </Tab.Screen>
         </Tab.Navigator>
         {Platform.select({

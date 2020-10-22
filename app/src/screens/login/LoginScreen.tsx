@@ -28,6 +28,7 @@ import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplet
 import { GridList } from './components/GridList';
 import Global from '../../util/global';
 import { createUser, userExists } from '../../util';
+import { LoginScreenProps } from '../../App';
 
 // state type definitions
 type State = {
@@ -62,7 +63,7 @@ type State = {
 };
 
 type Props = {
-  navigation: StackNavigationProp<any, any>;
+  navigation: LoginScreenProps;
 };
 class LoginScreen extends React.Component<Props, State> {
   // animation variables
@@ -255,19 +256,6 @@ class LoginScreen extends React.Component<Props, State> {
     Keyboard.dismiss();
     this.toggleProgress(true);
 
-    // initialize firebase
-    const firebaseConfig = {
-      apiKey: 'AIzaSyDjxmRVGsp0-2lcjHafbZvYX05DY5WsOeg',
-      authDomain: 'project-domino-8b97e.firebaseapp.com',
-      databaseURL: 'https://project-domino-8b97e.firebaseio.com',
-      projectId: 'project-domino-8b97e',
-      storageBucket: 'project-domino-8b97e.appspot.com',
-      messagingSenderId: '311797979253',
-      appId: '1:311797979253:web:8fa891e4ef888d940cc03c',
-      measurementId: 'G-VNCCJM9ZV2',
-    };
-    // await firebase.initializeApp(firebaseConfig);
-
     auth()
       .signInWithPhoneNumber('+1' + this.state.phoneNumber)
       .then((result) => {
@@ -336,7 +324,7 @@ class LoginScreen extends React.Component<Props, State> {
     // set storage item
     AsyncStorage.setItem(storage.userSignedIn, 'true');
     // send navigation to home screen
-    this.props.navigation.navigate(routes.home);
+    this.props.navigation.navigate('Home');
   };
 
   handleCreateUser = () => {
