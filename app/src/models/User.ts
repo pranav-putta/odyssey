@@ -6,5 +6,5 @@ export interface User {
   interestedTopics: [string];
   uid: string;
   liked: { [key: number]: boolean };
-  pfp: string;
+  pfp_url: string;
 }

@@ -79,18 +79,9 @@ export default class RepScreen extends React.Component<Props, State> {
                         (val) => {
                           console.log(val);
                           if (val) {
-                            Platform.select({
-                              ios: () => {
-                                Linking.openURL(
-                                  `http://maps.apple.com/maps?daddr=${address}`
-                                );
-                              },
-                              android: () => {
-                                Linking.openURL(
-                                  `http://maps.google.com/maps?daddr=${address}`
-                                );
-                              },
-                            });
+                            Linking.openURL(
+                              `http://maps.apple.com/maps?daddr=${address}`
+                            );
                           }
                         }
                       );

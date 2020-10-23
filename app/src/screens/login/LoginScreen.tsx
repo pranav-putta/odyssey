@@ -12,6 +12,8 @@ import {
   KeyboardEvent,
   EmitterSubscription,
   Platform,
+  Linking,
+  InteractionManager,
 } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import Image from 'react-native-fast-image';
@@ -212,7 +214,9 @@ class LoginScreen extends React.Component<Props, State> {
       duration: 500,
     }).start(() => {
       // open the keyboard up
-      this.phoneNumberTextInput.current?.focus();
+      InteractionManager.runAfterInteractions(() => {
+        this.phoneNumberTextInput.current?.focus();
+      });
     });
   };
 
@@ -519,7 +523,10 @@ class LoginScreen extends React.Component<Props, State> {
             }
           }}
         >
-          <Animated.View style={styles.loginPhoneNumber} pointerEvents="none">
+          <Animated.View
+            style={styles.loginPhoneNumber}
+            pointerEvents={this.state.hasLoginStarted ? 'auto' : 'none'}
+          >
             <Image
               style={styles.loginPhoneNumberIcon}
               source={require('../../assets/images/usa-flag.png')}
@@ -529,6 +536,7 @@ class LoginScreen extends React.Component<Props, State> {
               value={this.state.phoneNumberFormatted}
               onChangeText={phoneNumberTextHandler}
               keyboardType="phone-pad"
+              clearButtonMode="while-editing"
               placeholder="Enter your phone number"
               ref={this.phoneNumberTextInput}
             />
@@ -840,10 +848,7 @@ class LoginScreen extends React.Component<Props, State> {
           ),
         })}
 
-        <this.AnimatableImage
-          animation="lightSpeedIn"
-          duration={600}
-          iterationCount={1}
+        <Image
           source={require('../../assets/images/login_ic.png')}
           style={styles.logoImage}
         />
@@ -864,6 +869,20 @@ class LoginScreen extends React.Component<Props, State> {
         >
           {texts.loginCaption}
         </Animatable.Text>
+        <Animatable.View
+          animation="fadeIn"
+          delay={1000}
+          duration={1000}
+          style={{ position: 'absolute', top: '5%', right: '5%' }}
+        >
+          <TouchableOpacity
+            onPress={() => {
+              Linking.openURL('http://www.odysseyapp.us');
+            }}
+          >
+            <Icon name="info" type="feather" color={'white'} />
+          </TouchableOpacity>
+        </Animatable.View>
 
         <this.AnimatableAnimatedView
           style={[

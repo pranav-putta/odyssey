@@ -1,13 +1,7 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Dimensions,
-  Animated,
-} from 'react-native';
+import { View, Text, StyleSheet, Dimensions, Animated } from 'react-native';
 import { colors } from '../../../../assets';
-import FastImage from 'react-native-fast-image'
+import FastImage from 'react-native-fast-image';
 import { Bill, formatBillNumber } from '../../../../models/Bill';
 import { Category } from '../../../../models/Category';
 import { TouchableOpacity } from 'react-native-gesture-handler';
@@ -108,7 +102,13 @@ export default class BillCard extends React.PureComponent<Props, State> {
               </Text>
             </View>
           </View>
-          <Text style={styles.title}>{bill.title}</Text>
+          <Text
+            style={styles.title}
+            numberOfLines={2}
+            adjustsFontSizeToFit={true}
+          >
+            {bill.title}
+          </Text>
           <Text ellipsizeMode="tail" style={styles.synopsis}>
             {bill.short_summary}
           </Text>
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontFamily: 'Futura-CondensedLight',
+    fontFamily: 'Futura',
     fontWeight: '700',
     marginTop: '5%',
   },
@@ -200,7 +200,6 @@ const styles = StyleSheet.create({
     textAlignVertical: 'center',
     marginTop: '5%',
     fontSize: 15,
-    fontWeight: '200',
     fontFamily: 'Futura',
   },
   heartButton: {

@@ -69,13 +69,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.upload_pfp = exports.like_comment = exports.get_bill_data = exports.add_comment = exports.vote = exports.like = exports.search = exports.refresh = exports.liked_bills = exports.rand_bills = exports.new_user = exports.user_exists = void 0;
+exports.upload_pfp = exports.delete_comment = exports.like_comment = exports.get_bill_data = exports.add_comment = exports.vote = exports.like = exports.search = exports.refresh = exports.liked_bills = exports.rand_bills = exports.new_user = exports.user_exists = void 0;
 var axios_1 = __importDefault(require("axios"));
 var pg_1 = __importDefault(require("pg"));
 var querystring_1 = __importDefault(require("querystring"));
 var fb = __importStar(require("./firebase"));
 var aws = __importStar(require("aws-sdk"));
 var aws_config_1 = __importDefault(require("./aws.config"));
+var busboy_1 = __importDefault(require("busboy"));
 var current_version = 1;
 var pgConfig = {
     host: "odyssey.cnp1wrwnpclp.us-east-2.rds.amazonaws.com",
@@ -152,7 +153,7 @@ exports.user_exists = function (event) {
 exports.new_user = function (event) {
     if (event === void 0) { event = {}; }
     return __awaiter(void 0, void 0, void 0, function () {
-        var data, client, params, response;
+        var data, client, image, s3Data, params, response;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -179,20 +180,36 @@ exports.new_user = function (event) {
                     // set up dynamodb client
                     aws.config.update(aws_config_1.default.aws_remote_config);
                     client = new aws.DynamoDB.DocumentClient();
+                    return [4 /*yield*/, axios_1.default.get("https://cdn.business2community.com/wp-content/uploads/2017/08/blank-profile-picture-973460_640.png", { responseType: "arraybuffer" })];
+                case 2:
+                    image = _a.sent();
+                    return [4 /*yield*/, new aws.S3.ManagedUpload({
+                            params: {
+                                Bucket: "odyssey-user-pfp",
+                                Key: data.user.uid + "_pfp.jpg",
+                                Body: image.data,
+                                ACL: "public-read",
+                            },
+                        }).promise()];
+                case 3:
+                    s3Data = _a.sent();
+                    if (!s3Data.Location) {
+                        return [2 /*return*/, createError("unable to upload pfp")];
+                    }
+                    // insert user into database
+                    data.user.pfp_url = s3Data.Location;
+                    data.user.liked = {};
                     params = {
                         TableName: aws_config_1.default.aws_table_name,
                         Item: data.user,
                     };
                     return [4 /*yield*/, client.put(params).promise()];
-                case 2:
+                case 4:
                     response = _a.sent();
                     if (response.$response.error) {
                         return [2 /*return*/, createError(JSON.stringify(response.$response.error))];
                     }
-                    else {
-                        return [2 /*return*/, createSuccess({ result: true })];
-                    }
-                    return [2 /*return*/];
+                    return [2 /*return*/, createSuccess({ result: true })];
             }
         });
     });
@@ -727,12 +744,94 @@ exports.like_comment = function (event) {
         });
     });
 };
+exports.delete_comment = function (event) {
+    if (event === void 0) { event = {}; }
+    return __awaiter(void 0, void 0, void 0, function () {
+        var data, commentIndex, billID, client, params, response;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    data = JSON.parse(event.body);
+                    commentIndex = data.comment_index;
+                    billID = data.bill_id;
+                    // set up dynamodb client
+                    aws.config.update(aws_config_1.default.aws_remote_config);
+                    client = new aws.DynamoDB.DocumentClient();
+                    params = {
+                        TableName: aws_config_1.default.aws_voting_table_name,
+                        Key: {
+                            bill_id: billID.toString(),
+                        },
+                        UpdateExpression: "remove #comments[" + commentIndex + "]",
+                        ExpressionAttributeNames: {
+                            "#comments": "comments",
+                        },
+                    };
+                    return [4 /*yield*/, client.update(params).promise()];
+                case 1:
+                    response = _a.sent();
+                    if (response.$response.error) {
+                        return [2 /*return*/, createError(JSON.stringify(response.$response.error))];
+                    }
+                    else {
+                        return [2 /*return*/, createSuccess({ result: true })];
+                    }
+                    return [2 /*return*/];
+            }
+        });
+    });
+};
 exports.upload_pfp = function (event) {
     if (event === void 0) { event = {}; }
     return __awaiter(void 0, void 0, void 0, function () {
         return __generator(this, function (_a) {
-            console.log(event);
-            return [2 /*return*/];
+            return [2 /*return*/, new Promise(function (resolve, reject) {
+                    // get content type
+                    var contentType = event.headers["content-type"];
+                    if (!contentType) {
+                        contentType = event.headers["Content-Type"];
+                    }
+                    // setup busboy
+                    var result = {};
+                    var b = new busboy_1.default({ headers: { "content-type": contentType } });
+                    b.on("file", function (field, file, fileName, enc, mimetype) {
+                        file.on("data", function (data) {
+                            result.image = data;
+                        });
+                        file.on("end", function () {
+                            result.filename = fileName;
+                            result.contentType = mimetype;
+                        });
+                    });
+                    b.on("field", function (field, val) {
+                        result[field] = val;
+                    });
+                    b.on("finish", function () {
+                        // data successfully received
+                        if (result.image) {
+                            // upload to S3
+                            aws.config.update(aws_config_1.default.aws_remote_config);
+                            return new aws.S3.ManagedUpload({
+                                params: {
+                                    Bucket: "odyssey-user-pfp",
+                                    Key: result.filename,
+                                    Body: result.image,
+                                    ACL: "public-read",
+                                },
+                            })
+                                .promise()
+                                .then(function () {
+                                resolve(createSuccess({ result: true }));
+                            });
+                        }
+                    });
+                    b.on("error", function (error) {
+                        console.log(error);
+                        reject(error);
+                    });
+                    b.write(event.body, event.isBase64Encoded ? "base64" : "binary");
+                    b.end();
+                })];
         });
     });
 };

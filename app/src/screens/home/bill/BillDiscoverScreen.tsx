@@ -26,6 +26,7 @@ import TouchableScale from 'react-native-touchable-scale';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { BillScreenStackParamList } from './BillTab';
 import { Category } from '../../../models/Category';
+import ProgressHUD from '../../../components/ProgressHUD';
 
 const width = Dimensions.get('screen').width;
 const height = Dimensions.get('screen').height;
@@ -45,6 +46,7 @@ interface State {
   categories: any;
   focused: boolean;
   likedBills: Bill[];
+  progress: boolean;
 }
 
 enum BillTabKey {
@@ -110,6 +112,7 @@ export default class BillDiscoverScreen extends React.Component<Props, State> {
   }
 
   loadData = async () => {
+    this.setState({ progress: true });
     if (!this.state.loaded || this.state.refreshing) {
       let data = await fetchRepresentatives();
       this.setState({ representatives: data });
@@ -117,7 +120,12 @@ export default class BillDiscoverScreen extends React.Component<Props, State> {
       this.setState({ categories: data });
       let bills = await randomBills();
       let lbills = await likedBills();
-      this.setState({ bills: bills, loaded: true, likedBills: lbills });
+      this.setState({
+        bills: bills,
+        loaded: true,
+        likedBills: lbills,
+        progress: true,
+      });
     }
   };
 
@@ -135,6 +143,7 @@ export default class BillDiscoverScreen extends React.Component<Props, State> {
       categories: {},
       focused: this.props.navigation.isFocused(),
       likedBills: [],
+      progress: false,
     };
 
     this.props.navigation.addListener('blur', () => {
@@ -342,8 +351,14 @@ export default class BillDiscoverScreen extends React.Component<Props, State> {
     } else {
       return (
         <View
-          style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: 'white',
+          }}
         >
+          <ProgressHUD visible={this.state.progress} />
           <Text>Loading...</Text>
         </View>
       );

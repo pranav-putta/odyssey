@@ -2,6 +2,7 @@ import functions, { firebase } from '@react-native-firebase/functions';
 import {
   fetchDataVersion,
   fetchUser,
+  profile_picture_url_default,
   storeBillLike,
   storeDataVersion,
   storeRepresentative,
@@ -40,6 +41,8 @@ const awsURLs = {
     'https://tde26c6cp5.execute-api.us-east-2.amazonaws.com/prod/add-comment',
   likeComment:
     'https://tde26c6cp5.execute-api.us-east-2.amazonaws.com/prod/like-comment',
+  deleteComment:
+    'https://tde26c6cp5.execute-api.us-east-2.amazonaws.com/prod/delete-comment',
   uploadPFP:
     'https://tde26c6cp5.execute-api.us-east-2.amazonaws.com/prod/upload-pfp',
 };
@@ -60,6 +63,9 @@ export async function refresh(): Promise<any> {
       let user: User = res.data.userData;
       let reps = res.data.reps;
       let version = res.data.version;
+      if (user && !user.pfp_url) {
+        user.pfp_url = profile_picture_url_default;
+      }
       storeUser(user);
       storeRepresentative(reps);
       storeDataVersion(version);
@@ -305,13 +311,8 @@ export async function uploadPFP(user: User, photo: string) {
   var body = new FormData();
   body.append('uid', user.uid);
   body.append('pfp', data);
-  console.log('her');
-  var xhr = new XMLHttpRequest();
-  xhr.open('POST', 'http://localhost:3000/prod/upload-pfp');
-  xhr.send(body);
-  /*return Axios.post('http://localhost:3000/prod/upload-pfp', body)
+  return Axios.post('http://localhost:3000/prod/upload-pfp', body)
     .then((response) => {
-      console.log(JSON.stringify(response.request));
       if (response.status == 200) {
         return true;
       } else {
@@ -321,5 +322,29 @@ export async function uploadPFP(user: User, photo: string) {
     .catch((err) => {
       console.log(JSON.stringify(err));
       return false;
-    });*/
+    });
+}
+
+export async function deleteComment(
+  bill: Bill,
+  commentIndex: number
+): Promise<boolean> {
+  if (!isNetworkAvailable()) {
+    return false;
+  }
+  return Axios.post(awsURLs.deleteComment, {
+    comment_index: commentIndex,
+    bill_id: bill.number,
+  })
+    .then((response) => {
+      if (response.status == 200) {
+        return true;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(JSON.stringify(err));
+      return false;
+    });
 }

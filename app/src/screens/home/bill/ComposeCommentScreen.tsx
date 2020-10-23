@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   Alert,
+  Image,
   KeyboardAvoidingView,
   StyleSheet,
   Switch,
@@ -29,6 +30,7 @@ interface State {
   shouldSendReps: boolean;
   text: string;
   showProgress: boolean;
+  user?: User;
 }
 
 export default class ComposeCommentScreen extends React.PureComponent<
@@ -42,12 +44,16 @@ export default class ComposeCommentScreen extends React.PureComponent<
       shouldSendReps: true,
       text: '',
       showProgress: false,
+      user: undefined,
     };
   }
 
   componentDidMount() {
     fetchRepresentatives().then((reps) => {
       this.setState({ reps: reps });
+    });
+    fetchUser().then((user) => {
+      this.setState({ user: user });
     });
   }
 
@@ -70,11 +76,10 @@ export default class ComposeCommentScreen extends React.PureComponent<
         <View
           style={{ flexDirection: 'row', flex: 1, paddingHorizontal: '7.5%' }}
         >
-          <FastImage
+          <Image
             style={{ height: 60, borderRadius: 10, flex: 1 }}
             source={{
-              uri:
-                'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png',
+              uri: this.state.user?.pfp_url,
             }}
           />
           <TextInput

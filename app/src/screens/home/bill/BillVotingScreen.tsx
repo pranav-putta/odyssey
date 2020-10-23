@@ -7,6 +7,8 @@ import {
   Text,
   TouchableOpacity,
   View,
+  ActionSheetIOS,
+  Image,
 } from 'react-native';
 import { Icon } from 'react-native-elements';
 import FastImage from 'react-native-fast-image';
@@ -15,6 +17,7 @@ import dateformat from 'dateformat';
 import ProgressHUD from '../../../components/ProgressHUD';
 import { BillData, Comment } from '../../../models/BillData';
 import {
+  deleteComment,
   fetchUser,
   getBillData,
   likeComment,
@@ -25,6 +28,7 @@ import {
   BillDetailVoteScreenRouteProps,
 } from './BillDetailsStack';
 import { User } from '../../../models';
+import Clipboard from '@react-native-community/clipboard';
 
 enum Vote {
   None = -1,
@@ -187,6 +191,11 @@ export default class VoteScreen extends React.Component<Props, State> {
           onPress={(index) => {
             this.setState({ vote: index }, () => {
               setBillVote(this.props.route.params.bill, this.state.vote);
+              if (this.state.user) {
+                let billData = this.state.billData;
+                billData.votes[this.state.user.uid] = index;
+                this.setState({ billData: billData });
+              }
             });
           }}
         />
@@ -211,6 +220,8 @@ export default class VoteScreen extends React.Component<Props, State> {
   }
 
   topComment = (top: Comment) => {
+    let vote = this.state.billData.votes[top.uid];
+
     return (
       <View style={styles.topComment}>
         <Icon
@@ -244,11 +255,10 @@ export default class VoteScreen extends React.Component<Props, State> {
             flexDirection: 'row',
           }}
         >
-          <FastImage
+          <Image
             style={styles.profile}
             source={{
-              uri:
-                'https://media.vanityfair.com/photos/5dd70131e78810000883f587/7:3/w_1953,h_837,c_limit/baby-yoda-craze.jpg',
+              uri: this.state.user?.pfp_url,
             }}
           />
           <View style={styles.profileName}>
@@ -264,7 +274,7 @@ export default class VoteScreen extends React.Component<Props, State> {
               </Text>
               <View
                 style={{
-                  backgroundColor: this.voteToColor(this.state.vote),
+                  backgroundColor: this.voteToColor(vote),
                   paddingVertical: 2,
                   paddingHorizontal: 8,
                   marginLeft: 8,
@@ -280,7 +290,7 @@ export default class VoteScreen extends React.Component<Props, State> {
                     fontWeight: '500',
                   }}
                 >
-                  {this.voteToText(this.state.vote)}
+                  {this.voteToText(vote)}
                 </Text>
               </View>
             </View>
@@ -301,6 +311,10 @@ export default class VoteScreen extends React.Component<Props, State> {
   };
 
   voteToText = (vote: Vote) => {
+    if (vote == undefined) {
+      return 'Abstain';
+    }
+
     switch (vote) {
       case Vote.No:
         return 'Against';
@@ -312,6 +326,9 @@ export default class VoteScreen extends React.Component<Props, State> {
   };
 
   voteToColor = (vote: Vote) => {
+    if (vote == undefined) {
+      return 'Abstain';
+    }
     switch (vote) {
       case Vote.No:
         return '#ff8a80';
@@ -328,125 +345,172 @@ export default class VoteScreen extends React.Component<Props, State> {
       ? comment.likes[this.state.user.uid] !== undefined &&
         comment.likes[this.state.user.uid]
       : false;
+    // search for position of comment user
+    let vote = this.state.billData.votes[comment.uid];
+
     return (
-      <View
+      <TouchableOpacity
         key={comment.name + comment.text}
-        style={{
-          flexDirection: 'row',
+        activeOpacity={0.6}
+        onPress={() => {
+          this.props.navigation.push('CommentFullScreen', {
+            comment: comment,
+            formattedDate: formattedDate,
+            voteColor: this.voteToColor(vote),
+            voteText: this.voteToText(vote),
+          });
+        }}
+        onLongPress={() => {
+          let options = ['Copy', 'Cancel'];
+          if (this.state.user && this.state.user.uid == comment.uid) {
+            options = ['Copy', 'Delete', 'Cancel'];
+          }
+
+          ActionSheetIOS.showActionSheetWithOptions(
+            {
+              options: options,
+              destructiveButtonIndex: 1,
+              cancelButtonIndex: 2,
+            },
+            (btn) => {
+              if (btn == 0) {
+                Clipboard.setString(comment.text);
+              } else if (
+                btn == 1 &&
+                this.state.user &&
+                this.state.user.uid == comment.uid
+              ) {
+                deleteComment(this.props.route.params.bill, index).then();
+                let billData = this.state.billData;
+                billData.comments.splice(index, 1);
+                this.setState({ billData: billData });
+              }
+            }
+          );
         }}
       >
-        <FastImage
-          style={styles.profile}
-          source={{
-            uri:
-              'https://media.vanityfair.com/photos/5dd70131e78810000883f587/7:3/w_1953,h_837,c_limit/baby-yoda-craze.jpg',
-          }}
-        />
         <View
           style={{
-            padding: '1%',
-            paddingHorizontal: '5%',
-            marginTop: '5%',
-            flex: 1,
+            flexDirection: 'row',
           }}
         >
+          <Image
+            style={styles.profile}
+            source={{
+              uri: this.state.user?.pfp_url,
+            }}
+          />
           <View
             style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
+              padding: '1%',
+              paddingHorizontal: '5%',
+              marginTop: '5%',
+              flex: 1,
             }}
           >
-            <Text
-              style={{
-                fontFamily: 'Futura',
-                fontSize: 16,
-                fontWeight: '600',
-              }}
-            >
-              {comment.name}
-            </Text>
             <View
               style={{
-                backgroundColor: this.voteToColor(this.state.vote),
-                paddingVertical: 3,
-                paddingHorizontal: 8,
-                borderRadius: 5,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
               }}
             >
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text
+                  style={{
+                    fontFamily: 'Futura',
+                    fontSize: 16,
+                    fontWeight: '600',
+                  }}
+                >
+                  {comment.name}
+                </Text>
+                <View
+                  style={{
+                    backgroundColor: this.voteToColor(vote),
+                    paddingVertical: 3,
+                    paddingHorizontal: 8,
+                    borderRadius: 5,
+                    marginLeft: 7.5,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontFamily: 'Futura',
+                      color: 'white',
+                      fontWeight: '500',
+                    }}
+                  >
+                    {this.voteToText(vote)}
+                  </Text>
+                </View>
+              </View>
               <Text
                 style={{
                   fontFamily: 'Futura',
-                  color: 'white',
-                  fontWeight: '500',
+                  fontSize: 12,
+                  color: '#9e9e9e',
                 }}
               >
-                {this.voteToText(this.state.vote)}
+                {formattedDate}
               </Text>
             </View>
             <Text
               style={{
                 fontFamily: 'Futura',
-                fontSize: 12,
-                color: '#9e9e9e',
+                fontSize: 15,
+                lineHeight: 20,
+                marginTop: '2.5%',
               }}
+              numberOfLines={5}
+              ellipsizeMode="tail"
             >
-              {formattedDate}
+              {comment.text}
             </Text>
-          </View>
-          <Text
-            style={{
-              fontFamily: 'Futura',
-              fontSize: 15,
-              lineHeight: 20,
-              marginTop: '2.5%',
-            }}
-          >
-            {comment.text}
-          </Text>
-          <View style={{ flexDirection: 'row', marginTop: '2.5%' }}>
-            <TouchableOpacity
-              style={{
-                backgroundColor: colors.textInputBackground,
-                padding: '2.5%',
-                borderRadius: 5,
-                flexDirection: 'row',
-                alignItems: 'center',
-              }}
-              onPress={() => {
-                if (this.state.user) {
-                  let billData = this.state.billData;
-                  billData.comments[index].likes[
-                    this.state.user.uid
-                  ] = !billData.comments[index].likes[this.state.user.uid];
-                  this.setState({ billData: billData });
-                  likeComment(
-                    this.props.route.params.bill,
-                    index,
-                    billData.comments[index].likes[this.state.user.uid]
-                  );
-                }
-              }}
-            >
-              <Icon
-                type="ionicon"
-                color={isLiked ? colors.republican : 'black'}
-                name={isLiked ? 'heart-sharp' : 'heart-outline'}
-                size={16}
-              />
-              <Text
+            <View style={{ flexDirection: 'row', marginTop: '2.5%' }}>
+              <TouchableOpacity
                 style={{
-                  fontFamily: 'Futura',
-                  fontWeight: '500',
-                  paddingLeft: '2.5%',
+                  backgroundColor: colors.textInputBackground,
+                  padding: '2.5%',
+                  borderRadius: 5,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                }}
+                onPress={() => {
+                  if (this.state.user) {
+                    let billData = this.state.billData;
+                    billData.comments[index].likes[
+                      this.state.user.uid
+                    ] = !billData.comments[index].likes[this.state.user.uid];
+                    this.setState({ billData: billData });
+                    likeComment(
+                      this.props.route.params.bill,
+                      index,
+                      billData.comments[index].likes[this.state.user.uid]
+                    );
+                  }
                 }}
               >
-                {Object.values(comment.likes).filter(Boolean).length}
-              </Text>
-            </TouchableOpacity>
+                <Icon
+                  type="ionicon"
+                  color={isLiked ? colors.republican : 'black'}
+                  name={isLiked ? 'heart-sharp' : 'heart-outline'}
+                  size={16}
+                />
+                <Text
+                  style={{
+                    fontFamily: 'Futura',
+                    fontWeight: '500',
+                    paddingLeft: '2.5%',
+                  }}
+                >
+                  {Object.values(comment.likes).filter(Boolean).length}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 

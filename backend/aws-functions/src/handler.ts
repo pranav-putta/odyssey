@@ -5,6 +5,10 @@ import * as fb from "./firebase";
 import * as aws from "aws-sdk";
 import awsconfig from "./aws.config";
 import { DocumentClient } from "aws-sdk/clients/dynamodb";
+import busboy from "busboy";
+import awsConfig from "./aws.config";
+import { request } from "http";
+import { create } from "domain";
 
 const current_version = 1;
 
@@ -99,6 +103,25 @@ export const new_user = async (event: any = {}): Promise<any> => {
   aws.config.update(awsconfig.aws_remote_config);
   var client = new aws.DynamoDB.DocumentClient();
 
+  // upload temp image
+  let image = await axios.get(
+    "https://cdn.business2community.com/wp-content/uploads/2017/08/blank-profile-picture-973460_640.png",
+    { responseType: "arraybuffer" }
+  );
+  let s3Data = await new aws.S3.ManagedUpload({
+    params: {
+      Bucket: "odyssey-user-pfp",
+      Key: data.user.uid + "_pfp.jpg",
+      Body: image.data,
+      ACL: "public-read",
+    },
+  }).promise();
+  if (!s3Data.Location) {
+    return createError("unable to upload pfp");
+  }
+  // insert user into database
+  data.user.pfp_url = s3Data.Location;
+  data.user.liked = {};
   const params: DocumentClient.PutItemInput = {
     TableName: awsconfig.aws_table_name,
     Item: data.user,
@@ -106,9 +129,8 @@ export const new_user = async (event: any = {}): Promise<any> => {
   let response = await client.put(params).promise();
   if (response.$response.error) {
     return createError(JSON.stringify(response.$response.error));
-  } else {
-    return createSuccess({ result: true });
   }
+  return createSuccess({ result: true });
 };
 
 /**
@@ -568,6 +590,82 @@ export const like_comment = async (event: any = {}): Promise<any> => {
   }
 };
 
+export const delete_comment = async (event: any = {}): Promise<any> => {
+  let data = JSON.parse(event.body);
+  let commentIndex: number = data.comment_index;
+  let billID: number = data.bill_id;
+
+  // set up dynamodb client
+  aws.config.update(awsconfig.aws_remote_config);
+  var client = new aws.DynamoDB.DocumentClient();
+  // bill exists, so update
+  const params: DocumentClient.UpdateItemInput = {
+    TableName: awsconfig.aws_voting_table_name,
+    Key: {
+      bill_id: billID.toString(),
+    },
+    UpdateExpression: "remove #comments[" + commentIndex + "]",
+    ExpressionAttributeNames: {
+      "#comments": "comments",
+    },
+  };
+  let response = await client.update(params).promise();
+  if (response.$response.error) {
+    return createError(JSON.stringify(response.$response.error));
+  } else {
+    return createSuccess({ result: true });
+  }
+};
+
 export const upload_pfp = async (event: any = {}): Promise<any> => {
-  console.log(event);
+  return new Promise<any>((resolve, reject) => {
+    // get content type
+    let contentType = event.headers["content-type"];
+    if (!contentType) {
+      contentType = event.headers["Content-Type"];
+    }
+
+    // setup busboy
+    const result: { [key: string]: string } = {};
+    const b = new busboy({ headers: { "content-type": contentType } });
+    b.on("file", (field, file, fileName, enc, mimetype) => {
+      file.on("data", (data) => {
+        result.image = data;
+      });
+      file.on("end", () => {
+        result.filename = fileName;
+        result.contentType = mimetype;
+      });
+    });
+
+    b.on("field", (field, val) => {
+      result[field] = val;
+    });
+
+    b.on("finish", () => {
+      // data successfully received
+      if (result.image) {
+        // upload to S3
+        aws.config.update(awsconfig.aws_remote_config);
+        return new aws.S3.ManagedUpload({
+          params: {
+            Bucket: "odyssey-user-pfp",
+            Key: result.filename,
+            Body: result.image,
+            ACL: "public-read",
+          },
+        })
+          .promise()
+          .then(() => {
+            resolve(createSuccess({ result: true }));
+          });
+      }
+    });
+    b.on("error", (error: any) => {
+      console.log(error);
+      reject(error);
+    });
+    b.write(event.body, event.isBase64Encoded ? "base64" : "binary");
+    b.end();
+  });
 };

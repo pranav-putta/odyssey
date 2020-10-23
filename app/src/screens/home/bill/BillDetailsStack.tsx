@@ -5,7 +5,9 @@ import {
 } from '@react-navigation/stack';
 import React from 'react';
 import { Bill } from '../../../models/Bill';
+import { Comment } from '../../../models/BillData';
 import { Category } from '../../../models/Category';
+import BillCommentFullScreeen from './BillCommentFullScreen';
 import BillInfoScreen from './BillInfoScreen';
 import { BillDetailStackProps, BillDetailStackRouteProps } from './BillTab';
 import VoteScreen from './BillVotingScreen';
@@ -29,6 +31,12 @@ export type BillDetailStackParams = {
   Comment: {
     bill: Bill;
   };
+  CommentFullScreen: {
+    comment: Comment;
+    voteColor: string;
+    voteText: string;
+    formattedDate: string;
+  };
 };
 
 export type BillDetailsInfoScreenProps = StackNavigationProp<
@@ -44,6 +52,11 @@ export type BillDetailsCommentScreenProps = StackNavigationProp<
   'Comment'
 >;
 
+export type BillDetailsCommentFullScreenProps = StackNavigationProp<
+  BillDetailStackParams,
+  'CommentFullScreen'
+>;
+
 export type BillDetailInfoScreenRouteProps = RouteProp<
   BillDetailStackParams,
   'Info'
@@ -55,6 +68,11 @@ export type BillDetailVoteScreenRouteProps = RouteProp<
 export type BillDetailCommentScreenRouteProps = RouteProp<
   BillDetailStackParams,
   'Comment'
+>;
+
+export type BillDetailCommentFullScreenRouteProps = RouteProp<
+  BillDetailStackParams,
+  'CommentFullScreen'
 >;
 
 const Stack = createStackNavigator<BillDetailStackParams>();
@@ -115,6 +133,10 @@ export default class BillDetailStack extends React.Component<Props, State> {
               },
             }),
           }}
+        />
+        <Stack.Screen
+          name="CommentFullScreen"
+          component={BillCommentFullScreeen}
         />
       </Stack.Navigator>
     );

@@ -101,6 +101,13 @@ functions:
           path: upload-pfp
           method: post
           cors: true
+  deleteComment:
+    handler: dist/handler.delete_comment
+    events:
+      - http:
+          path: delete-comment
+          method: post
+          cors: true
 
 plugins:
   - serverless-offline

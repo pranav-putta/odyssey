@@ -19,6 +19,7 @@ import {
   BillDetailInfoScreenRouteProps,
   BillDetailsInfoScreenProps,
 } from './BillDetailsStack';
+import * as Animatable from 'react-native-animatable';
 
 interface Props {
   navigation: BillDetailsInfoScreenProps;
@@ -30,6 +31,50 @@ type State = {
   animation: Animated.Value;
   numberLines: number | undefined;
   liked: boolean;
+};
+
+const voteButtonAnimation = {
+  0: { scaleX: 1, scaleY: 1, transform: [{ rotate: '0deg' }] },
+  0.1: {
+    scaleX: 0.85,
+    scaleY: 0.85,
+    transform: [{ rotate: '-5deg' }],
+  },
+  0.2: {
+    scaleX: 0.85,
+    scaleY: 0.85,
+    transform: [{ rotate: '-5deg' }],
+  },
+  0.3: {
+    scaleX: 1.15,
+    scaleY: 1.15,
+    transform: [{ rotate: '-5deg' }],
+  },
+  0.4: {
+    transform: [{ rotate: '5deg' }],
+  },
+  0.5: {
+    transform: [{ rotate: '-5deg' }],
+  },
+  0.6: {
+    transform: [{ rotate: '5deg' }],
+  },
+  0.7: {
+    transform: [{ rotate: '-5deg' }],
+  },
+  0.8: {
+    transform: [{ rotate: '5deg' }],
+  },
+  0.9: {
+    scaleX: 1.15,
+    scaleY: 1.15,
+    transform: [{ rotate: '5deg' }],
+  },
+  1: {
+    scaleX: 1,
+    scaleY: 1,
+    transform: [{ rotate: '0deg' }],
+  },
 };
 
 export default class BillInfoScreen extends React.PureComponent<Props, State> {
@@ -133,7 +178,13 @@ export default class BillInfoScreen extends React.PureComponent<Props, State> {
                 </Text>
               </TouchableOpacity>
             </View>
-            <View style={styles.voteButton}>
+            <Animatable.View
+              animation={voteButtonAnimation}
+              iterationCount={5}
+              duration={2000}
+              iterationDelay={2000}
+              style={styles.voteButton}
+            >
               <TouchableScale
                 style={{
                   flex: 1,
@@ -152,7 +203,7 @@ export default class BillInfoScreen extends React.PureComponent<Props, State> {
                   color="white"
                 />
               </TouchableScale>
-            </View>
+            </Animatable.View>
           </View>
         </View>
         {this.closeButton()}

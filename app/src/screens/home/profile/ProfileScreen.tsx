@@ -1,5 +1,13 @@
 import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  Linking,
+  Alert,
+  Image,
+} from 'react-native';
 import { colors, storage } from '../../../assets';
 import auth from '@react-native-firebase/auth';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -22,7 +30,6 @@ type Props = {
 
 type State = {
   user?: User;
-  pfp: string;
 };
 
 class ProfileScreen extends React.Component<Props, State> {
@@ -31,8 +38,6 @@ class ProfileScreen extends React.Component<Props, State> {
 
     this.state = {
       user: undefined,
-      pfp:
-        'https://cdn.business2community.com/wp-content/uploads/2017/08/blank-profile-picture-973460_640.png',
     };
   }
 
@@ -101,6 +106,7 @@ class ProfileScreen extends React.Component<Props, State> {
     const user = this.state.user;
 
     if (user) {
+      console.log(user.pfp_url);
       return (
         <SafeAreaView style={styles.container}>
           <View style={styles.headerBar}>
@@ -153,8 +159,12 @@ class ProfileScreen extends React.Component<Props, State> {
                           'JPEG',
                           50
                         ).then(({ uri }) => {
-                          uploadPFP(user, uri);
-                          this.setState({ pfp: response.uri });
+                          if (this.state.user) {
+                            uploadPFP(user, uri);
+                            let temp = this.state.user;
+                            temp.pfp_url = response.uri;
+                            this.setState({ user: temp });
+                          }
                         });
                       }
                     }
@@ -172,10 +182,10 @@ class ProfileScreen extends React.Component<Props, State> {
                   change
                 </Text>
               </TouchableOpacity>
-              <FastImage
+              <Image
                 style={{ width: 75, height: 75, borderRadius: 10 }}
                 source={{
-                  uri: this.state.pfp,
+                  uri: user.pfp_url,
                 }}
               />
             </View>
@@ -191,7 +201,28 @@ class ProfileScreen extends React.Component<Props, State> {
               item={this.formatPhoneNumber(user.phoneNumber)}
             />
           </View>
-          <View style={{ marginHorizontal: '10%', marginTop: '10%' }}>
+          <View style={{ marginHorizontal: '10%', marginTop: '5%' }}>
+            <TouchableOpacity
+              style={{ alignSelf: 'center', margin: '5%' }}
+              onPress={() => {
+                Linking.canOpenURL('http://www.odysseyapp.us').then((val) => {
+                  if (val) {
+                    Linking.openURL('http://www.odysseyapp.us');
+                  }
+                });
+              }}
+            >
+              <Text
+                style={{
+                  fontFamily: 'Futura',
+                  fontSize: 16,
+                  fontWeight: '600',
+                  color: '#2196f3',
+                }}
+              >
+                www.odysseyapp.us
+              </Text>
+            </TouchableOpacity>
             <TouchableOpacity
               style={{
                 justifyContent: 'center',
