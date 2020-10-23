@@ -114,6 +114,7 @@ export default class BillDiscoverScreen extends React.Component<Props, State> {
   loadData = async () => {
     this.setState({ progress: true });
     if (!this.state.loaded || this.state.refreshing) {
+      await refresh();
       let data = await fetchRepresentatives();
       this.setState({ representatives: data });
       data = await fetchCategories();
@@ -240,64 +241,65 @@ export default class BillDiscoverScreen extends React.Component<Props, State> {
         return 'Undefined';
       }
     };
-
-    return (
-      <TouchableScale
-        style={styles.repcard}
-        onPress={() => {
-          this.props.navigation.push('Rep', { rep: props });
-        }}
-      >
-        <View style={{ flexDirection: 'row' }}>
-          <FastImage
-            style={styles.repcardImage}
-            source={{
-              uri: props.picture_url,
-            }}
-          />
-          <View
-            style={{
-              justifyContent: 'space-between',
-              alignItems: 'flex-start',
-              alignSelf: 'flex-end',
-              marginLeft: '5%',
-            }}
-          >
-            <Text
+    if (props) {
+      return (
+        <TouchableScale
+          style={styles.repcard}
+          onPress={() => {
+            this.props.navigation.push('Rep', { rep: props });
+          }}
+        >
+          <View style={{ flexDirection: 'row' }}>
+            <FastImage
+              style={styles.repcardImage}
+              source={{
+                uri: props.picture_url,
+              }}
+            />
+            <View
               style={{
-                fontFamily: 'Roboto',
-                fontSize: 17,
-                fontWeight: 'bold',
-                color: 'black',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+                alignSelf: 'flex-end',
+                marginLeft: '5%',
               }}
             >
-              {title()}
-            </Text>
-            <Text
-              numberOfLines={1}
-              style={{
-                fontFamily: 'Roboto',
-                fontWeight: 'normal',
-                color: 'black',
+              <Text
+                style={{
+                  fontFamily: 'Roboto',
+                  fontSize: 17,
+                  fontWeight: 'bold',
+                  color: 'black',
+                }}
+              >
+                {title()}
+              </Text>
+              <Text
+                numberOfLines={1}
+                style={{
+                  fontFamily: 'Roboto',
+                  fontWeight: 'normal',
+                  color: 'black',
+                }}
+              >
+                {props.name}
+              </Text>
+            </View>
+            <Icon
+              type={'feather'}
+              name={'send'}
+              color={'black'}
+              size={20}
+              containerStyle={{
+                flex: 1,
+                alignSelf: 'center',
               }}
-            >
-              {props.name}
-            </Text>
+              style={{ alignSelf: 'flex-end' }}
+            />
           </View>
-          <Icon
-            type={'feather'}
-            name={'send'}
-            color={'black'}
-            size={20}
-            containerStyle={{
-              flex: 1,
-              alignSelf: 'center',
-            }}
-            style={{ alignSelf: 'flex-end' }}
-          />
-        </View>
-      </TouchableScale>
-    );
+        </TouchableScale>
+      );
+    }
   };
 
   discover = () => {

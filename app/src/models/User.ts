@@ -3,8 +3,9 @@ export interface User {
   age: number;
   name: string;
   phoneNumber: string;
-  interestedTopics: [string];
+  interestedTopics: { [key: string]: boolean };
   uid: string;
   liked: { [key: number]: boolean };
   pfp_url: string;
+  created_time: number;
 }

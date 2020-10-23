@@ -221,7 +221,7 @@ export default class VoteScreen extends React.Component<Props, State> {
 
   topComment = (top: Comment) => {
     let vote = this.state.billData.votes[top.uid];
-
+    let picture = `https://odyssey-user-pfp.s3.us-east-2.amazonaws.com/${top.uid}_pfp.jpg`;
     return (
       <View style={styles.topComment}>
         <Icon
@@ -258,7 +258,7 @@ export default class VoteScreen extends React.Component<Props, State> {
           <Image
             style={styles.profile}
             source={{
-              uri: this.state.user?.pfp_url,
+              uri: picture,
             }}
           />
           <View style={styles.profileName}>
@@ -345,6 +345,8 @@ export default class VoteScreen extends React.Component<Props, State> {
       ? comment.likes[this.state.user.uid] !== undefined &&
         comment.likes[this.state.user.uid]
       : false;
+    let picture = `https://odyssey-user-pfp.s3.us-east-2.amazonaws.com/${comment.uid}_pfp.jpg`;
+
     // search for position of comment user
     let vote = this.state.billData.votes[comment.uid];
 
@@ -397,7 +399,7 @@ export default class VoteScreen extends React.Component<Props, State> {
           <Image
             style={styles.profile}
             source={{
-              uri: this.state.user?.pfp_url,
+              uri: picture,
             }}
           />
           <View
@@ -535,6 +537,8 @@ export default class VoteScreen extends React.Component<Props, State> {
           shadowOpacity: 0.25,
           shadowOffset: { width: 0, height: 1 },
           shadowRadius: 7.5,
+          borderTopLeftRadius: 10,
+          borderTopRightRadius: 10,
         }}
       >
         <TouchableOpacity

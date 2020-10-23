@@ -156,7 +156,7 @@ class ProfileScreen extends React.Component<Props, State> {
                           response.uri,
                           100,
                           100,
-                          'JPEG',
+                          'PNG',
                           50
                         ).then(({ uri }) => {
                           if (this.state.user) {

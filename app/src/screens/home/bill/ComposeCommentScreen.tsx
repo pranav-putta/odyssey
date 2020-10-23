@@ -53,6 +53,7 @@ export default class ComposeCommentScreen extends React.PureComponent<
       this.setState({ reps: reps });
     });
     fetchUser().then((user) => {
+      console.log(user.pfp_url);
       this.setState({ user: user });
     });
   }

@@ -2,7 +2,6 @@ import functions, { firebase } from '@react-native-firebase/functions';
 import {
   fetchDataVersion,
   fetchUser,
-  profile_picture_url_default,
   storeBillLike,
   storeDataVersion,
   storeRepresentative,
@@ -63,9 +62,6 @@ export async function refresh(): Promise<any> {
       let user: User = res.data.userData;
       let reps = res.data.reps;
       let version = res.data.version;
-      if (user && !user.pfp_url) {
-        user.pfp_url = profile_picture_url_default;
-      }
       storeUser(user);
       storeRepresentative(reps);
       storeDataVersion(version);
@@ -86,7 +82,7 @@ export async function userExists(uid: string): Promise<boolean> {
   }
 }
 
-export async function createUser(user: any): Promise<boolean> {
+export async function createUser(user: User): Promise<boolean> {
   if (!isNetworkAvailable()) {
     return false;
   }
@@ -311,7 +307,7 @@ export async function uploadPFP(user: User, photo: string) {
   var body = new FormData();
   body.append('uid', user.uid);
   body.append('pfp', data);
-  return Axios.post('http://localhost:3000/prod/upload-pfp', body)
+  return Axios.post(awsURLs.uploadPFP, body)
     .then((response) => {
       if (response.status == 200) {
         return true;

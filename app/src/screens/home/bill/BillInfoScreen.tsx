@@ -38,37 +38,37 @@ const voteButtonAnimation = {
   0.1: {
     scaleX: 0.85,
     scaleY: 0.85,
-    transform: [{ rotate: '-5deg' }],
+    transform: [{ rotate: '-7deg' }],
   },
   0.2: {
     scaleX: 0.85,
     scaleY: 0.85,
-    transform: [{ rotate: '-5deg' }],
+    transform: [{ rotate: '-7deg' }],
   },
   0.3: {
-    scaleX: 1.15,
-    scaleY: 1.15,
-    transform: [{ rotate: '-5deg' }],
+    scaleX: 1.3,
+    scaleY: 1.3,
+    transform: [{ rotate: '-7deg' }],
   },
   0.4: {
-    transform: [{ rotate: '5deg' }],
+    transform: [{ rotate: '7deg' }],
   },
   0.5: {
-    transform: [{ rotate: '-5deg' }],
+    transform: [{ rotate: '-7deg' }],
   },
   0.6: {
-    transform: [{ rotate: '5deg' }],
+    transform: [{ rotate: '7deg' }],
   },
   0.7: {
-    transform: [{ rotate: '-5deg' }],
+    transform: [{ rotate: '-7deg' }],
   },
   0.8: {
-    transform: [{ rotate: '5deg' }],
+    transform: [{ rotate: '7deg' }],
   },
   0.9: {
-    scaleX: 1.15,
-    scaleY: 1.15,
-    transform: [{ rotate: '5deg' }],
+    scaleX: 1.3,
+    scaleY: 1.3,
+    transform: [{ rotate: '7deg' }],
   },
   1: {
     scaleX: 1,
@@ -180,9 +180,9 @@ export default class BillInfoScreen extends React.PureComponent<Props, State> {
             </View>
             <Animatable.View
               animation={voteButtonAnimation}
-              iterationCount={5}
+              iterationCount={'infinite'}
               duration={2000}
-              iterationDelay={2000}
+              iterationDelay={5000}
               style={styles.voteButton}
             >
               <TouchableScale
@@ -293,7 +293,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontFamily: 'Futura-CondensedLight',
+    fontFamily: 'Futura',
     fontWeight: '700',
     marginTop: '5%',
   },
@@ -322,7 +322,7 @@ const styles = StyleSheet.create({
     textAlignVertical: 'center',
     marginTop: '5%',
     fontSize: 15,
-    fontWeight: '200',
+    fontWeight: '400',
     fontFamily: 'Futura',
     textAlign: 'justify',
   },

@@ -140,7 +140,7 @@ class LoginScreen extends React.Component<Props, State> {
     });
     this.phoneNumberCaptionHeight = this.state.animation.interpolate({
       inputRange: [0, 1],
-      outputRange: [0, 60],
+      outputRange: [0, 90],
     });
     this.continueButtonHeight = this.state.animation.interpolate({
       inputRange: [0, 1],
@@ -342,7 +342,10 @@ class LoginScreen extends React.Component<Props, State> {
       name: this.state.name,
       age: this.state.age,
       address: this.state.address,
-      selectedTopics: this.state.selectedTopics,
+      interestedTopics: this.state.selectedTopics,
+      liked: {},
+      created_time: Date.now(),
+      pfp_url: '',
     })
       .then((response) => {
         if (response) {
@@ -503,17 +506,39 @@ class LoginScreen extends React.Component<Props, State> {
     };
 
     return (
-      <Animated.View style={{ padding: '10%' }}>
+      <Animated.View
+        style={{
+          padding: '10%',
+          paddingTop: this.state.hasLoginStarted ? '2.5%' : '10%',
+        }}
+      >
         <Text style={styles.loginText}>Let's get started</Text>
         <Animated.Text
           style={[
             styles.ageCaptionText,
-            { height: this.phoneNumberCaptionHeight },
+            { height: this.phoneNumberCaptionHeight, lineHeight: 22 },
           ]}
         >
           Mobile messaging rates and SMS charges may apply based on your service
-          provider
+          provider. By clicking continue, you are agreeing to our{' '}
+          <TouchableOpacity>
+            <Text
+              style={{ color: '#2196f3' }}
+              onPress={() => {
+                Linking.canOpenURL(
+                  'http://www.odysseyapp.us/privacy.html'
+                ).then((val) => {
+                  if (val) {
+                    Linking.openURL('http://www.odysseyapp.us/privacy.html');
+                  }
+                });
+              }}
+            >
+              Privacy Policy
+            </Text>
+          </TouchableOpacity>
         </Animated.Text>
+
         <TouchableWithoutFeedback
           onPress={() => {
             if (!this.state.hasLoginStarted) {
@@ -619,7 +644,7 @@ class LoginScreen extends React.Component<Props, State> {
         </Text>
         <Animated.View style={styles.loginPhoneNumber}>
           <TextInput
-            style={{ fontSize: 18 }}
+            style={{ fontSize: 18, width: '100%' }}
             value={this.state.name}
             onChangeText={(text) => {
               this.setState({ name: text });
@@ -650,7 +675,7 @@ class LoginScreen extends React.Component<Props, State> {
         </Text>
         <Animated.View style={styles.loginPhoneNumber}>
           <TextInput
-            style={{ fontSize: 18 }}
+            style={{ fontSize: 18, width: '100%' }}
             value={this.state.age == -1 ? '' : this.state.age.toString()}
             onChangeText={(text) => {
               var age = parseInt(text);
@@ -665,8 +690,12 @@ class LoginScreen extends React.Component<Props, State> {
           />
         </Animated.View>
         {this.continueButton(() => {
-          if (this.state.age > 0) {
+          if (this.state.age >= 13 && this.state.age <= 120) {
             this.nextLoginFormPage();
+          } else if (this.state.age > 0) {
+            Alert.alert(
+              'Sorry, you must be 13 years or older to use this app.'
+            );
           } else {
             Alert.alert('Enter a valid age.');
           }
@@ -685,6 +714,7 @@ class LoginScreen extends React.Component<Props, State> {
           senator.
         </Text>
         <GooglePlacesAutocomplete
+          currentLocation={true}
           placeholder="Enter Location"
           minLength={2}
           autoFocus={false}
@@ -692,9 +722,33 @@ class LoginScreen extends React.Component<Props, State> {
           fetchDetails={false}
           textInputProps={{}}
           numberOfLines={3}
+          onPress={(data: any, details = null) => {
+            const address = data.description;
+            // check if illinois is in the offsets
+            const terms: any[] = data.terms;
+            let works = false;
+            if (terms) {
+              terms.forEach((t) => {
+                if (t.value === 'IL') {
+                  works = true;
+                }
+              });
+            } else {
+              console.log(details);
+              works = true;
+            }
+            if (!works) {
+              this.setState({ address: '' });
+              Alert.alert(
+                "You must be an Illinois resident currently. Sorry for the inconvenience! We'll be rolling out to new states in the coming months. Stay tuned."
+              );
+            } else {
+              this.setState({ address: address });
+            }
+          }}
           ref={this.addressTextInput}
           query={{
-            key: 'AIzaSyDjxmRVGsp0-2lcjHafbZvYX05DY5WsOeg',
+            key: 'AIzaSyCocU0TMtyZCG8_qAYz0Eyuxpz3V6G7ilU',
             language: 'en',
           }}
           styles={{
@@ -722,12 +776,12 @@ class LoginScreen extends React.Component<Props, State> {
               height: 150,
             },
           }}
-          style={{ height: 150 }}
+          style={{ height: 150, width: '100%' }}
           enablePoweredByContainer={false}
         />
         <View style={{ height: '60%' }} />
         {this.continueButton(() => {
-          const address = this.addressTextInput.current?.getAddressText() || '';
+          const address = this.state.address;
           if (address.length > 0) {
             this.setState({ address: address }, () => {
               this.nextLoginFormPage();
