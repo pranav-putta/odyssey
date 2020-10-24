@@ -20,19 +20,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="fa24d2c0-492c-4fa1-b7d6-ab13f4d87ac9" name="Default Changelist" comment="database updates done">
-      <change afterPath="$PROJECT_DIR$/../app/ios/app/Images.xcassets/AppIcon.appiconset/1024.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../app/ios/app/Images.xcassets/AppIcon.appiconset/120-1.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../app/ios/app/Images.xcassets/AppIcon.appiconset/120.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../app/ios/app/Images.xcassets/AppIcon.appiconset/180.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../app/ios/app/Images.xcassets/AppIcon.appiconset/40.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../app/ios/app/Images.xcassets/AppIcon.appiconset/58.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../app/ios/app/Images.xcassets/AppIcon.appiconset/60.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../app/ios/app/Images.xcassets/AppIcon.appiconset/80.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../app/ios/app/Images.xcassets/AppIcon.appiconset/87.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/categories.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dbtable_bills_create.sql" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dbtable_members_create.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/ios/Podfile" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/Podfile" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../app/ios/Podfile.lock" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/Podfile.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../app/ios/Pods/Pods.xcodeproj/project.pbxproj" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/Pods/Pods.xcodeproj/project.pbxproj" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../app/ios/Pods/Pods.xcodeproj/xcuserdata/pranavputta.xcuserdatad/xcschemes/xcschememanagement.plist" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/Pods/Pods.xcodeproj/xcuserdata/pranavputta.xcuserdatad/xcschemes/xcschememanagement.plist" afterDir="false" />
@@ -49,42 +36,45 @@
       <change beforePath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app/Pods-app.debug.xcconfig" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app/Pods-app.debug.xcconfig" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app/Pods-app.release.xcconfig" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app/Pods-app.release.xcconfig" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../app/ios/app.xcodeproj/project.pbxproj" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/app.xcodeproj/project.pbxproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/ios/app.xcodeproj/xcshareddata/xcschemes/app.xcscheme" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/app.xcodeproj/xcshareddata/xcschemes/app.xcscheme" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/ios/app.xcworkspace/contents.xcworkspacedata" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/app.xcworkspace/contents.xcworkspacedata" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/ios/app/AppDelegate.m" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/app/AppDelegate.m" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/ios/app/Images.xcassets/AppIcon.appiconset/Contents.json" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/app/Images.xcassets/AppIcon.appiconset/Contents.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/../app/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/ios/app/Info.plist" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/app/Info.plist" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/node_modules/.bin/metro-symbolicate" beforeDir="false" afterPath="$PROJECT_DIR$/../app/node_modules/.bin/metro-symbolicate" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/node_modules/.bin/rimraf" beforeDir="false" afterPath="$PROJECT_DIR$/../app/node_modules/.bin/rimraf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/node_modules/.bin/semver" beforeDir="false" afterPath="$PROJECT_DIR$/../app/node_modules/.bin/semver" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/node_modules/.bin/uuid" beforeDir="false" afterPath="$PROJECT_DIR$/../app/node_modules/.bin/uuid" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/node_modules/@react-native-community/cli-tools/node_modules/.bin/mime" beforeDir="false" afterPath="$PROJECT_DIR$/../app/node_modules/@react-native-community/cli-tools/node_modules/.bin/mime" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/node_modules/@types/node/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/../app/node_modules/@types/node/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/node_modules/@types/node/console.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../app/node_modules/@types/node/console.d.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/node_modules/@types/node/events.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../app/node_modules/@types/node/events.d.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/node_modules/@types/node/globals.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../app/node_modules/@types/node/globals.d.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/node_modules/@types/node/http.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../app/node_modules/@types/node/http.d.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/node_modules/@types/node/process.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../app/node_modules/@types/node/process.d.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/node_modules/jest/node_modules/.bin/jest" beforeDir="false" afterPath="$PROJECT_DIR$/../app/node_modules/jest/node_modules/.bin/jest" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/node_modules/react-native/Libraries/Image/RCTUIImageViewAnimated.m" beforeDir="false" afterPath="$PROJECT_DIR$/../app/node_modules/react-native/Libraries/Image/RCTUIImageViewAnimated.m" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/node_modules/react-native/node_modules/.bin/react-native" beforeDir="false" afterPath="$PROJECT_DIR$/../app/node_modules/react-native/node_modules/.bin/react-native" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/package-lock.json" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../app/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../app/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/src/App.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/App.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/src/apis/index.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/src/apis/representativeAPI.ts" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../app/src/assets/colors.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/assets/colors.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/src/models/LocalStorage.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/components/TabBar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/components/TabBar.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/models/Bill.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/models/Bill.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../app/src/models/Representative.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/models/Representative.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/src/models/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/models/index.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/src/routes/routes.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/routes/routes.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/src/screens/home/bill/BillDetailScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/screens/home/bill/BillDetailScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/models/User.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/models/User.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/screens/home/HomeScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/screens/home/HomeScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/screens/home/bill/BillDiscoverScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/screens/home/bill/BillDiscoverScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/screens/home/bill/BillInfoScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/screens/home/bill/BillInfoScreen.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../app/src/screens/home/bill/BillScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/screens/home/bill/BillScreen.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/src/screens/home/bill/components/BillSmallCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/screens/home/bill/components/BillSmallCard.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/src/screens/home/bill/components/RepExpandedCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/screens/home/bill/components/RepExpandedCard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/screens/home/bill/BillVotingScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/screens/home/bill/BillVotingScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/screens/home/bill/components/BillCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/screens/home/bill/components/BillCard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/screens/home/bill/components/RepExpandedCard.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/screens/home/community/CommunityScreen.tsx" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../app/src/screens/launch/LaunchScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/screens/launch/LaunchScreen.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../app/src/screens/login/LoginScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/screens/login/LoginScreen.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/src/screens/tmp/data.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/tsconfig.json" beforeDir="false" afterPath="$PROJECT_DIR$/../app/tsconfig.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/util/LocalStorage.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/util/LocalStorage.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/util/NetworkHandler.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/util/NetworkHandler.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../backend/aws-functions/dist/handler.js" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/aws-functions/dist/handler.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../backend/aws-functions/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/aws-functions/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../backend/aws-functions/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/aws-functions/package.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../backend/aws-functions/serverless.yml" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/aws-functions/serverless.yml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../backend/aws-functions/src/handler.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/aws-functions/src/handler.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../backend/aws-functions/src/index.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../backend/aws-functions/tsconfig.json" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/aws-functions/tsconfig.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../backend/gcloud-functions/functions/src/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/gcloud-functions/functions/src/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../backend/aws-functions/src/test.js" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/aws-functions/src/test.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/controllers/bill-controller.go" beforeDir="false" afterPath="$PROJECT_DIR$/controllers/bill-controller.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/db/db.go" beforeDir="false" afterPath="$PROJECT_DIR$/db/db.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dbcreate.sql" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/bill-model.go" beforeDir="false" afterPath="$PROJECT_DIR$/models/bill-model.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scraper.test.go" beforeDir="false" afterPath="$PROJECT_DIR$/scraper.test.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

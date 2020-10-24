@@ -22,6 +22,8 @@ const pgConfig: pg.PoolConfig = {
   connectionTimeoutMillis: 10000,
 };
 
+fb.init();
+
 /**
  * generates an error response message
  * @param message message to display
@@ -90,7 +92,6 @@ export const new_user = async (event: any = {}): Promise<any> => {
   }
 
   // verify that user exists within the database
-  fb.init();
   if (!(await fb.verifyUser(data.token))) {
     return createError("specified user doesn't exist in database!");
   }

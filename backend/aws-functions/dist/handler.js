@@ -87,6 +87,7 @@ var pgConfig = {
     statement_timeout: 3000,
     connectionTimeoutMillis: 10000,
 };
+fb.init();
 /**
  * generates an error response message
  * @param message message to display
@@ -167,10 +168,9 @@ exports.new_user = function (event) {
                     else if (!data.user) {
                         return [2 /*return*/, createError("user data not found!")];
                     }
-                    // verify that user exists within the database
-                    fb.init();
                     return [4 /*yield*/, fb.verifyUser(data.token)];
                 case 1:
+                    // verify that user exists within the database
                     if (!(_a.sent())) {
                         return [2 /*return*/, createError("specified user doesn't exist in database!")];
                     }
