@@ -1,0 +1,100 @@
+///
+/// Linear by Pixelarity
+/// pixelarity.com | hello@pixelarity.com
+/// License: pixelarity.com/license
+///
+
+/* Icons */
+
+	ul.icons {
+		cursor: default;
+		list-style: none;
+		padding-left: 0;
+		margin: 0;
+
+		li {
+			display: inline-block;
+			padding: 0 1rem _size(element-margin) 0;
+			position: relative;
+			vertical-align: middle;
+			z-index: 1;
+
+			&:last-child {
+				padding-right: 0;
+			}
+
+			a {
+				@include vendor('display','flex');
+				@include vendor('align-items','center');
+				@include vendor('justify-content','center');
+				border: solid 1px _palette(fg);
+				border-radius: 2rem;
+				color: _palette(fg) !important;
+				width: 2rem;
+				height: 2rem;
+
+				&:hover {
+					border-color: _palette(accent4,bg);
+					color: _palette(accent4,bg) !important;
+				}
+			}
+
+			.icon {
+				&:before {
+					font-size: 1rem;
+				}
+			}
+		}
+	}
+
+	.accent3 {
+		ul.icons {
+			li {
+				a {
+					&:hover {
+						border-color: _palette(accent3,bg);
+						color: _palette(accent3,bg) !important;
+					}
+				}
+			}
+		}
+	}
+
+	.accent4 {
+		ul.icons {
+			li {
+				a {
+					&:hover {
+						border-color: _palette(accent4,bg);
+						color: _palette(accent4,bg) !important;
+					}
+				}
+			}
+		}
+	}
+
+	.accent5 {
+		ul.icons {
+			li {
+				a {
+					&:hover {
+						border-color: _palette(accent5,bg);
+						color: _palette(accent5,bg) !important;
+					}
+				}
+			}
+		}
+	}
+
+	.accent6 {
+		ul.icons {
+			li {
+				a {
+					&:hover {
+						border-color: _palette(accent6,bg);
+						color: _palette(accent6,bg) !important;
+					}
+				}
+			}
+		}
+	}

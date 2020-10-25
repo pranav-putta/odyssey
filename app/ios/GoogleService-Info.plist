@@ -3,21 +3,21 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>822198700398-g2r50g0b3u1pf5qrqqqo8ef10om2qf7m.apps.googleusercontent.com</string>
+	<string>794143535695-tho878efsv75bbl3ni3h3t1di54ak9cv.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.822198700398-g2r50g0b3u1pf5qrqqqo8ef10om2qf7m</string>
+	<string>com.googleusercontent.apps.794143535695-tho878efsv75bbl3ni3h3t1di54ak9cv</string>
 	<key>API_KEY</key>
-	<string>AIzaSyALDsN2IWM7n6MQahND8QsYH-m6I4J_h1M</string>
+	<string>AIzaSyDlEK1Za4m0vfnI5q4qus0iUxnMOAz9xAQ</string>
 	<key>GCM_SENDER_ID</key>
-	<string>822198700398</string>
+	<string>794143535695</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
 	<string>us.odysseyapp.odyssey</string>
 	<key>PROJECT_ID</key>
-	<string>odyssey-899fd</string>
+	<string>odyssey-4329f</string>
 	<key>STORAGE_BUCKET</key>
-	<string>odyssey-899fd.appspot.com</string>
+	<string>odyssey-4329f.appspot.com</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -29,8 +29,8 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:822198700398:ios:6bfb7b6559066d6d94997f</string>
+	<string>1:794143535695:ios:5f43aa6c522fc23f37b03a</string>
 	<key>DATABASE_URL</key>
-	<string>https://odyssey-899fd.firebaseio.com</string>
+	<string>https://odyssey-4329f.firebaseio.com</string>
 </dict>
 </plist>

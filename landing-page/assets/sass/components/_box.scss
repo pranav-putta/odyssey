@@ -1,0 +1,23 @@
+///
+/// Linear by Pixelarity
+/// pixelarity.com | hello@pixelarity.com
+/// License: pixelarity.com/license
+///
+
+/* Box */
+
+	.box {
+		border: 1px solid _palette(border);
+		margin-bottom: _size(element-margin);
+		padding: 1.5rem;
+
+		> :last-child {
+			margin-bottom: 0;
+		}
+
+		&.alt {
+			border: 0;
+			border-radius: 0;
+			padding: 0;
+		}
+	}

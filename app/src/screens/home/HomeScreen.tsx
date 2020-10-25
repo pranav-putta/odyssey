@@ -2,19 +2,20 @@ import React from 'react';
 import { View, StatusBar, StyleSheet, Alert, Platform } from 'react-native';
 import TabBar, { TabKey, TabModel } from '../../components/TabBar';
 import BillScreen from './bill/BillTab';
-import ProfileScreen from './profile/ProfileScreen';
 import SearchScreen from './search/SearchTab';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import ProfileTab from './profile/ProfileTab';
 import { RouteProp } from '@react-navigation/native';
-import { HomeScreenProps } from '../../App';
+import { HomeParams } from '../../App';
 
 type State = {
   showTabs: boolean;
   selectedTab: string;
 };
-type Props = { navigation: HomeScreenProps };
+type Props = {
+  route: HomeParams;
+};
 
 const tabs: TabModel[] = [
   {

@@ -20,6 +20,7 @@ import {
   BillDetailsInfoScreenProps,
 } from './BillDetailsStack';
 import * as Animatable from 'react-native-animatable';
+import { SharedElement } from 'react-navigation-shared-element';
 
 interface Props {
   navigation: BillDetailsInfoScreenProps;
@@ -104,107 +105,112 @@ export default class BillInfoScreen extends React.PureComponent<Props, State> {
           backgroundColor: 'white',
         }}
       >
-        <View style={styles.imageContainer}>
+        <SharedElement
+          id={`bill.${bill.number}.photo`}
+          style={styles.imageContainer}
+        >
           <FastImage style={styles.image} source={{ uri: category.image }} />
-        </View>
+        </SharedElement>
         <View style={[styles.content]}>
-          <View style={styles.categoriesContainer}>
-            <Text style={styles.number}>{formatBillNumber(bill)}</Text>
-            <View
-              style={[
-                styles.category,
-                { backgroundColor: category.categoryColor },
-              ]}
-            >
-              <Text
+          <SharedElement id={`bill.${bill.number}.text`} style={{ flex: 1 }}>
+            <View style={styles.categoriesContainer}>
+              <Text style={styles.number}>{formatBillNumber(bill)}</Text>
+              <View
                 style={[
-                  styles.categoryText,
-                  { color: category.categoryTextColor },
+                  styles.category,
+                  { backgroundColor: category.categoryColor },
                 ]}
               >
-                {bill.category}
-              </Text>
-            </View>
-          </View>
-          <Text style={styles.title}>{bill.title}</Text>
-
-          <ScrollView>
-            <Text ellipsizeMode="tail" style={styles.synopsis}>
-              {bill.short_summary}
-            </Text>
-          </ScrollView>
-          <View
-            style={{
-              height: '10%',
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'flex-start',
-              marginBottom: '7%',
-            }}
-          >
-            <View style={styles.fullBill}>
-              <TouchableOpacity
-                style={{
-                  flex: 1,
-                  alignItems: 'center',
-                  flexDirection: 'row',
-                  justifyContent: 'center',
-                }}
-                onPress={() => {
-                  Linking.canOpenURL(this.props.route.params.bill.url).then(
-                    (supported) => {
-                      if (supported) {
-                        Linking.openURL(this.props.route.params.bill.url);
-                      }
-                    }
-                  );
-                }}
-              >
-                <Icon
-                  type="feather"
-                  name="external-link"
-                  size={24}
-                  color="#0091ea"
-                />
                 <Text
+                  style={[
+                    styles.categoryText,
+                    { color: category.categoryTextColor },
+                  ]}
+                >
+                  {bill.category}
+                </Text>
+              </View>
+            </View>
+            <Text style={styles.title}>{bill.title}</Text>
+
+            <ScrollView>
+              <Text ellipsizeMode="tail" style={styles.synopsis}>
+                {bill.short_summary}
+              </Text>
+            </ScrollView>
+            <View
+              style={{
+                height: '10%',
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'flex-start',
+                marginBottom: '7%',
+              }}
+            >
+              <View style={styles.fullBill}>
+                <TouchableOpacity
                   style={{
-                    fontSize: 16,
-                    fontWeight: '600',
-                    fontFamily: 'Futura',
-                    marginLeft: '10%',
+                    flex: 1,
+                    alignItems: 'center',
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                  }}
+                  onPress={() => {
+                    Linking.canOpenURL(this.props.route.params.bill.url).then(
+                      (supported) => {
+                        if (supported) {
+                          Linking.openURL(this.props.route.params.bill.url);
+                        }
+                      }
+                    );
                   }}
                 >
-                  See full bill page
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <Animatable.View
-              animation={voteButtonAnimation}
-              iterationCount={'infinite'}
-              duration={2000}
-              iterationDelay={5000}
-              style={styles.voteButton}
-            >
-              <TouchableScale
-                style={{
-                  flex: 1,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}
-                onPress={() => {
-                  // @ts-ignore
-                  this.props.navigation.push('Vote', this.props.route.params);
-                }}
+                  <Icon
+                    type="feather"
+                    name="external-link"
+                    size={24}
+                    color="#0091ea"
+                  />
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: '600',
+                      fontFamily: 'Futura',
+                      marginLeft: '10%',
+                    }}
+                  >
+                    See full bill page
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              <Animatable.View
+                animation={voteButtonAnimation}
+                iterationCount={'infinite'}
+                duration={2000}
+                iterationDelay={3000}
+                style={styles.voteButton}
               >
-                <Icon
-                  type="material-community"
-                  name="vote-outline"
-                  size={30}
-                  color="white"
-                />
-              </TouchableScale>
-            </Animatable.View>
-          </View>
+                <TouchableScale
+                  style={{
+                    flex: 1,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}
+                  onPress={() => {
+                    // @ts-ignore
+                    this.props.navigation.push('Vote', this.props.route.params);
+                  }}
+                >
+                  <Icon
+                    type="material-community"
+                    name="vote-outline"
+                    size={30}
+                    color="white"
+                  />
+                </TouchableScale>
+              </Animatable.View>
+            </View>
+          </SharedElement>
         </View>
         {this.closeButton()}
         {this.likeButton()}

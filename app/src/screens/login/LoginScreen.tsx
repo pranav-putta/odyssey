@@ -30,7 +30,7 @@ import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplet
 import { GridList } from './components/GridList';
 import Global from '../../util/global';
 import { createUser, userExists } from '../../util';
-import { LoginScreenProps } from '../../App';
+import { LoginNavigation } from '../../App';
 
 // state type definitions
 type State = {
@@ -65,7 +65,8 @@ type State = {
 };
 
 type Props = {
-  navigation: LoginScreenProps;
+  navigation: LoginNavigation;
+  callback: () => void;
 };
 class LoginScreen extends React.Component<Props, State> {
   // animation variables
@@ -99,12 +100,8 @@ class LoginScreen extends React.Component<Props, State> {
   // constants
   CONTINUE_HEIGHT: number = 30;
 
-  // called when LoginScreen is opened
-  constructor(props: any) {
-    super(props);
-
-    // generate initial state values
-    this.state = {
+  defaultState = () => {
+    return {
       animation: new Animated.Value(0),
       hasLoginStarted: false,
       phoneNumber: '',
@@ -120,6 +117,14 @@ class LoginScreen extends React.Component<Props, State> {
       showProgress: false,
       selectedTopics: {},
     };
+  };
+
+  // called when LoginScreen is opened
+  constructor(props: any) {
+    super(props);
+
+    // generate initial state values
+    this.state = this.defaultState();
 
     // assign animation interpolations
     this.loginContainerHeight = this.state.animation.interpolate({
@@ -294,8 +299,8 @@ class LoginScreen extends React.Component<Props, State> {
           }
         })
         .catch((err) => {
-          this.toggleProgress(false);
           Alert.alert(JSON.stringify(err));
+          console.log(err);
         })
         .finally(() => {
           // hide progress dialog
@@ -328,7 +333,9 @@ class LoginScreen extends React.Component<Props, State> {
     // set storage item
     AsyncStorage.setItem(storage.userSignedIn, 'true');
     // send navigation to home screen
-    this.props.navigation.navigate('Home');
+    // reset login state
+    //this.props.navigation.navigate('Home');
+    this.props.callback();
   };
 
   handleCreateUser = () => {
@@ -714,7 +721,6 @@ class LoginScreen extends React.Component<Props, State> {
           senator.
         </Text>
         <GooglePlacesAutocomplete
-          currentLocation={true}
           placeholder="Enter Location"
           minLength={2}
           autoFocus={false}
@@ -748,7 +754,7 @@ class LoginScreen extends React.Component<Props, State> {
           }}
           ref={this.addressTextInput}
           query={{
-            key: 'AIzaSyCocU0TMtyZCG8_qAYz0Eyuxpz3V6G7ilU',
+            key: 'AIzaSyD2Z2NUt7iCykcEIeRHS77jI2zSIPn0b6g',
             language: 'en',
           }}
           styles={{

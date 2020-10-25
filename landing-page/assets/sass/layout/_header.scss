@@ -1,0 +1,100 @@
+///
+/// Linear by Pixelarity
+/// pixelarity.com | hello@pixelarity.com
+/// License: pixelarity.com/license
+///
+
+/* Header */
+
+	@include keyframes('reveal-header') {
+		0% { top: -4em; opacity: 0; }
+		100% { top: 0; opacity: 1; }
+	}
+
+	#header {
+		@include vendor('align-items', 'center');
+		@include vendor('display', 'flex');
+		@include vendor('justify-content', 'space-between');
+		background-color: _palette(bg);
+		box-shadow: 0 0 0.5rem 0 rgba(0,0,0,0.11);
+		color: _palette(accent1, fg);
+		cursor: default;
+		height: _size(header-height);
+		left: 0;
+		line-height: _size(header-height);
+		position: fixed;
+		top: 0;
+		width: 100%;
+		z-index: _misc(z-index-base) + 3;
+
+		> .logo {
+			color: _palette(accent1, fg-bold);
+			font-size: 1rem;
+			height: inherit;
+			line-height: inherit;
+			outline: 0;
+			padding: 0 0 0 1rem;
+			text-decoration: none;
+		}
+
+		> nav {
+			text-align: right;
+
+			> a {
+				color: inherit;
+				display: block;
+				text-decoration: none;
+				outline: 0;
+				color: _palette(fg-light);
+
+				&:hover {
+					color: _palette(fg-bold);
+				}
+
+				&[href="#menu"] {
+					@include icon(false, solid);
+					-webkit-tap-highlight-color: rgba(0,0,0,0);
+					height: _size(header-height);
+					width: _size(header-height);
+					text-align: center;
+
+					span {
+						display: none;
+					}
+
+					&:before {
+						content: '\f0c9';
+						margin: 0;
+					}
+				}
+			}
+		}
+
+		&.reveal {
+			@include vendor('animation', 'reveal-header 0.5s ease');
+		}
+
+		&.alt {
+			@include vendor('justify-content', 'flex-end');
+			background-color: transparent;
+			box-shadow: none;
+			position: absolute;
+
+			.logo {
+				display: none;
+			}
+		}
+	}
+
+	@include breakpoint('<=medium') {
+		#header {
+			height: 44px;
+			line-height: 44px;
+		}
+	}
+
+	@include breakpoint('<=xsmall') {
+		#header {
+			min-width: 320px;
+		}
+	}

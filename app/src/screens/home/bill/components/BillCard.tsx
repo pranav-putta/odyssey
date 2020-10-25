@@ -5,6 +5,7 @@ import FastImage from 'react-native-fast-image';
 import { Bill, formatBillNumber } from '../../../../models/Bill';
 import { Category } from '../../../../models/Category';
 import { TouchableOpacity } from 'react-native-gesture-handler';
+import { SharedElement } from 'react-navigation-shared-element';
 
 type State = {};
 
@@ -49,14 +50,6 @@ export default class BillCard extends React.PureComponent<Props, State> {
       inputRange: inputRange,
       outputRange: [0, 0.5, 0],
     });
-    const perspective = scrollX.interpolate({
-      inputRange: inputRange,
-      outputRange: [800, 0, -800],
-    });
-    const rotateY = scrollX.interpolate({
-      inputRange: inputRange,
-      outputRange: ['10deg', '0deg', '0deg'],
-    });
     return (
       <AnimatedTouchableOpacity
         style={[
@@ -68,9 +61,12 @@ export default class BillCard extends React.PureComponent<Props, State> {
         onPress={onPress}
         activeOpacity={1}
       >
-        <View style={styles.imageContainer}>
+        <SharedElement
+          id={`bill.${this.props.bill.number}.photo`}
+          style={styles.imageContainer}
+        >
           <FastImage style={styles.image} source={{ uri: category.image }} />
-        </View>
+        </SharedElement>
         <Animated.View
           style={[
             styles.content,
@@ -83,35 +79,40 @@ export default class BillCard extends React.PureComponent<Props, State> {
             },
           ]}
         >
-          <View style={styles.categoriesContainer}>
-            <Text style={styles.number}>{formatBillNumber(bill)}</Text>
+          <SharedElement
+            id={`bill.${this.props.bill.number}`}
+            style={{ flex: 1 }}
+          >
+            <View style={styles.categoriesContainer}>
+              <Text style={styles.number}>{formatBillNumber(bill)}</Text>
 
-            <View
-              style={[
-                styles.category,
-                { backgroundColor: category.categoryColor },
-              ]}
-            >
-              <Text
+              <View
                 style={[
-                  styles.categoryText,
-                  { color: category.categoryTextColor },
+                  styles.category,
+                  { backgroundColor: category.categoryColor },
                 ]}
               >
-                {bill.category}
-              </Text>
+                <Text
+                  style={[
+                    styles.categoryText,
+                    { color: category.categoryTextColor },
+                  ]}
+                >
+                  {bill.category}
+                </Text>
+              </View>
             </View>
-          </View>
-          <Text
-            style={styles.title}
-            numberOfLines={2}
-            adjustsFontSizeToFit={true}
-          >
-            {bill.title}
-          </Text>
-          <Text ellipsizeMode="tail" style={styles.synopsis}>
-            {bill.short_summary}
-          </Text>
+            <Text
+              style={styles.title}
+              numberOfLines={2}
+              adjustsFontSizeToFit={true}
+            >
+              {bill.title}
+            </Text>
+            <Text ellipsizeMode="tail" style={styles.synopsis}>
+              {bill.short_summary}
+            </Text>
+          </SharedElement>
         </Animated.View>
       </AnimatedTouchableOpacity>
     );

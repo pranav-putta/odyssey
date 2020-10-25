@@ -1,0 +1,133 @@
+///
+/// Linear by Pixelarity
+/// pixelarity.com | hello@pixelarity.com
+/// License: pixelarity.com/license
+///
+
+/* Button */
+
+	input[type="submit"],
+	input[type="reset"],
+	input[type="button"],
+	button,
+	.button {
+		@include vendor('appearance', 'none');
+		@include vendor('transition', (
+			'background-color #{_duration(transition)} ease-in-out',
+		));
+		background-color: transparent;
+		border-radius: _size(border-radius);
+		border: 1px solid;
+		color: _palette(fg-bold) !important;
+		cursor: pointer;
+		display: inline-block;
+		font-size: 0.75rem;
+		font-weight: _font(weight);
+		height: _size(element-height);
+		letter-spacing: 0.125rem;
+		line-height: _size(element-height);
+		outline: 0;
+		padding-left: calc(0.125rem + 1.375rem);
+		padding-right: 3rem;
+		position: relative;
+		text-align: center;
+		text-decoration: none;
+		text-transform: uppercase;
+		vertical-align: middle;
+		white-space: nowrap;
+		width: auto;
+
+		&:hover {
+			border-color: _palette(accent4, bg);
+			color: _palette(accent4, bg) !important;
+
+			&:after {
+				background-image: svg-url('<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="17px" height="30px" viewBox="0 0 17 30" enable-background="new 0 0 17 30" xml:space="preserve"><path fill="#{_palette(accent4,bg)}" d="M0.255,27.55l12.218-12.468L0.354,2.614c-0.197-0.201-0.197-0.503,0-0.704L1.93,0.301c0.197-0.201,0.493-0.201,0.69,0l14.288,14.781L2.422,29.762c-0.196,0.202-0.493,0.202-0.689,0l-1.577-1.608C0.058,28.053,0.058,27.75,0.255,27.55z"/></svg>');
+			}
+		}
+
+		&:after {
+			@include vendor('transition', ('background-image #{_duration(transition)} ease-in-out'));
+			background-image: svg-url('<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="17px" height="30px" viewBox="0 0 17 30" enable-background="new 0 0 17 30" xml:space="preserve"><path fill="#{_palette(fg)}" d="M0.255,27.55l12.218-12.468L0.354,2.614c-0.197-0.201-0.197-0.503,0-0.704L1.93,0.301c0.197-0.201,0.493-0.201,0.69,0l14.288,14.781L2.422,29.762c-0.196,0.202-0.493,0.202-0.689,0l-1.577-1.608C0.058,28.053,0.058,27.75,0.255,27.55z"/></svg>');
+			background-position: center right;
+			background-repeat: no-repeat;
+			background-size: 0.5rem;
+			content: '';
+			display: block;
+			height: 100%;
+			position: absolute;
+			right: calc(0.125rem + 1.375rem);
+			top: 0;
+			vertical-align: middle;
+			width: 1.25rem;
+		}
+
+		&.small {
+			font-size: 0.8rem;
+			height: _size(element-height) * 0.8;
+			line-height: _size(element-height) * 0.8;
+
+			&:after {
+				background-size: 20px 12px;
+			}
+		}
+
+		&.large {
+			font-size: 1.35rem;
+			height: _size(element-height) * 1.25;
+			padding-right: 4rem;
+			line-height: _size(element-height) * 1.25;
+
+			&:after {
+				background-size: 30px 22px;
+			}
+		}
+
+		&.wide {
+			min-width: 13rem;
+			text-align: left;
+		}
+
+		&.icon {
+			border: 1px solid;
+			padding: 0 2.5rem;
+
+			&:before {
+				margin-right: 0.5rem;
+			}
+
+			&:after {
+				display: none;
+			}
+		}
+
+		&.fit {
+			width: 100%;
+			text-align: center;
+			padding: 0;
+
+			&:after {
+				display: none;
+			}
+		}
+
+		&.disabled,
+		&:disabled {
+			@include vendor('pointer-events', 'none');
+			opacity: 0.25;
+		}
+
+		@include breakpoint('<=medium') {
+			&:after {
+				background-size: 20px 12px;
+			}
+
+		&.small {
+			line-height: _size(element-height) * 0.7;
+
+			&:after {
+				background-size: 18px 10px;
+			}
+		}
+		}
+	}

@@ -1,3 +1,4 @@
+import { RouteProp } from '@react-navigation/native';
 import {
   createStackNavigator,
   StackNavigationProp,
@@ -9,7 +10,7 @@ import ProfileScreen from './ProfileScreen';
 import SettingsScreen from './SettingsScreen';
 
 type ProfileTabStackParams = {
-  Profile: {};
+  Profile: undefined;
   Settings: undefined;
   Edit: undefined;
 };
@@ -28,6 +29,8 @@ export type ProfileEditScreenProps = StackNavigationProp<
   ProfileTabStackParams,
   'Edit'
 >;
+
+export type ProfileScreenParams = RouteProp<ProfileTabStackParams, 'Profile'>;
 
 export default function ProfileTab(props: {
   navigation: ProfileTabScreenProps;

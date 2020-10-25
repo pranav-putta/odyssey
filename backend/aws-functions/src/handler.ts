@@ -6,9 +6,6 @@ import * as aws from "aws-sdk";
 import awsconfig from "./aws.config";
 import { DocumentClient } from "aws-sdk/clients/dynamodb";
 import busboy from "busboy";
-import awsConfig from "./aws.config";
-import { request } from "http";
-import { create } from "domain";
 
 const current_version = 1;
 
@@ -52,6 +49,7 @@ function createSuccess(result: any) {
  */
 export const user_exists = async (event: any = {}): Promise<any> => {
   let data = event["queryStringParameters"];
+  console.log("what the fuck")
 
   if (data && data.uid && typeof data.uid === "string") {
     // set up dynamodb client
@@ -67,6 +65,9 @@ export const user_exists = async (event: any = {}): Promise<any> => {
     };
     // look for document with specified uid
     let query = await client.query(params).promise();
+    console.log("uid " + data.uid);
+    console.log(query.$response);
+
     if (((!query.$response.error && query.Count) || 0) > 0) {
       return createSuccess({ result: true });
     } else {
@@ -146,7 +147,7 @@ const get_reps = async (address: string) => {
    */
   function findReps(address: string) {
     let params = {
-      key: "AIzaSyBjX1sd05v_36BG6gmnhUqe3PsSrAnXHlw",
+      key: "AIzaSyD2Z2NUt7iCykcEIeRHS77jI2zSIPn0b6g",
       address: address,
       includeOffices: true,
       levels: "administrativeArea1",

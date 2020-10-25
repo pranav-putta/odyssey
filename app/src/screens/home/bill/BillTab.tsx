@@ -1,9 +1,6 @@
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { RouteProp } from '@react-navigation/native';
-import {
-  createStackNavigator,
-  StackNavigationProp,
-} from '@react-navigation/stack';
+import { StackNavigationProp } from '@react-navigation/stack';
 import React from 'react';
 import { Representative } from '../../../models';
 import { Bill } from '../../../models/Bill';
@@ -11,6 +8,7 @@ import { Category } from '../../../models/Category';
 import BillDetailStack from './BillDetailsStack';
 import BillDiscoverScreen from './BillDiscoverScreen';
 import RepScreen from './RepScreen';
+import { createSharedElementStackNavigator } from 'react-navigation-shared-element';
 
 interface Props {
   navigation: BottomTabNavigationProp<any, any>;
@@ -56,25 +54,18 @@ export type RepresentativeScreenRouteProp = RouteProp<
   'Rep'
 >;
 
-const Stack = createStackNavigator<BillScreenStackParamList>();
+const Stack = createSharedElementStackNavigator<BillScreenStackParamList>();
 
 export default class BillTab extends React.Component<Props, State> {
+  componentDidMount() {
+    this.props.navigation.addListener('beforeRemove', (e) => {
+      e.preventDefault();
+    });
+  }
+
   render() {
     return (
-      <Stack.Navigator
-        headerMode="none"
-        screenOptions={{
-          transitionSpec: {
-            open: { animation: 'timing', config: { duration: 150 } },
-            close: { animation: 'timing', config: { duration: 150 } },
-          },
-          cardStyleInterpolator: ({ current }) => ({
-            cardStyle: {
-              opacity: current.progress,
-            },
-          }),
-        }}
-      >
+      <Stack.Navigator headerMode="none" screenOptions={{}}>
         <Stack.Screen
           name="Discover"
           options={{ headerShown: false }}
@@ -86,8 +77,19 @@ export default class BillTab extends React.Component<Props, State> {
           component={BillDiscoverScreen}
         />
         <Stack.Screen
+          options={{
+            cardStyleInterpolator: ({ current }) => ({
+              cardStyle: {
+                opacity: current.progress,
+              },
+            }),
+          }}
           name="Details"
           component={BillDetailStack}
+          sharedElements={(route, other) => {
+            const { bill } = route.params;
+            return [{ id: `bill.${bill.number}.photo` }];
+          }}
           listeners={{
             focus: () => {
               this.props.toggleTabs(false);

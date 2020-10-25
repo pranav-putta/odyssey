@@ -1,73 +1,99 @@
 import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, RouteProp } from '@react-navigation/native';
 import {
   createStackNavigator,
   StackNavigationOptions,
   StackNavigationProp,
 } from '@react-navigation/stack';
-import LaunchScreen from './screens/launch/LaunchScreen';
 import LoginScreen from './screens/login/LoginScreen';
 import HomeScreen from './screens/home/HomeScreen';
-import routes from './routes/routes';
+import auth from '@react-native-firebase/auth';
+import SplashScreen from 'react-native-splash-screen';
+import Global from './util/global';
+import AsyncStorage from '@react-native-community/async-storage';
+import { storage } from './assets';
 
-type ScreenOptions = {
-  launchOptions: StackNavigationOptions;
-  loginOptions: StackNavigationOptions;
-  homeOptions: StackNavigationOptions;
+type Props = {
+  navigation: any;
 };
-
-const options: ScreenOptions = {
-  launchOptions: {
-    header: undefined,
-    headerShown: false,
-    gestureEnabled: false,
-  },
-  loginOptions: {
-    header: undefined,
-    gestureEnabled: false,
-    headerShown: false,
-  },
-  homeOptions: {
-    header: undefined,
-    gestureEnabled: false,
-    headerShown: false,
-  },
+type State = {
+  loggedIn: boolean;
 };
 
 type AppStackParams = {
-  Launch: undefined;
   Login: undefined;
-  Home: undefined;
+  Home: {
+    callback: () => void;
+  };
 };
-
-export type LaunchScreenProps = StackNavigationProp<AppStackParams, 'Launch'>;
-export type HomeScreenProps = StackNavigationProp<AppStackParams, 'Home'>;
-export type LoginScreenProps = StackNavigationProp<AppStackParams, 'Login'>;
+export type HomeNavigation = StackNavigationProp<AppStackParams, 'Home'>;
+export type LoginNavigation = StackNavigationProp<AppStackParams, 'Login'>;
+export type HomeParams = RouteProp<AppStackParams, 'Home'>;
 
 const Stack = createStackNavigator<AppStackParams>();
 
-function App() {
-  return (
-    <NavigationContainer>
-      <Stack.Navigator>
-        <Stack.Screen
-          name="Launch"
-          component={LaunchScreen}
-          options={options.launchOptions}
-        />
-        <Stack.Screen
-          name="Login"
-          component={LoginScreen}
-          options={options.loginOptions}
-        />
-        <Stack.Screen
-          name="Home"
-          component={HomeScreen}
-          options={options.homeOptions}
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
-  );
+class App extends React.Component<Props, State> {
+  constructor(props: Props) {
+    super(props);
+    this.state = {
+      loggedIn: false,
+    };
+
+    auth().onAuthStateChanged((user) => {
+      if (!user) {
+        this.init();
+      }
+    });
+  }
+
+  componentDidMount() {
+    this.init();
+  }
+
+  async init() {
+    let signedIn = (await AsyncStorage.getItem(storage.userSignedIn)) == 'true';
+
+    await Global.setCategories();
+    SplashScreen.hide();
+    if (signedIn) {
+      this.setState({ loggedIn: true });
+    } else {
+      this.setState({ loggedIn: false });
+    }
+  }
+
+  render() {
+    return (
+      <NavigationContainer>
+        <Stack.Navigator
+          screenOptions={{ headerShown: false }}
+          initialRouteName={this.state.loggedIn ? 'Home' : 'Login'}
+        >
+          {this.state.loggedIn ? (
+            <Stack.Screen
+              name="Home"
+              component={HomeScreen}
+              initialParams={{ callback: () => {} }}
+              options={{
+                animationTypeForReplace: this.state.loggedIn ? 'pop' : 'push',
+              }}
+            />
+          ) : (
+            <Stack.Screen name="Login">
+              {(props) => (
+                <LoginScreen
+                  navigation={props.navigation}
+                  callback={() => {
+                    this.init();
+                  }}
+                />
+              )}
+            </Stack.Screen>
+          )}
+        </Stack.Navigator>
+      </NavigationContainer>
+    );
+  }
 }
 
 export default App;

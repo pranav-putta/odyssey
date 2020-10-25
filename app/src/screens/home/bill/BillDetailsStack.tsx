@@ -84,20 +84,7 @@ export default class BillDetailStack extends React.Component<Props, State> {
 
   render() {
     return (
-      <Stack.Navigator
-        headerMode="none"
-        screenOptions={{
-          transitionSpec: {
-            open: { animation: 'timing', config: { duration: 150 } },
-            close: { animation: 'timing', config: { duration: 150 } },
-          },
-          cardStyleInterpolator: ({ current }) => ({
-            cardStyle: {
-              opacity: current.progress,
-            },
-          }),
-        }}
-      >
+      <Stack.Navigator headerMode="none" screenOptions={{}}>
         <Stack.Screen
           name="Info"
           options={{ headerShown: false }}

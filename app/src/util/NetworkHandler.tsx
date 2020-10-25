@@ -74,12 +74,20 @@ export async function userExists(uid: string): Promise<boolean> {
     return false;
   }
 
-  let response = await Axios.get(awsURLs.userExists, { params: { uid: uid } });
-  if (response.status == 200 && response.data.result) {
-    return true;
-  } else {
-    return false;
-  }
+  return await Axios.get(awsURLs.userExists, {
+    params: { uid: uid },
+  })
+    .then((response) => {
+      if (response.status == 200 && response.data.result) {
+        return true;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(JSON.stringify(err));
+      return false;
+    });
 }
 
 export async function createUser(user: User): Promise<boolean> {

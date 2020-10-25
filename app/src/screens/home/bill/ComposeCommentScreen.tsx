@@ -2,6 +2,7 @@ import React from 'react';
 import {
   Alert,
   Image,
+  Keyboard,
   KeyboardAvoidingView,
   StyleSheet,
   Switch,
@@ -68,7 +69,8 @@ export default class ComposeCommentScreen extends React.PureComponent<
           <TouchableOpacity
             style={styles.closeButton}
             onPress={() => {
-              this.props.navigation.goBack();
+              Keyboard.dismiss();
+              this.props.navigation.pop();
             }}
           >
             <Icon size={26} name="x" type="feather" color="black" />
@@ -88,6 +90,7 @@ export default class ComposeCommentScreen extends React.PureComponent<
             multiline={true}
             placeholder="What's on your mind?"
             value={this.state.text}
+            autoFocus
             onChangeText={(text) => {
               this.setState({ text: text });
             }}
@@ -173,7 +176,7 @@ export default class ComposeCommentScreen extends React.PureComponent<
               addComment(this.props.route.params.bill, comment).then((val) => {
                 this.setState({ showProgress: false });
                 if (val) {
-                  this.props.navigation.goBack();
+                  this.props.navigation.pop();
                 } else {
                   Alert.alert("Couldn't submit your request");
                 }

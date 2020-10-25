@@ -11,21 +11,17 @@ import {
 import { colors, storage } from '../../../assets';
 import auth from '@react-native-firebase/auth';
 import AsyncStorage from '@react-native-community/async-storage';
-import { StackNavigationProp } from '@react-navigation/stack';
-import routes from '../../../routes/routes';
-import FastImage from 'react-native-fast-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { fetchUser, uploadPFP, userExists } from '../../../util';
 import { User } from '../../../models';
 import { Icon } from 'react-native-elements';
-import { ProfileScreenProps } from './ProfileTab';
-import { ProfileScreenRouteProps } from '../HomeScreen';
+import { ProfileScreenParams, ProfileScreenProps } from './ProfileTab';
 import ImagePicker from 'react-native-image-picker';
 import ImageResizer from 'react-native-image-resizer';
 
 type Props = {
   navigation: ProfileScreenProps;
-  route: ProfileScreenRouteProps;
+  route: ProfileScreenParams;
 };
 
 type State = {
@@ -232,15 +228,8 @@ class ProfileScreen extends React.Component<Props, State> {
                 borderRadius: 10,
               }}
               onPress={() => {
-                auth()
-                  .signOut()
-                  .then(() => {
-                    AsyncStorage.setItem(storage.userSignedIn, 'false').then(
-                      () => {
-                        this.props.navigation.popToTop();
-                      }
-                    );
-                  });
+                auth().signOut();
+                AsyncStorage.setItem(storage.userSignedIn, 'false');
               }}
             >
               <Text

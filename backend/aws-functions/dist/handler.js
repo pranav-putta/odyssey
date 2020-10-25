@@ -25,7 +25,7 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 var __importStar = (this && this.__importStar) || function (mod) {
     if (mod && mod.__esModule) return mod;
     var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
     __setModuleDefault(result, mod);
     return result;
 };
@@ -120,6 +120,7 @@ exports.user_exists = function (event) {
             switch (_a.label) {
                 case 0:
                     data = event["queryStringParameters"];
+                    console.log("what the fuck");
                     if (!(data && data.uid && typeof data.uid === "string")) return [3 /*break*/, 2];
                     // set up dynamodb client
                     aws.config.update(aws_config_1.default.aws_remote_config);
@@ -134,6 +135,8 @@ exports.user_exists = function (event) {
                     return [4 /*yield*/, client.query(params).promise()];
                 case 1:
                     query = _a.sent();
+                    console.log("uid " + data.uid);
+                    console.log(query.$response);
                     if (((!query.$response.error && query.Count) || 0) > 0) {
                         return [2 /*return*/, createSuccess({ result: true })];
                     }
@@ -226,7 +229,7 @@ var get_reps = function (address) { return __awaiter(void 0, void 0, void 0, fun
      */
     function findReps(address) {
         var params = {
-            key: "AIzaSyBjX1sd05v_36BG6gmnhUqe3PsSrAnXHlw",
+            key: "AIzaSyD2Z2NUt7iCykcEIeRHS77jI2zSIPn0b6g",
             address: address,
             includeOffices: true,
             levels: "administrativeArea1",

@@ -580,7 +580,7 @@ export default class VoteScreen extends React.Component<Props, State> {
       <TouchableOpacity
         style={styles.closeButton}
         onPress={() => {
-          this.props.navigation.goBack();
+          this.props.navigation.pop();
         }}
       >
         <Icon size={26} name="arrow-left" type="feather" color="black" />
