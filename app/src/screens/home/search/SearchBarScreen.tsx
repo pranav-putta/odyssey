@@ -117,7 +117,7 @@ class SearchBarScreen extends React.Component<Props, State> {
                 contentContainerStyle={{ paddingLeft: '0%' }}
                 style={styles.categoryList}
                 keyExtractor={(item) => item.name}
-                data={Global.getTopicsAsArray()}
+                data={Global.getTopicsAsArray().filter((val) => val.display)}
                 renderItem={(data) => {
                   return <CategoryCard category={data.item} />;
                 }}

@@ -19,7 +19,7 @@ import {
 } from '../../../models';
 import { Bill } from '../../../models/Bill';
 import { likedBills, randomBills, refresh } from '../../../util';
-import BillCard, { BillCardSpecs } from './components/BillCard';
+import BillCard, { BillCardSpecs } from './BillCard';
 import FastImage from 'react-native-fast-image';
 // @ts-ignore
 import TouchableScale from 'react-native-touchable-scale';
@@ -27,6 +27,8 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { BillScreenStackParamList } from './BillTab';
 import { Category } from '../../../models/Category';
 import ProgressHUD from '../../../components/ProgressHUD';
+import { Measure } from './BillDetailsStack';
+import { SharedElement } from 'react-navigation-shared-element';
 
 const width = Dimensions.get('screen').width;
 const height = Dimensions.get('screen').height;
@@ -58,11 +60,23 @@ enum BillTabKey {
 const BillCarousel = (props: {
   bills: Bill[];
   categories: any;
-  onPress: (item: { bill: Bill; category: Category }) => void;
+  onPress: (
+    item: { bill: Bill; category: Category },
+    image: Measure,
+    container: Measure,
+    content: Measure
+  ) => void;
   focused: boolean;
   carouselRef: React.RefObject<Carousel<Bill>>;
 }) => {
   const scrollX = React.useRef(new Animated.Value(0)).current;
+  const measure = async (obj: React.RefObject<View>) => {
+    return new Promise<Measure>((resolve, reject) => {
+      obj.current?.measure((x, y, w, h, px, py) => [
+        resolve({ x: x, y: y, width: w, height: h, pageX: px, pageY: py }),
+      ]);
+    });
+  };
   return (
     <Carousel
       ref={props.carouselRef}
@@ -80,8 +94,17 @@ const BillCarousel = (props: {
             bill={item.item}
             scrollX={scrollX}
             category={category}
-            onPress={() => {
-              props.onPress({ bill: item.item, category: category });
+            onPress={async (image, container, content) => {
+              const imageDims = await measure(container);
+              const containerDims = await measure(container);
+              const contentDims = await measure(content);
+              console.log(imageDims);
+              props.onPress(
+                { bill: item.item, category: category },
+                imageDims,
+                containerDims,
+                contentDims
+              );
             }}
           />
         );
@@ -210,8 +233,14 @@ export default class BillDiscoverScreen extends React.Component<Props, State> {
           carouselRef={this.carousel}
           bills={this.state.bills}
           categories={this.state.categories}
-          onPress={(item) => {
-            this.props.navigation.push('Details', item);
+          onPress={(item, image, container, content) => {
+            this.props.navigation.push('Details', {
+              bill: item.bill,
+              category: item.category,
+              imageDims: image,
+              textCardDims: container,
+              cardDims: content,
+            });
           }}
           focused={this.state.focused}
         />
@@ -222,8 +251,14 @@ export default class BillDiscoverScreen extends React.Component<Props, State> {
           carouselRef={this.carousel}
           bills={this.state.likedBills}
           categories={this.state.categories}
-          onPress={(item) => {
-            this.props.navigation.push('Details', item);
+          onPress={(item, image, container, content) => {
+            this.props.navigation.push('Details', {
+              bill: item.bill,
+              category: item.category,
+              imageDims: image,
+              textCardDims: container,
+              cardDims: content,
+            });
           }}
           focused={this.state.focused}
         />
@@ -250,12 +285,14 @@ export default class BillDiscoverScreen extends React.Component<Props, State> {
           }}
         >
           <View style={{ flexDirection: 'row' }}>
-            <FastImage
-              style={styles.repcardImage}
-              source={{
-                uri: props.picture_url,
-              }}
-            />
+            <SharedElement id={`rep.${props.member_url}.photo`}>
+              <FastImage
+                style={styles.repcardImage}
+                source={{
+                  uri: props.picture_url,
+                }}
+              />
+            </SharedElement>
             <View
               style={{
                 justifyContent: 'space-between',

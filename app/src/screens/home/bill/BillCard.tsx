@@ -1,9 +1,16 @@
 import React from 'react';
-import { View, Text, StyleSheet, Dimensions, Animated } from 'react-native';
-import { colors } from '../../../../assets';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Dimensions,
+  Animated,
+  Share,
+} from 'react-native';
+import { colors } from '../../../assets';
 import FastImage from 'react-native-fast-image';
-import { Bill, formatBillNumber } from '../../../../models/Bill';
-import { Category } from '../../../../models/Category';
+import { Bill, formatBillNumber } from '../../../models/Bill';
+import { Category } from '../../../models/Category';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { SharedElement } from 'react-navigation-shared-element';
 
@@ -14,7 +21,11 @@ type Props = {
   category: Category;
   index: number;
   scrollX: any;
-  onPress: () => void;
+  onPress: (
+    imageRef: React.RefObject<View>,
+    containerRef: React.RefObject<any>,
+    contentRef: React.RefObject<any>
+  ) => void;
 };
 
 const screenWidth = Dimensions.get('screen').width;
@@ -32,6 +43,10 @@ const AnimatedTouchableOpacity = Animated.createAnimatedComponent(
 );
 
 export default class BillCard extends React.PureComponent<Props, State> {
+  private imageRef = React.createRef<View>();
+  private containerRef = React.createRef<any>();
+  private contentRef = React.createRef<any>();
+
   render() {
     const { bill, category, index, scrollX, onPress } = this.props;
     const { width, spacing } = BillCardSpecs;
@@ -51,70 +66,76 @@ export default class BillCard extends React.PureComponent<Props, State> {
       outputRange: [0, 0.5, 0],
     });
     return (
-      <AnimatedTouchableOpacity
+      <Animated.View
         style={[
           styles.container,
           {
             backgroundColor: category.bgColor,
           },
         ]}
-        onPress={onPress}
-        activeOpacity={1}
+        ref={this.containerRef}
       >
-        <SharedElement
-          id={`bill.${this.props.bill.number}.photo`}
-          style={styles.imageContainer}
-        >
-          <FastImage style={styles.image} source={{ uri: category.image }} />
-        </SharedElement>
-        <Animated.View
-          style={[
-            styles.content,
-            {
-              shadowOpacity: contentShadowOpacity,
-              transform: [
-                { translateX: translateX },
-                //  { rotateY: rotateY },
-              ],
-            },
-          ]}
+        <TouchableOpacity
+          onPress={() =>
+            onPress(this.imageRef, this.containerRef, this.contentRef)
+          }
+          activeOpacity={1}
+          style={{ width: '100%', height: '100%' }}
         >
           <SharedElement
-            id={`bill.${this.props.bill.number}`}
-            style={{ flex: 1 }}
+            id={`bill.${bill.number}.photo`}
+            style={styles.imageContainer}
           >
-            <View style={styles.categoriesContainer}>
-              <Text style={styles.number}>{formatBillNumber(bill)}</Text>
+            <FastImage style={styles.image} source={{ uri: category.image }} />
+          </SharedElement>
+          <Animated.View
+            ref={this.contentRef}
+            style={[
+              styles.content,
+              {
+                shadowOpacity: contentShadowOpacity,
+                transform: [
+                  { translateX: translateX },
+                  //  { rotateY: rotateY },
+                ],
+              },
+            ]}
+          >
+            <View style={{ flex: 1 }}>
+              <View style={styles.categoriesContainer}>
+                <Text style={styles.number}>{formatBillNumber(bill)}</Text>
 
-              <View
-                style={[
-                  styles.category,
-                  { backgroundColor: category.categoryColor },
-                ]}
-              >
-                <Text
+                <SharedElement
+                  id={`bill.${bill.number}.category`}
                   style={[
-                    styles.categoryText,
-                    { color: category.categoryTextColor },
+                    styles.category,
+                    { backgroundColor: category.categoryColor },
                   ]}
                 >
-                  {bill.category}
-                </Text>
+                  <Text
+                    style={[
+                      styles.categoryText,
+                      { color: category.categoryTextColor },
+                    ]}
+                  >
+                    {bill.category}
+                  </Text>
+                </SharedElement>
               </View>
+              <Text
+                style={styles.title}
+                numberOfLines={2}
+                adjustsFontSizeToFit={true}
+              >
+                {bill.title}
+              </Text>
+              <Text ellipsizeMode="tail" style={styles.synopsis}>
+                {bill.short_summary}
+              </Text>
             </View>
-            <Text
-              style={styles.title}
-              numberOfLines={2}
-              adjustsFontSizeToFit={true}
-            >
-              {bill.title}
-            </Text>
-            <Text ellipsizeMode="tail" style={styles.synopsis}>
-              {bill.short_summary}
-            </Text>
-          </SharedElement>
-        </Animated.View>
-      </AnimatedTouchableOpacity>
+          </Animated.View>
+        </TouchableOpacity>
+      </Animated.View>
     );
   }
 }
@@ -149,6 +170,8 @@ const styles = StyleSheet.create({
     height: '100%',
     resizeMode: 'cover',
     flex: 1,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
   },
   content: {
     margin: '5%',

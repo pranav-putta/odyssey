@@ -1,13 +1,18 @@
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { RouteProp } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import {
+  StackNavigationProp,
+  createStackNavigator,
+} from '@react-navigation/stack';
 import React from 'react';
 import { Representative } from '../../../models';
 import { Bill } from '../../../models/Bill';
 import { Category } from '../../../models/Category';
-import BillDetailStack from './BillDetailsStack';
+import BillDetailStack, { Measure } from './BillDetailsStack';
 import BillDiscoverScreen from './BillDiscoverScreen';
 import RepScreen from './RepScreen';
+import { createFluidNavigator } from 'react-navigation-fluid-transitions';
+import { Animated } from 'react-native';
 import { createSharedElementStackNavigator } from 'react-navigation-shared-element';
 
 interface Props {
@@ -25,6 +30,9 @@ export type BillScreenStackParamList = {
   Details: {
     bill: Bill;
     category: Category;
+    imageDims: Measure;
+    textCardDims: Measure;
+    cardDims: Measure;
   };
 };
 
@@ -78,18 +86,24 @@ export default class BillTab extends React.Component<Props, State> {
         />
         <Stack.Screen
           options={{
-            cardStyleInterpolator: ({ current }) => ({
-              cardStyle: {
-                opacity: current.progress,
-              },
-            }),
+            transitionSpec: {
+              close: { animation: 'timing', config: { duration: 200 } },
+              open: { animation: 'timing', config: { duration: 200 } },
+            },
+            cardStyleInterpolator: ({ current }) => {
+              return {
+                cardStyle: {
+                  opacity: current.progress,
+                },
+              };
+            },
           }}
           name="Details"
-          component={BillDetailStack}
           sharedElements={(route, other) => {
             const { bill } = route.params;
             return [{ id: `bill.${bill.number}.photo` }];
           }}
+          component={BillDetailStack}
           listeners={{
             focus: () => {
               this.props.toggleTabs(false);
@@ -99,6 +113,10 @@ export default class BillTab extends React.Component<Props, State> {
         <Stack.Screen
           name="Rep"
           component={RepScreen}
+          sharedElements={(route) => {
+            const { rep } = route.params;
+            return [{ id: `rep.${rep.member_url}.photo`, align: 'left-top' }];
+          }}
           listeners={{
             focus: () => {
               this.props.toggleTabs(false);

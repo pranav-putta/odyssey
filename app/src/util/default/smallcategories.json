@@ -3,108 +3,126 @@
     "name": "Energy",
     "color": "#fff59d",
     "textColor": "black",
-    "image": "https://www.iconfinder.com/data/icons/bitsies/128/Lightbulb-512.png"
+    "image": "https://www.iconfinder.com/data/icons/bitsies/128/Lightbulb-512.png",
+    "display": true
   },
   "Justice": {
     "name": "Justice",
     "color": "#40c4ff",
     "textColor": "white",
-    "image": "https://cdn4.iconfinder.com/data/icons/success-filloutline/64/law-scale-justice-judge-balance-512.png"
+    "image": "https://cdn4.iconfinder.com/data/icons/success-filloutline/64/law-scale-justice-judge-balance-512.png",
+    "display": true
   },
   "Economy": {
     "name": "Economy",
     "color": "#1de9b6",
     "textColor": "white",
-    "image": "https://cdn2.iconfinder.com/data/icons/business-and-economy/256/business_economic_finance_interprise_company_graph-512.png"
+    "image": "https://cdn2.iconfinder.com/data/icons/business-and-economy/256/business_economic_finance_interprise_company_graph-512.png",
+    "display": true
   },
   "K-12": {
     "name": "K-12",
     "color": "#ce93d8",
     "textColor": "white",
-    "image": "https://cdn3.iconfinder.com/data/icons/education-and-school-8/48/School-512.png"
+    "image": "https://cdn3.iconfinder.com/data/icons/education-and-school-8/48/School-512.png",
+    "display": true
   },
   "College": {
     "name": "College",
     "color": "#ff8a80",
     "textColor": "white",
-    "image": "https://cdn3.iconfinder.com/data/icons/higher-education-icon-set/256/diploma.png"
+    "image": "https://cdn3.iconfinder.com/data/icons/higher-education-icon-set/256/diploma.png",
+    "display": true
   },
   "Healthcare": {
     "name": "Healthcare",
     "color": "#ffb74d",
     "textColor": "white",
-    "image": "https://cdn4.iconfinder.com/data/icons/coronavirus-color/64/hospital-building-nursing-healthcare-medical-512.png"
+    "image": "https://cdn4.iconfinder.com/data/icons/coronavirus-color/64/hospital-building-nursing-healthcare-medical-512.png",
+    "display": true
   },
   "Agriculture": {
     "name": "Agriculture",
     "color": "#00e676",
     "textColor": "white",
-    "image": "https://www.iconfinder.com/data/icons/avatars-xmas-giveaway/128/avocado_scream_avatar_food-512.png"
+    "image": "https://www.iconfinder.com/data/icons/avatars-xmas-giveaway/128/avocado_scream_avatar_food-512.png",
+    "display": true
   },
   "Infrastructure": {
     "name": "Infrastructure",
     "color": "#a1887f",
     "textColor": "white",
-    "image": "https://cdn0.iconfinder.com/data/icons/city-elements-flaticon/64/river-bridge-architecture_and_city-architectonic-engineering-buildings-landscape-512.png"
+    "image": "https://cdn0.iconfinder.com/data/icons/city-elements-flaticon/64/river-bridge-architecture_and_city-architectonic-engineering-buildings-landscape-512.png",
+    "display": true
   },
   "Internal": {
     "name": "Internal",
     "color": "#f44336",
     "textColor": "white",
-    "image": "https://cdn0.iconfinder.com/data/icons/city-elements-flaticon/64/government-Government_buildings-embassy-building-country-architecture_and_city-buildings-512.png"
+    "image": "https://cdn0.iconfinder.com/data/icons/city-elements-flaticon/64/government-Government_buildings-embassy-building-country-architecture_and_city-buildings-512.png",
+    "display": true
   },
   "Labor": {
     "name": "Commerce",
     "color": "#ffeb3b",
     "textColor": "black",
-    "image": "https://cdn0.iconfinder.com/data/icons/city-elements-filledoutline-1/64/cafe-food_and_restaurant-commerce_and_shopping-architecture_and_city-coffee_shop-store-buildings-512.png"
+    "image": "https://cdn0.iconfinder.com/data/icons/city-elements-filledoutline-1/64/cafe-food_and_restaurant-commerce_and_shopping-architecture_and_city-coffee_shop-store-buildings-512.png",
+    "display": true
   },
   "Government": {
     "name": "Government",
     "color": "#4fc3f7",
     "textColor": "white",
-    "image": "https://cdn2.iconfinder.com/data/icons/us-election-2020/60/057-political-supporters-512.png"
+    "image": "https://cdn2.iconfinder.com/data/icons/us-election-2020/60/057-political-supporters-512.png",
+    "display": true
   },
   "Taxes": {
     "name": "Taxes",
     "color": "#4e575c",
     "textColor": "white",
-    "image": "https://cdn3.iconfinder.com/data/icons/fintech-icon/128/13_Tax-512.png"
+    "image": "https://cdn3.iconfinder.com/data/icons/fintech-icon/128/13_Tax-512.png",
+    "display": true
   },
   "Tech": {
     "name": "Tech",
     "color": "#ba68c8",
     "textColor": "white",
-    "image": "https://cdn2.iconfinder.com/data/icons/artificial-intelligence-6/64/ArtificialIntelligence12-512.png"
+    "image": "https://cdn2.iconfinder.com/data/icons/artificial-intelligence-6/64/ArtificialIntelligence12-512.png",
+    "display": true
   },
   "Utility": {
     "name": "Utility",
     "color": "#1e88e5",
     "textColor": "white",
-    "image": "https://cdn0.iconfinder.com/data/icons/city-elements-filledoutline-1/64/restroom-public_toilet-toilet-portable_toilet-portable-van-public-bathroom-architecture_and_city-512.png"
+    "image": "https://cdn0.iconfinder.com/data/icons/city-elements-filledoutline-1/64/restroom-public_toilet-toilet-portable_toilet-portable-van-public-bathroom-architecture_and_city-512.png",
+    "display": true
   },
   "Pensions": {
     "name": "Pensions",
     "color": "#00e676",
     "textColor": "white",
-    "image": "https://cdn1.iconfinder.com/data/icons/business-456/500/growing-512.png"
+    "image": "https://cdn1.iconfinder.com/data/icons/business-456/500/growing-512.png",
+    "display": true
   },
   "VA": {
     "name": "VA",
     "color": "#fbc02d",
     "textColor": "black",
-    "image": "https://cdn3.iconfinder.com/data/icons/avatar-55/64/Soldier-avatar-occupation-profession-man-human-512.png"
+    "image": "https://cdn3.iconfinder.com/data/icons/avatar-55/64/Soldier-avatar-occupation-profession-man-human-512.png",
+    "display": true
   },
   "DNE": {
     "name": "DNE",
     "color": "#fbc02d",
     "textColor": "black",
-    "image": "https://cdn3.iconfinder.com/data/icons/avatar-55/64/Soldier-avatar-occupation-profession-man-human-512.png"
+    "image": "https://cdn3.iconfinder.com/data/icons/avatar-55/64/Soldier-avatar-occupation-profession-man-human-512.png",
+    "display": false
   },
   "Other": {
     "name": "Other",
     "color": "#fbc02d",
     "textColor": "black",
-    "image": "https://cdn3.iconfinder.com/data/icons/avatar-55/64/Soldier-avatar-occupation-profession-man-human-512.png"
+    "image": "https://cdn3.iconfinder.com/data/icons/avatar-55/64/Soldier-avatar-occupation-profession-man-human-512.png",
+    "display": false
   }
 }

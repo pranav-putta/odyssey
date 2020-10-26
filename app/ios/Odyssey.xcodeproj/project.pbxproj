@@ -34,6 +34,7 @@
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		82E74CF0634843179C08B3D6 /* futura medium condensed bt.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8FCDE92F507A402BB79D5667 /* futura medium condensed bt.ttf */; };
 		932E988D25453C1A007D8188 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 932E988C25453C1A007D8188 /* GoogleService-Info.plist */; };
+		934CFAFE2546782400E988B7 /* LaunchScreenViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 934CFAFD2546782400E988B7 /* LaunchScreenViewController.swift */; };
 		9B56EEE3ED76406BA4CE72FF /* Futura Heavy Italic font.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1CEE91C012C640B2B1508D6C /* Futura Heavy Italic font.ttf */; };
 		AA3AC34C625ECDC3B480587A /* libPods-Odyssey-OdysseyTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F32C5B770DF29FF4A8C8B330 /* libPods-Odyssey-OdysseyTests.a */; };
 		B8B5491A94944D3F8ECF39FA /* Futura Bold font.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D773AC90CE954465940C316F /* Futura Bold font.ttf */; };
@@ -124,6 +125,8 @@
 		868DB5D1D6484FA1A1E495D8 /* Roboto-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Roboto-Bold.ttf"; path = "../src/assets/fonts/Roboto-Bold.ttf"; sourceTree = "<group>"; };
 		8FCDE92F507A402BB79D5667 /* futura medium condensed bt.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "futura medium condensed bt.ttf"; path = "../src/assets/fonts/futura medium condensed bt.ttf"; sourceTree = "<group>"; };
 		932E988C25453C1A007D8188 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		934CFAFC2546782300E988B7 /* Odyssey-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Odyssey-Bridging-Header.h"; sourceTree = "<group>"; };
+		934CFAFD2546782400E988B7 /* LaunchScreenViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchScreenViewController.swift; sourceTree = "<group>"; };
 		968FD1B3F59E400AA396172E /* Octicons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Octicons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Octicons.ttf"; sourceTree = "<group>"; };
 		98522CA1A9409B73B8C9FEC2 /* libPods-Odyssey.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Odyssey.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A0838D437BAA4AE086BA34F1 /* Roboto-BoldItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Roboto-BoldItalic.ttf"; path = "../src/assets/fonts/Roboto-BoldItalic.ttf"; sourceTree = "<group>"; };
@@ -214,6 +217,8 @@
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				13B07FB71A68108700A75B9A /* main.m */,
+				934CFAFD2546782400E988B7 /* LaunchScreenViewController.swift */,
+				934CFAFC2546782300E988B7 /* Odyssey-Bridging-Header.h */,
 			);
 			name = app;
 			sourceTree = "<group>";
@@ -438,7 +443,7 @@
 					};
 					13B07F861A680F5B00A75B9A = {
 						DevelopmentTeam = X43M4DWAL6;
-						LastSwiftMigration = 1120;
+						LastSwiftMigration = 1200;
 					};
 					2D02E47A1E0B4A5D006451C7 = {
 						CreatedOnToolsVersion = 8.2.1;
@@ -817,6 +822,7 @@
 			files = (
 				13B07FBC1A68108700A75B9A /* AppDelegate.m in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
+				934CFAFE2546782400E988B7 /* LaunchScreenViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -857,6 +863,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = D5A8786D38A2FF617CDCBD11 /* Pods-Odyssey-OdysseyTests.debug.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -880,6 +887,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = C72C69C9ED0FBD6DE5B1F908 /* Pods-Odyssey-OdysseyTests.release.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				COPY_PHASE_STRIP = NO;
 				INFOPLIST_FILE = appTests/Info.plist;
@@ -915,6 +923,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = us.odysseyapp.odyssey;
 				PRODUCT_NAME = Odyssey;
+				SWIFT_OBJC_BRIDGING_HEADER = "Odyssey-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -940,6 +949,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = us.odysseyapp.odyssey;
 				PRODUCT_NAME = Odyssey;
+				SWIFT_OBJC_BRIDGING_HEADER = "Odyssey-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";

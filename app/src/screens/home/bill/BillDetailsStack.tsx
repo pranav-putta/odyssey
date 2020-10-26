@@ -19,10 +19,22 @@ interface Props {
 }
 interface State {}
 
+export interface Measure {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  pageX: number;
+  pageY: number;
+}
+
 export type BillDetailStackParams = {
   Info: {
     bill: Bill;
     category: Category;
+    imageDims: Measure;
+    textCardDims: Measure;
+    cardDims: Measure;
   };
   Vote: {
     bill: Bill;
@@ -87,7 +99,10 @@ export default class BillDetailStack extends React.Component<Props, State> {
       <Stack.Navigator headerMode="none" screenOptions={{}}>
         <Stack.Screen
           name="Info"
-          options={{ headerShown: false }}
+          options={{
+            headerShown: false,
+            cardStyle: { backgroundColor: 'transparent' },
+          }}
           initialParams={this.props.route.params}
           component={BillInfoScreen}
         />

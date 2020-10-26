@@ -3,4 +3,5 @@ export type Topic = {
   color: string;
   textColor: string;
   image: string;
+  display: boolean;
 };

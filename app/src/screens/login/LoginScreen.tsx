@@ -808,6 +808,7 @@ class LoginScreen extends React.Component<Props, State> {
       textColor: string;
       image: string;
       clicked?: boolean;
+      display: boolean;
     };
     return (
       <Animated.View style={styles.pageContainer}>
@@ -819,7 +820,7 @@ class LoginScreen extends React.Component<Props, State> {
         <GridList<Topic>
           n={2}
           style={{ marginBottom: '15%' }}
-          data={Global.getTopicsAsArray()}
+          data={Global.getTopicsAsArray().filter((val) => val.display)}
           item={(data: Topic): React.ReactElement => {
             let clicked = this.state.selectedTopics[data.name] || false;
             return (

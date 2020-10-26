@@ -3,108 +3,126 @@
     "bgColor": "#533628",
     "categoryColor": "#53362850",
     "categoryTextColor": "#533628",
-    "image": "https://static.vecteezy.com/system/resources/previews/000/092/976/original/vector-roosters-on-field.jpg"
+    "image": "https://static.vecteezy.com/system/resources/previews/000/092/976/original/vector-roosters-on-field.jpg",
+    "display": true
   },
   "Justice": {
     "bgColor": "#E48C1B",
     "categoryColor": "#E48C1B50",
     "categoryTextColor": "#E48C1B",
-    "image": "https://static.vecteezy.com/system/resources/previews/000/101/294/original/vector-lady-justice.jpg"
+    "image": "https://static.vecteezy.com/system/resources/previews/000/101/294/original/vector-lady-justice.jpg",
+    "display": true
   },
   "Economy": {
     "bgColor": "#03192E",
     "categoryColor": "#03192E50",
     "categoryTextColor": "#03192E",
-    "image": "https://static.vecteezy.com/system/resources/previews/000/172/083/original/the-investor-hand-vector.jpg"
+    "image": "https://static.vecteezy.com/system/resources/previews/000/172/083/original/the-investor-hand-vector.jpg",
+    "display": true
   },
   "K-12": {
     "bgColor": "#FFB762",
     "categoryColor": "#FFB76250",
     "categoryTextColor": "#FFB762",
-    "image": "https://static.vecteezy.com/system/resources/thumbnails/000/578/748/small_2x/group-study.png"
+    "image": "https://static.vecteezy.com/system/resources/thumbnails/000/578/748/small_2x/group-study.png",
+    "display": true
   },
   "College": {
     "bgColor": "#FFFAD0",
     "categoryColor": "#FFFAD050",
     "categoryTextColor": "#FFFAD0",
-    "image": "https://static.vecteezy.com/system/resources/previews/000/155/829/original/free-back-to-school-vector-elements.jpg"
+    "image": "https://static.vecteezy.com/system/resources/previews/000/155/829/original/free-back-to-school-vector-elements.jpg",
+    "display": true
   },
   "Energy": {
     "bgColor": "#FEFBD0",
     "categoryColor": "#FEFBD050",
     "categoryTextColor": "#FEFBD0",
-    "image": "https://static.vecteezy.com/system/resources/previews/000/173/767/original/free-natural-resources-vector.jpg"
+    "image": "https://static.vecteezy.com/system/resources/previews/000/173/767/original/free-natural-resources-vector.jpg",
+    "display": true
   },
   "Healthcare": {
     "bgColor": "#FAFAFA",
     "categoryColor": "#FAFAFA50",
     "categoryTextColor": "#FAFAFA",
-    "image": "https://image.freepik.com/free-vector/medical-workers-analyzing-electronic-record_1262-19834.jpg"
+    "image": "https://image.freepik.com/free-vector/medical-workers-analyzing-electronic-record_1262-19834.jpg",
+    "display": true
   },
   "Infrastructure": {
     "bgColor": "#49B6B3",
     "categoryColor": "#49B6B350",
     "categoryTextColor": "#49B6B3",
-    "image": "https://static.vecteezy.com/system/resources/previews/000/135/650/original/vector-high-speed-rail-tgv-city-train-lanscape-ilustration.jpg"
+    "image": "https://static.vecteezy.com/system/resources/previews/000/135/650/original/vector-high-speed-rail-tgv-city-train-lanscape-ilustration.jpg",
+    "display": true
   },
   "Internal": {
     "bgColor": "#A8862F",
     "categoryColor": "#A8862F50",
     "categoryTextColor": "#A8862F",
-    "image": "https://static.vecteezy.com/system/resources/previews/000/133/247/original/petra-vector.jpg"
+    "image": "https://static.vecteezy.com/system/resources/previews/000/133/247/original/petra-vector.jpg",
+    "display": true
   },
   "Labor": {
     "bgColor": "#FCB040",
     "categoryColor": "#FCB04050",
     "categoryTextColor": "#FCB040",
-    "image": "https://static.vecteezy.com/system/resources/previews/000/133/756/original/surveyor-silhouette-sunset-free-vector.jpg"
+    "image": "https://static.vecteezy.com/system/resources/previews/000/133/756/original/surveyor-silhouette-sunset-free-vector.jpg",
+    "display": true
   },
   "Pensions": {
     "bgColor": "#FEFEFD",
     "categoryColor": "#FEFEFD50",
     "categoryTextColor": "#FEFEFD",
-    "image": "https://static.vecteezy.com/system/resources/previews/000/542/271/original/vector-online-banking-illustration.jpg"
+    "image": "https://static.vecteezy.com/system/resources/previews/000/542/271/original/vector-online-banking-illustration.jpg",
+    "display": true
   },
   "Utility": {
     "bgColor": "#72768F",
     "categoryColor": "#72768F50",
     "categoryTextColor": "#72768F",
-    "image": "https://static.vecteezy.com/system/resources/previews/000/108/868/original/vector-electric-department-truck.jpg"
+    "image": "https://static.vecteezy.com/system/resources/previews/000/108/868/original/vector-electric-department-truck.jpg",
+    "display": true
   },
   "Government": {
     "bgColor": "#82DCFF",
     "categoryColor": "#82DCFF50",
     "categoryTextColor": "#82DCFF",
-    "image": "https://static.vecteezy.com/system/resources/previews/001/263/568/original/bank-building-on-the-urban-landscape-with-trees-vector.jpg"
+    "image": "https://static.vecteezy.com/system/resources/previews/001/263/568/original/bank-building-on-the-urban-landscape-with-trees-vector.jpg",
+    "display": true
   },
   "Taxes": {
     "bgColor": "#01AEF0",
     "categoryColor": "#01AEF050",
     "categoryTextColor": "#01AEF0",
-    "image": "https://static.vecteezy.com/system/resources/previews/000/162/454/original/payroll-illustration-vector.jpg"
+    "image": "https://static.vecteezy.com/system/resources/previews/000/162/454/original/payroll-illustration-vector.jpg",
+    "display": true
   },
   "Tech": {
     "bgColor": "#012869",
     "categoryColor": "#01286950",
     "categoryTextColor": "#012869",
-    "image": "https://static.vecteezy.com/system/resources/previews/000/695/849/original/datacenter-server-room-cloud-storage-technology-concept-vector.jpg"
+    "image": "https://static.vecteezy.com/system/resources/previews/000/695/849/original/datacenter-server-room-cloud-storage-technology-concept-vector.jpg",
+    "display": true
   },
   "VA": {
     "bgColor": "#112D77",
     "categoryColor": "#112D7750",
     "categoryTextColor": "#112D77",
-    "image": "https://static.vecteezy.com/system/resources/previews/000/256/482/original/veteran-s-day-concept-soldier-illustration-flat-vector-background.jpg"
+    "image": "https://static.vecteezy.com/system/resources/previews/000/256/482/original/veteran-s-day-concept-soldier-illustration-flat-vector-background.jpg",
+    "display": true
   },
   "Other": {
     "bgColor": "#5A2222",
     "categoryColor": "#5A222250",
     "categoryTextColor": "#5A2222",
-    "image": "https://static.vecteezy.com/system/resources/previews/000/130/378/original/lady-justice-vector-illustration-in-wood-carving-design-style.jpg"
+    "image": "https://static.vecteezy.com/system/resources/previews/000/130/378/original/lady-justice-vector-illustration-in-wood-carving-design-style.jpg",
+    "display": false
   },
   "DNE": {
     "bgColor": "#ffab40",
     "categoryColor": "#ffab4050",
     "categoryTextColor": "#ffab40",
-    "image": "https://i.imgur.com/BZJkdTj.jpg"
+    "image": "https://i.imgur.com/BZJkdTj.jpg",
+    "display": false
   }
 }

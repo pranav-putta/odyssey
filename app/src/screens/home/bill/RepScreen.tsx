@@ -12,6 +12,7 @@ import { Icon } from 'react-native-elements';
 import FastImage from 'react-native-fast-image';
 import { FlatList, TextInput } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { SharedElement } from 'react-navigation-shared-element';
 import { colors } from '../../../assets';
 import {
   RepresentativeScreenProps,
@@ -35,11 +36,16 @@ export default class RepScreen extends React.Component<Props, State> {
     const { rep } = this.props.route.params;
     let chamber = replaceAt(0, rep.chamber[0].toUpperCase(), rep.chamber);
     return (
-      <SafeAreaView style={styles.card}>
+      <View style={styles.card}>
         <View style={styles.container}>
           {this.closeButton()}
           <View style={styles.header}>
-            <FastImage style={styles.image} source={{ uri: rep.picture_url }} />
+            <SharedElement id={`rep.${rep.member_url}.photo`}>
+              <FastImage
+                style={styles.image}
+                source={{ uri: rep.picture_url }}
+              />
+            </SharedElement>
             <View style={styles.titleContainer}>
               <Text style={styles.chamber}>
                 {chamber} District {rep.district}
@@ -116,7 +122,7 @@ export default class RepScreen extends React.Component<Props, State> {
             />
           </View>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
@@ -142,6 +148,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
+    marginTop: '10%',
     marginHorizontal: '10%',
   },
   closeButton: {
