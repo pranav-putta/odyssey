@@ -1,10 +1,11 @@
 import React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Topic } from '../../../models/Topic';
-import FastImage from 'react-native-fast-image'
+import FastImage from 'react-native-fast-image';
 
 type Props = {
   category: Topic;
+  onPress: () => void;
 };
 
 type State = {};
@@ -35,7 +36,7 @@ export default class CategoryCard extends React.PureComponent<Props, State> {
             alignItems: 'center',
             borderColor: 'grey',
           }}
-          onPress={() => {}}
+          onPress={this.props.onPress}
         >
           <FastImage
             style={{ height: 50, width: 50, marginBottom: 5 }}

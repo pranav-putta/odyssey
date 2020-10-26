@@ -14,22 +14,27 @@ type State = {};
 
 export default class SearchBillCard extends React.PureComponent<Props, State> {
   render() {
-    const topic = Global.getCategories()[this.props.bill.category];
+    const topic = Global.getTopics()[this.props.bill.category];
     return (
       <Animatable.View animation="fadeIn" style={styles.container}>
         <TouchableOpacity
           style={styles.innerContainer}
           onPress={this.props.onPress}
         >
-          <View style={[styles.imageContainer]}>
+          <View
+            style={[
+              styles.imageContainer,
+              { backgroundColor: topic.color, padding: 10 },
+            ]}
+          >
             <FastImage style={styles.image} source={{ uri: topic.image }} />
           </View>
-          <View style={{ marginLeft: '5%' }}>
+          <View style={{ marginLeft: '5%', width: '100%' }}>
             <Text style={{ fontWeight: '700', fontFamily: 'Futura' }}>
               {this.props.bill.title}
             </Text>
             <Text ellipsizeMode={'tail'} numberOfLines={2}>
-              {this.props.bill.short_summary}
+              {this.props.bill.short_summary.trim()}
             </Text>
           </View>
         </TouchableOpacity>
@@ -46,11 +51,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: '10%',
     paddingVertical: '2%',
+    left: 0,
   },
   innerContainer: {
     flex: 1,
     marginHorizontal: '5%',
     flexDirection: 'row',
+    left: 0,
   },
   imageContainer: {
     width: 60,

@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Dimensions,
   Animated,
+  Linking,
 } from 'react-native';
 import Carousel from 'react-native-snap-carousel';
 import { Icon } from 'react-native-elements';
@@ -29,6 +30,7 @@ import { Category } from '../../../models/Category';
 import ProgressHUD from '../../../components/ProgressHUD';
 import { Measure } from './BillDetailsStack';
 import { SharedElement } from 'react-navigation-shared-element';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 
 const width = Dimensions.get('screen').width;
 const height = Dimensions.get('screen').height;
@@ -359,7 +361,29 @@ export default class BillDiscoverScreen extends React.Component<Props, State> {
             />
           }
         >
-          <Text style={styles.discover}>Discover</Text>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginHorizontal: '10%',
+            }}
+          >
+            <Text style={styles.discover}>Discover</Text>
+            <TouchableOpacity
+              onPress={() => {
+                Linking.canOpenURL(
+                  'https://www.odysseyapp.us/about-us.html'
+                ).then((val) => {
+                  if (val) {
+                    Linking.openURL('https://www.odysseyapp.us/about-us.html');
+                  }
+                });
+              }}
+            >
+              <Icon name="info" type="feather" />
+            </TouchableOpacity>
+          </View>
           <View
             style={{
               marginTop: '2%',
@@ -455,7 +479,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     textAlign: 'left',
     marginTop: '0%',
-    marginLeft: '10%',
   },
   discoverCaption: {
     marginTop: '3%',

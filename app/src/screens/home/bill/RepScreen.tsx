@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  Alert,
   Linking,
   Platform,
   ScrollView,
@@ -77,47 +78,69 @@ export default class RepScreen extends React.Component<Props, State> {
               keyExtractor={(item) => item.address}
               data={rep.contacts}
               renderItem={({ item, index }) => (
-                <TouchableOpacity style={styles.contactItemContainer}>
-                  <TouchableOpacity
-                    onPress={() => {
-                      let address = item.address.replace(' ', '+');
-                      Linking.canOpenURL(`maps://?addr=${address}`).then(
-                        (val) => {
-                          console.log(val);
-                          if (val) {
-                            Linking.openURL(
-                              `http://maps.apple.com/maps?daddr=${address}`
-                            );
+                <View style={styles.contactItemContainer}>
+                  {item.address ? (
+                    <TouchableOpacity
+                      onPress={() => {
+                        let address = item.address.replace(' ', '+');
+                        Linking.canOpenURL(`maps://?addr=${address}`).then(
+                          (val) => {
+                            console.log(val);
+                            if (val) {
+                              Linking.openURL(
+                                `http://maps.apple.com/maps?daddr=${address}`
+                              );
+                            }
                           }
-                        }
-                      );
-                    }}
-                  >
-                    <Text
-                      numberOfLines={2}
-                      adjustsFontSizeToFit={true}
-                      style={styles.address}
+                        );
+                      }}
                     >
-                      {item.address}
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={{ marginTop: '2.5%' }}
-                    onPress={() => {
-                      try {
-                        let number = item.phoneNumber.replace(/\D/g, '');
-                        Linking.canOpenURL(`tel:${number}`).then((val) => {
-                          console.log(val);
-                          if (val) {
-                            Linking.openURL(`tel:${number}`);
-                          }
-                        });
-                      } catch (err) {}
-                    }}
-                  >
-                    <Text style={styles.phoneNumber}>{item.phoneNumber}</Text>
-                  </TouchableOpacity>
-                </TouchableOpacity>
+                      <Text
+                        numberOfLines={2}
+                        adjustsFontSizeToFit={true}
+                        style={styles.address}
+                      >
+                        {item.address}
+                      </Text>
+                    </TouchableOpacity>
+                  ) : undefined}
+                  {item.phoneNumber && (
+                    <TouchableOpacity
+                      style={{ marginTop: '2.5%' }}
+                      onPress={() => {
+                        try {
+                          let number = item.phoneNumber.replace(/\D/g, '');
+                          Linking.canOpenURL(`tel:${number}`).then((val) => {
+                            console.log(val);
+                            if (val) {
+                              Linking.openURL(`tel:${number}`);
+                            }
+                          });
+                        } catch (err) {}
+                      }}
+                    >
+                      <Text style={styles.phoneNumber}>{item.phoneNumber}</Text>
+                    </TouchableOpacity>
+                  )}
+                  {item.email && (
+                    <TouchableOpacity
+                      style={{ marginTop: '2.5%' }}
+                      onPress={() => {
+                        try {
+                          Linking.canOpenURL(`mailto:${item.email}`).then(
+                            (val) => {
+                              if (val) {
+                                Linking.openURL(`mailto:${item.email}`);
+                              } 
+                            }
+                          );
+                        } catch (err) {}
+                      }}
+                    >
+                      <Text style={styles.phoneNumber}>{item.email}</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
               )}
             />
           </View>

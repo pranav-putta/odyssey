@@ -108,6 +108,27 @@ functions:
           path: delete-comment
           method: post
           cors: true
+  updateProfile:
+    handler: dist/handler.update_profile
+    events:
+      - http:
+          path: update-profile
+          method: post
+          cors: true
+  deleteUser:
+    handler: dist/handler.delete_user
+    events:
+      - http:
+          path: delete-user
+          method: post
+          cors: true
+  emailRep:
+    handler: dist/handler.email_rep
+    events:
+      - http:
+          path: email-rep
+          method: post
+          cors: true
 
 plugins:
   - serverless-offline

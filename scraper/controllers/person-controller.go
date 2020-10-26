@@ -6,7 +6,10 @@ package controllers
 // @author: Pranav Putta
 // @date: 07/03/2020
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -19,6 +22,37 @@ import (
 )
 
 var people []models.Person
+var _emailJson map[string]string
+
+// getEmailsJson converts the human readable map and inverses key
+// 					 value pairs for the map to be legible by the computer
+func getEmailsJson() map[string]string {
+	if len(_emailJson) == 0 {
+		// load json file into an empty map
+		jsonFile, err := os.Open("emails.json")
+		if err != nil {
+			fmt.Println(err)
+		}
+		byteValue, _ := ioutil.ReadAll(jsonFile)
+		var data map[string]interface{}
+		err = json.Unmarshal(byteValue, &data)
+		if err != nil {
+			fmt.Println(err)
+		}
+		err = jsonFile.Close()
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		// initialize map
+		_emailJson = make(map[string]string)
+		// loop through each key in map
+		for k, v := range data {
+			_emailJson[k] = v.(map[string]interface{})["email"].(string)
+		}
+	}
+	return _emailJson
+}
 
 // PersonCallback is a callback function that passes the collected Person struct
 type PersonCallback func(models.Person, error)
@@ -141,6 +175,8 @@ func collectPersonDetails(e *colly.HTMLElement, callback PersonCallback) {
 			return true
 
 		})
+		// check emails
+
 		// populate contacts array
 		contacts = append(contacts, models.Contact{
 			Address:     address,
@@ -163,6 +199,9 @@ func collectPersonDetails(e *colly.HTMLElement, callback PersonCallback) {
 	if err != nil {
 		assembly = 101
 	}
+
+	// get email from json
+	contacts = append(contacts, models.Contact{Email: getEmailsJson()[strconv.Itoa(id)]})
 
 	// store into person model and send to callback
 	callback(models.Person{

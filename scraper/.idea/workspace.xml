@@ -20,61 +20,20 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="fa24d2c0-492c-4fa1-b7d6-ab13f4d87ac9" name="Default Changelist" comment="database updates done">
-      <change beforePath="$PROJECT_DIR$/../app/ios/Podfile.lock" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/Podfile.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/ios/Pods/Pods.xcodeproj/project.pbxproj" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/Pods/Pods.xcodeproj/project.pbxproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/ios/Pods/Pods.xcodeproj/xcuserdata/pranavputta.xcuserdatad/xcschemes/xcschememanagement.plist" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/Pods/Pods.xcodeproj/xcuserdata/pranavputta.xcuserdatad/xcschemes/xcschememanagement.plist" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app-appTests/Pods-app-appTests-acknowledgements.markdown" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app-appTests/Pods-app-appTests-acknowledgements.markdown" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app-appTests/Pods-app-appTests-acknowledgements.plist" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app-appTests/Pods-app-appTests-acknowledgements.plist" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app-appTests/Pods-app-appTests.debug.xcconfig" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app-appTests/Pods-app-appTests.debug.xcconfig" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app-appTests/Pods-app-appTests.release.xcconfig" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app-appTests/Pods-app-appTests.release.xcconfig" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app-tvOS/Pods-app-tvOS.debug.xcconfig" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app-tvOS/Pods-app-tvOS.debug.xcconfig" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app-tvOS/Pods-app-tvOS.release.xcconfig" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app-tvOS/Pods-app-tvOS.release.xcconfig" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app-tvOSTests/Pods-app-tvOSTests.debug.xcconfig" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app-tvOSTests/Pods-app-tvOSTests.debug.xcconfig" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app-tvOSTests/Pods-app-tvOSTests.release.xcconfig" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app-tvOSTests/Pods-app-tvOSTests.release.xcconfig" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app/Pods-app-acknowledgements.markdown" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app/Pods-app-acknowledgements.markdown" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app/Pods-app-acknowledgements.plist" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app/Pods-app-acknowledgements.plist" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app/Pods-app.debug.xcconfig" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app/Pods-app.debug.xcconfig" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app/Pods-app.release.xcconfig" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/Pods/Target Support Files/Pods-app/Pods-app.release.xcconfig" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/ios/app.xcodeproj/project.pbxproj" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/app.xcodeproj/project.pbxproj" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/emails.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../app/ios/app/Info.plist" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/app/Info.plist" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/node_modules/.bin/metro-symbolicate" beforeDir="false" afterPath="$PROJECT_DIR$/../app/node_modules/.bin/metro-symbolicate" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/node_modules/.bin/rimraf" beforeDir="false" afterPath="$PROJECT_DIR$/../app/node_modules/.bin/rimraf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/node_modules/.bin/semver" beforeDir="false" afterPath="$PROJECT_DIR$/../app/node_modules/.bin/semver" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/node_modules/.bin/uuid" beforeDir="false" afterPath="$PROJECT_DIR$/../app/node_modules/.bin/uuid" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/node_modules/@react-native-community/cli-tools/node_modules/.bin/mime" beforeDir="false" afterPath="$PROJECT_DIR$/../app/node_modules/@react-native-community/cli-tools/node_modules/.bin/mime" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/node_modules/@types/node/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/../app/node_modules/@types/node/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/node_modules/@types/node/console.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../app/node_modules/@types/node/console.d.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/node_modules/@types/node/events.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../app/node_modules/@types/node/events.d.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/node_modules/@types/node/globals.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../app/node_modules/@types/node/globals.d.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/node_modules/@types/node/http.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../app/node_modules/@types/node/http.d.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/node_modules/@types/node/process.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../app/node_modules/@types/node/process.d.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/node_modules/jest/node_modules/.bin/jest" beforeDir="false" afterPath="$PROJECT_DIR$/../app/node_modules/jest/node_modules/.bin/jest" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/node_modules/react-native/Libraries/Image/RCTUIImageViewAnimated.m" beforeDir="false" afterPath="$PROJECT_DIR$/../app/node_modules/react-native/Libraries/Image/RCTUIImageViewAnimated.m" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/node_modules/react-native/node_modules/.bin/react-native" beforeDir="false" afterPath="$PROJECT_DIR$/../app/node_modules/react-native/node_modules/.bin/react-native" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/package-lock.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../app/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/src/assets/colors.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/assets/colors.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/src/components/TabBar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/components/TabBar.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/src/models/Bill.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/models/Bill.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../app/src/models/Representative.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/models/Representative.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../app/src/models/User.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/models/User.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/src/screens/home/HomeScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/screens/home/HomeScreen.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../app/src/screens/home/bill/BillDiscoverScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/screens/home/bill/BillDiscoverScreen.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/src/screens/home/bill/BillInfoScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/screens/home/bill/BillInfoScreen.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/src/screens/home/bill/BillScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/screens/home/bill/BillScreen.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/src/screens/home/bill/BillVotingScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/screens/home/bill/BillVotingScreen.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/src/screens/home/bill/components/BillCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/screens/home/bill/components/BillCard.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/src/screens/home/bill/components/RepExpandedCard.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/src/screens/home/community/CommunityScreen.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/src/screens/launch/LaunchScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/screens/launch/LaunchScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/screens/home/profile/EditScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/screens/home/profile/EditScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/screens/home/profile/ProfileScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/screens/home/profile/ProfileScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/screens/home/search/CategoryCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/screens/home/search/CategoryCard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/screens/home/search/SearchBarScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/screens/home/search/SearchBarScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/screens/home/search/SearchBillCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/screens/home/search/SearchBillCard.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../app/src/screens/login/LoginScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/screens/login/LoginScreen.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/src/util/LocalStorage.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/util/LocalStorage.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../app/src/util/NetworkHandler.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/util/NetworkHandler.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../backend/aws-functions/dist/handler.js" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/aws-functions/dist/handler.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../backend/aws-functions/serverless.yml" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/aws-functions/serverless.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../backend/aws-functions/src/handler.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/aws-functions/src/handler.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../backend/aws-functions/src/test.js" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/aws-functions/src/test.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/controllers/person-controller.go" beforeDir="false" afterPath="$PROJECT_DIR$/controllers/person-controller.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/person-model.go" beforeDir="false" afterPath="$PROJECT_DIR$/models/person-model.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -182,9 +141,10 @@
       <screen x="0" y="23" width="1920" height="995" />
     </state>
     <state x="723" y="231" key="#xdebugger.evaluate/-1440.111.1440.877/0.23.1920.995@0.23.1920.995" timestamp="1602760440391" />
-    <state width="918" height="331" key="GridCell.Tab.0.bottom" timestamp="1602889772385">
-      <screen x="0" y="23" width="1440" height="827" />
+    <state width="1878" height="336" key="GridCell.Tab.0.bottom" timestamp="1603692624616">
+      <screen x="0" y="23" width="1920" height="1001" />
     </state>
+    <state width="1878" height="336" key="GridCell.Tab.0.bottom/-1440.111.1440.877/0.23.1920.1001@0.23.1920.1001" timestamp="1603692624616" />
     <state width="918" height="266" key="GridCell.Tab.0.bottom/-1440.111.1440.877/0.23.1920.986@0.23.1920.986" timestamp="1601979869553" />
     <state width="1878" height="330" key="GridCell.Tab.0.bottom/-1440.111.1440.877/0.23.1920.988@0.23.1920.988" timestamp="1602654333297" />
     <state width="918" height="264" key="GridCell.Tab.0.bottom/-1440.111.1440.877/0.23.1920.989@0.23.1920.989" timestamp="1602488060998" />
@@ -194,9 +154,10 @@
     <state width="918" height="265" key="GridCell.Tab.0.bottom/-1440.111.1440.877/0.23.1920.996@0.23.1920.996" timestamp="1602745509981" />
     <state width="918" height="331" key="GridCell.Tab.0.bottom/-1440.111.1440.877/0.23.1920.997@0.23.1920.997" timestamp="1602809816685" />
     <state width="918" height="331" key="GridCell.Tab.0.bottom/0.23.1440.827@0.23.1440.827" timestamp="1602889772385" />
-    <state width="918" height="331" key="GridCell.Tab.0.center" timestamp="1602889772383">
-      <screen x="0" y="23" width="1440" height="827" />
+    <state width="1878" height="336" key="GridCell.Tab.0.center" timestamp="1603692624616">
+      <screen x="0" y="23" width="1920" height="1001" />
     </state>
+    <state width="1878" height="336" key="GridCell.Tab.0.center/-1440.111.1440.877/0.23.1920.1001@0.23.1920.1001" timestamp="1603692624616" />
     <state width="918" height="266" key="GridCell.Tab.0.center/-1440.111.1440.877/0.23.1920.986@0.23.1920.986" timestamp="1601979869553" />
     <state width="1878" height="330" key="GridCell.Tab.0.center/-1440.111.1440.877/0.23.1920.988@0.23.1920.988" timestamp="1602654333295" />
     <state width="918" height="264" key="GridCell.Tab.0.center/-1440.111.1440.877/0.23.1920.989@0.23.1920.989" timestamp="1602488060997" />
@@ -206,9 +167,10 @@
     <state width="918" height="265" key="GridCell.Tab.0.center/-1440.111.1440.877/0.23.1920.996@0.23.1920.996" timestamp="1602745509980" />
     <state width="918" height="331" key="GridCell.Tab.0.center/-1440.111.1440.877/0.23.1920.997@0.23.1920.997" timestamp="1602809816684" />
     <state width="918" height="331" key="GridCell.Tab.0.center/0.23.1440.827@0.23.1440.827" timestamp="1602889772383" />
-    <state width="918" height="331" key="GridCell.Tab.0.left" timestamp="1602889772382">
-      <screen x="0" y="23" width="1440" height="827" />
+    <state width="1878" height="336" key="GridCell.Tab.0.left" timestamp="1603692624615">
+      <screen x="0" y="23" width="1920" height="1001" />
     </state>
+    <state width="1878" height="336" key="GridCell.Tab.0.left/-1440.111.1440.877/0.23.1920.1001@0.23.1920.1001" timestamp="1603692624615" />
     <state width="918" height="266" key="GridCell.Tab.0.left/-1440.111.1440.877/0.23.1920.986@0.23.1920.986" timestamp="1601979869552" />
     <state width="1878" height="330" key="GridCell.Tab.0.left/-1440.111.1440.877/0.23.1920.988@0.23.1920.988" timestamp="1602654333295" />
     <state width="918" height="264" key="GridCell.Tab.0.left/-1440.111.1440.877/0.23.1920.989@0.23.1920.989" timestamp="1602488060996" />
@@ -218,9 +180,10 @@
     <state width="918" height="265" key="GridCell.Tab.0.left/-1440.111.1440.877/0.23.1920.996@0.23.1920.996" timestamp="1602745509979" />
     <state width="918" height="331" key="GridCell.Tab.0.left/-1440.111.1440.877/0.23.1920.997@0.23.1920.997" timestamp="1602809816684" />
     <state width="918" height="331" key="GridCell.Tab.0.left/0.23.1440.827@0.23.1440.827" timestamp="1602889772382" />
-    <state width="918" height="331" key="GridCell.Tab.0.right" timestamp="1602889772384">
-      <screen x="0" y="23" width="1440" height="827" />
+    <state width="1878" height="336" key="GridCell.Tab.0.right" timestamp="1603692624616">
+      <screen x="0" y="23" width="1920" height="1001" />
     </state>
+    <state width="1878" height="336" key="GridCell.Tab.0.right/-1440.111.1440.877/0.23.1920.1001@0.23.1920.1001" timestamp="1603692624616" />
     <state width="918" height="266" key="GridCell.Tab.0.right/-1440.111.1440.877/0.23.1920.986@0.23.1920.986" timestamp="1601979869553" />
     <state width="1878" height="330" key="GridCell.Tab.0.right/-1440.111.1440.877/0.23.1920.988@0.23.1920.988" timestamp="1602654333296" />
     <state width="918" height="264" key="GridCell.Tab.0.right/-1440.111.1440.877/0.23.1920.989@0.23.1920.989" timestamp="1602488060997" />
@@ -287,6 +250,10 @@
       <screen x="0" y="23" width="1920" height="988" />
     </state>
     <state x="1147" y="149" width="586" height="735" key="find.popup/-1440.111.1440.877/0.23.1920.988@0.23.1920.988" timestamp="1601971726468" />
+    <state x="625" y="242" width="670" height="676" key="search.everywhere.popup" timestamp="1603692655706">
+      <screen x="0" y="23" width="1920" height="1001" />
+    </state>
+    <state x="625" y="242" width="670" height="676" key="search.everywhere.popup/-1440.111.1440.877/0.23.1920.1001@0.23.1920.1001" timestamp="1603692655706" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

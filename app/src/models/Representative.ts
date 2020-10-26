@@ -14,4 +14,5 @@ export interface Representative {
 export interface Contact {
   address: string;
   phoneNumber: string;
+  email: string;
 }

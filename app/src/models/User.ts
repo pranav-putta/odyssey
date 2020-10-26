@@ -8,4 +8,5 @@ export interface User {
   liked: { [key: number]: boolean };
   pfp_url: string;
   created_time: number;
+  email: string;
 }

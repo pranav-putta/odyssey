@@ -10,6 +10,7 @@ import (
 type Contact struct {
 	Address     string `json:"address,omitempty"`
 	PhoneNumber string `json:"phoneNumber,omitempty"`
+	Email       string `json:"email,omitempty"`
 }
 
 // Person encodes all senate and house member information in the Illinois General Assembly

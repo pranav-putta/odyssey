@@ -353,6 +353,7 @@ class LoginScreen extends React.Component<Props, State> {
       liked: {},
       created_time: Date.now(),
       pfp_url: '',
+      email: '',
     })
       .then((response) => {
         if (response) {

@@ -19,12 +19,15 @@ import { search } from '../../../util';
 import SearchBillCard from './SearchBillCard';
 import { Bill, formatBillNumber } from '../../../models/Bill';
 import { BillSearchScreenProps } from './SearchTab';
+import ProgressHUD from '../../../components/ProgressHUD';
 
 type State = {
   searchStarted: boolean;
   searchSettingsVisible: boolean;
   searchBills: Bill[];
   searchBy: string;
+  searchQuery: string;
+  progress: boolean;
 };
 
 type Props = {
@@ -41,6 +44,8 @@ class SearchBarScreen extends React.Component<Props, State> {
       searchSettingsVisible: false,
       searchBills: [],
       searchBy: 'title',
+      searchQuery: '',
+      progress: false,
     };
 
     this.popularCategoriesAnimation = new Animated.Value(1);
@@ -59,6 +64,7 @@ class SearchBarScreen extends React.Component<Props, State> {
   render() {
     return (
       <SafeAreaView style={styles.card}>
+        <ProgressHUD visible={this.state.progress} />
         <SearchSettingModal
           visible={this.state.searchSettingsVisible}
           setSearchType={(val) => {
@@ -76,6 +82,7 @@ class SearchBarScreen extends React.Component<Props, State> {
               placeholderTextColor={colors.searchBarPlaceholder}
               placeholder="Search for bills"
               style={styles.searchBarTextInput}
+              value={this.state.searchQuery}
               onFocus={() => {
                 this.toggleSearch();
               }}
@@ -85,7 +92,8 @@ class SearchBarScreen extends React.Component<Props, State> {
               returnKeyType="search"
               onChange={(e) => {
                 let query = e.nativeEvent.text;
-                let searchBy = 'title';
+                let searchBy = this.state.searchBy;
+                this.setState({ searchQuery: query });
                 if (query.length != 0) {
                   search(searchBy, query).then((bills) => {
                     this.setState({ searchBills: bills });
@@ -119,10 +127,28 @@ class SearchBarScreen extends React.Component<Props, State> {
                 keyExtractor={(item) => item.name}
                 data={Global.getTopicsAsArray().filter((val) => val.display)}
                 renderItem={(data) => {
-                  return <CategoryCard category={data.item} />;
+                  return (
+                    <CategoryCard
+                      onPress={() => {
+                        this.setState({ searchQuery: data.item.name });
+                        this.setState({ progress: true });
+                        search(this.state.searchBy, data.item.name).then(
+                          (bills) => {
+                            this.setState({
+                              searchBills: bills,
+                              progress: false,
+                            });
+                          }
+                        );
+                      }}
+                      category={data.item}
+                    />
+                  );
                 }}
                 horizontal
                 showsHorizontalScrollIndicator={false}
+                snapToInterval={120}
+                snapToAlignment="start"
               />
             </Animated.View>
           ) : undefined}

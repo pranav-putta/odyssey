@@ -23,28 +23,23 @@
                                 <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="LaunchIcon" translatesAutoresizingMaskIntoConstraints="NO" id="3Sf-wO-2Y8">
-                                <rect key="frame" x="82" y="323" width="250" height="250"/>
-                                <constraints>
-                                    <constraint firstAttribute="width" constant="250" id="Qa5-2m-PKY"/>
-                                    <constraint firstAttribute="height" constant="250" id="f9R-g7-RMW"/>
-                                </constraints>
-                            </imageView>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="An app by Pranav Putta, Sunny Gandhi, and Dylan Hu" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="MaL-En-ppx">
                                 <rect key="frame" x="20" y="810" width="374" height="52"/>
                                 <fontDescription key="fontDescription" name="Futura-Medium" family="Futura" pointSize="20"/>
                                 <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="LaunchIcon" translatesAutoresizingMaskIntoConstraints="NO" id="sAz-wk-BTE">
+                                <rect key="frame" x="79" y="320" width="256" height="256"/>
+                            </imageView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="Bcu-3y-fUS"/>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
-                            <constraint firstItem="Bcu-3y-fUS" firstAttribute="trailing" secondItem="3Sf-wO-2Y8" secondAttribute="trailing" constant="82" id="1e6-Hh-IgN"/>
-                            <constraint firstItem="3Sf-wO-2Y8" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="8fg-9S-h4D"/>
                             <constraint firstItem="MaL-En-ppx" firstAttribute="leading" secondItem="Bcu-3y-fUS" secondAttribute="leading" constant="20" id="DCb-6r-tOl"/>
+                            <constraint firstItem="sAz-wk-BTE" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="DJR-nv-PFC"/>
                             <constraint firstItem="Bcu-3y-fUS" firstAttribute="trailing" secondItem="MaL-En-ppx" secondAttribute="trailing" constant="20" id="WGQ-RW-wI1"/>
-                            <constraint firstItem="3Sf-wO-2Y8" firstAttribute="leading" secondItem="Bcu-3y-fUS" secondAttribute="leading" constant="82" id="bpv-gL-FiU"/>
+                            <constraint firstItem="sAz-wk-BTE" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="YQe-Cn-O3C"/>
                             <constraint firstItem="MaL-En-ppx" firstAttribute="bottom" secondItem="Bcu-3y-fUS" secondAttribute="bottom" id="yVg-Na-aIp"/>
                         </constraints>
                     </view>
@@ -55,6 +50,6 @@
         </scene>
     </scenes>
     <resources>
-        <image name="LaunchIcon" width="512" height="512"/>
+        <image name="LaunchIcon" width="256" height="256"/>
     </resources>
 </document>

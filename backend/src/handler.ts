@@ -49,7 +49,7 @@ function createSuccess(result: any) {
  */
 export const user_exists = async (event: any = {}): Promise<any> => {
   let data = event["queryStringParameters"];
-  console.log("what the fuck")
+  console.log("what the fuck");
 
   if (data && data.uid && typeof data.uid === "string") {
     // set up dynamodb client
@@ -671,3 +671,7 @@ export const upload_pfp = async (event: any = {}): Promise<any> => {
     b.end();
   });
 };
+
+export const update_profile = async (event: any = {}): Promise<any> => {};
+export const delete_user = async (event: any = {}): Promise<any> => {};
+export const email_rep = async (event: any = {}): Promise<any> => {};

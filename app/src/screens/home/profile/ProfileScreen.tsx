@@ -5,7 +5,6 @@ import {
   Text,
   TouchableOpacity,
   Linking,
-  Alert,
   Image,
 } from 'react-native';
 import { colors, storage } from '../../../assets';
@@ -18,6 +17,7 @@ import { Icon } from 'react-native-elements';
 import { ProfileScreenParams, ProfileScreenProps } from './ProfileTab';
 import ImagePicker from 'react-native-image-picker';
 import ImageResizer from 'react-native-image-resizer';
+import FastImage from 'react-native-fast-image';
 
 type Props = {
   navigation: ProfileScreenProps;
@@ -43,33 +43,31 @@ class ProfileScreen extends React.Component<Props, State> {
     });
   }
 
-  Item = (props: { icon: { name: string; type: string }; item: string }) => {
+  Item = (props: { icon: string; item: string; index: number }) => {
     return (
       <View
         style={{
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'flex-start',
-          marginTop: '5%',
+          marginTop: props.index == 0 ? '0%' : '5%',
         }}
       >
-        <View
-          style={{
-            padding: '3.5%',
-            backgroundColor: colors.textInputBackground,
-            borderRadius: 10,
+        <Image
+          style={{ flex: 1.2, width: 50, height: 50, resizeMode: 'center' }}
+          source={{
+            uri: props.icon,
           }}
-        >
-          <Icon name={props.icon.name} type={props.icon.type} />
-        </View>
+        />
         <Text
           style={{
             marginLeft: '5%',
+            flex: 10,
             fontFamily: 'Futura',
-            fontSize: 18,
+            fontSize: 16,
             fontWeight: '500',
           }}
-          numberOfLines={1}
+          numberOfLines={2}
           adjustsFontSizeToFit={true}
         >
           {props.item}
@@ -100,19 +98,12 @@ class ProfileScreen extends React.Component<Props, State> {
 
   render() {
     const user = this.state.user;
-
+    console.log(user?.pfp_url);
     if (user) {
       console.log(user.pfp_url);
       return (
         <SafeAreaView style={styles.container}>
           <View style={styles.headerBar}>
-            <TouchableOpacity
-              onPress={() => {
-                this.props.navigation.push('Settings');
-              }}
-            >
-              <Icon name="settings" type="feather" size={26} />
-            </TouchableOpacity>
             <TouchableOpacity
               style={{ marginLeft: '5%' }}
               onPress={() => {
@@ -178,23 +169,36 @@ class ProfileScreen extends React.Component<Props, State> {
                   change
                 </Text>
               </TouchableOpacity>
-              <Image
+              <FastImage
                 style={{ width: 75, height: 75, borderRadius: 10 }}
                 source={{
-                  uri: user.pfp_url,
+                  uri: user.pfp_url + '?cache=' + Date.now(),
                 }}
               />
             </View>
             <Text style={styles.name}>{user.name}</Text>
           </View>
-          <View style={{ marginHorizontal: '10%' }}>
+          <View
+            style={{
+              marginHorizontal: '10%',
+              backgroundColor: colors.textInputBackground,
+              borderRadius: 10,
+              padding: '5%',
+            }}
+          >
             <this.Item
-              icon={{ name: 'map-pin', type: 'feather' }}
+              icon={
+                'https://cdn1.iconfinder.com/data/icons/flat-and-simple-part-1/128/location-512.png'
+              }
               item={user.address}
+              index={0}
             />
             <this.Item
-              icon={{ name: 'phone', type: 'feather' }}
+              icon={
+                'https://cdn4.iconfinder.com/data/icons/gradient-ui-1/512/phone-256.png'
+              }
               item={this.formatPhoneNumber(user.phoneNumber)}
+              index={1}
             />
           </View>
           <View style={{ marginHorizontal: '10%', marginTop: '5%' }}>
