@@ -381,7 +381,7 @@ export default class BillDiscoverScreen extends React.Component<Props, State> {
                 });
               }}
             >
-              <Icon name="info" type="feather" />
+              <Icon name="info" type="feather" color="#2196f3" />
             </TouchableOpacity>
           </View>
           <View

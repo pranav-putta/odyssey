@@ -2,6 +2,7 @@ import functions, { firebase } from '@react-native-firebase/functions';
 import {
   fetchDataVersion,
   fetchUser,
+  Representative,
   storeBillLike,
   storeDataVersion,
   storeRepresentative,
@@ -44,6 +45,12 @@ const awsURLs = {
     'https://tde26c6cp5.execute-api.us-east-2.amazonaws.com/prod/delete-comment',
   uploadPFP:
     'https://tde26c6cp5.execute-api.us-east-2.amazonaws.com/prod/upload-pfp',
+  updateProfile:
+    'https://tde26c6cp5.execute-api.us-east-2.amazonaws.com/prod/update-profile',
+  deleteUser:
+    'https://tde26c6cp5.execute-api.us-east-2.amazonaws.com/prod/delete-user',
+  emailRep:
+    'https://tde26c6cp5.execute-api.us-east-2.amazonaws.com/prod/email-rep',
 };
 
 /**
@@ -351,4 +358,55 @@ export async function deleteComment(
       console.log(JSON.stringify(err));
       return false;
     });
+}
+
+export async function updateProfile(user: User): Promise<boolean> {
+  if (!isNetworkAvailable()) {
+    return false;
+  }
+  return Axios.post(awsURLs.updateProfile, {
+    uid: user.uid,
+    name: user.name,
+    address: user.address,
+    email: user.email,
+  })
+    .then((response) => {
+      if (response.status == 200) {
+        return true;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(JSON.stringify(err));
+      return false;
+    });
+}
+
+export async function deleteUser(): Promise<boolean> {
+  if (!isNetworkAvailable()) {
+    return false;
+  }
+  let user = await fetchUser();
+  return Axios.post(awsURLs.deleteUser, {
+    uid: user.uid,
+  })
+    .then((response) => {
+      if (response.status == 200) {
+        return true;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(JSON.stringify(err));
+      return false;
+    });
+}
+
+export async function emailRep(
+  rep: Representative,
+  text: string
+): Promise<boolean> {
+  throw Error('not yet implemented');
 }

@@ -25,7 +25,7 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 var __importStar = (this && this.__importStar) || function (mod) {
     if (mod && mod.__esModule) return mod;
     var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
     __setModuleDefault(result, mod);
     return result;
 };
@@ -69,7 +69,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.upload_pfp = exports.delete_comment = exports.like_comment = exports.get_bill_data = exports.add_comment = exports.vote = exports.like = exports.search = exports.refresh = exports.liked_bills = exports.rand_bills = exports.new_user = exports.user_exists = void 0;
+exports.email_rep = exports.delete_user = exports.update_profile = exports.upload_pfp = exports.delete_comment = exports.like_comment = exports.get_bill_data = exports.add_comment = exports.vote = exports.like = exports.search = exports.refresh = exports.liked_bills = exports.rand_bills = exports.new_user = exports.user_exists = void 0;
 var axios_1 = __importDefault(require("axios"));
 var pg_1 = __importDefault(require("pg"));
 var querystring_1 = __importDefault(require("querystring"));
@@ -126,7 +126,7 @@ exports.user_exists = function (event) {
                     aws.config.update(aws_config_1.default.aws_remote_config);
                     client = new aws.DynamoDB.DocumentClient();
                     params = {
-                        TableName: aws_config_1.default.aws_table_name,
+                        TableName: aws_config_1.default.aws_user_table_name,
                         KeyConditionExpression: "uid = :uid",
                         ExpressionAttributeValues: {
                             ":uid": data.uid,
@@ -203,7 +203,7 @@ exports.new_user = function (event) {
                     data.user.pfp_url = s3Data.Location;
                     data.user.liked = {};
                     params = {
-                        TableName: aws_config_1.default.aws_table_name,
+                        TableName: aws_config_1.default.aws_user_table_name,
                         Item: data.user,
                     };
                     return [4 /*yield*/, client.put(params).promise()];
@@ -356,7 +356,7 @@ exports.refresh = function (event) {
                     aws.config.update(aws_config_1.default.aws_remote_config);
                     client = new aws.DynamoDB.DocumentClient();
                     params = {
-                        TableName: aws_config_1.default.aws_table_name,
+                        TableName: aws_config_1.default.aws_user_table_name,
                         KeyConditionExpression: "uid = :uid",
                         ExpressionAttributeValues: {
                             ":uid": data.uid,
@@ -457,7 +457,7 @@ exports.like = function (event) {
                     aws.config.update(aws_config_1.default.aws_remote_config);
                     client = new aws.DynamoDB.DocumentClient();
                     existParams = {
-                        TableName: aws_config_1.default.aws_table_name,
+                        TableName: aws_config_1.default.aws_user_table_name,
                         Key: {
                             uid: uid,
                         },
@@ -485,7 +485,7 @@ exports.like = function (event) {
                     return [3 /*break*/, 4];
                 case 4:
                     params = {
-                        TableName: aws_config_1.default.aws_table_name,
+                        TableName: aws_config_1.default.aws_user_table_name,
                         Key: {
                             uid: uid,
                         },
@@ -837,4 +837,62 @@ exports.upload_pfp = function (event) {
                 })];
         });
     });
+};
+exports.update_profile = function (event) {
+    if (event === void 0) { event = {}; }
+    return __awaiter(void 0, void 0, void 0, function () {
+        var data, uid, name, address, email, client, params, response;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    data = JSON.parse(event.body);
+                    uid = data.uid;
+                    name = data.name;
+                    address = data.address;
+                    email = data.email;
+                    // set up dynamodb client
+                    aws.config.update(aws_config_1.default.aws_remote_config);
+                    client = new aws.DynamoDB.DocumentClient();
+                    params = {
+                        TableName: aws_config_1.default.aws_user_table_name,
+                        Key: {
+                            uid: uid,
+                        },
+                        UpdateExpression: "set #name = :name, #address = :address, #email = :email",
+                        ExpressionAttributeNames: {
+                            "#name": "name",
+                            "#address": "address",
+                            "#email": "email",
+                        },
+                        ExpressionAttributeValues: {
+                            ":name": name,
+                            ":address": address,
+                            ":email": email,
+                        },
+                    };
+                    return [4 /*yield*/, client.update(params).promise()];
+                case 1:
+                    response = _a.sent();
+                    if (response.$response.error) {
+                        return [2 /*return*/, createError(JSON.stringify(response.$response.error))];
+                    }
+                    else {
+                        return [2 /*return*/, createSuccess({ result: true })];
+                    }
+                    return [2 /*return*/];
+            }
+        });
+    });
+};
+exports.delete_user = function (event) {
+    if (event === void 0) { event = {}; }
+    return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
+        return [2 /*return*/];
+    }); });
+};
+exports.email_rep = function (event) {
+    if (event === void 0) { event = {}; }
+    return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
+        return [2 /*return*/];
+    }); });
 };

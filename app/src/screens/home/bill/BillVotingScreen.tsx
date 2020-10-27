@@ -9,6 +9,7 @@ import {
   View,
   ActionSheetIOS,
   Image,
+  Dimensions,
 } from 'react-native';
 import { Icon } from 'react-native-elements';
 import FastImage from 'react-native-fast-image';
@@ -53,14 +54,20 @@ const AnimatedTouchableOpacity = Animated.createAnimatedComponent(
 function ButtonGroup(props: {
   buttons: string[];
   activeColors: string[];
+  percentages: number[];
   inactiveColor: string;
   activeIndex: number;
-  onPress: (index: number) => void;
+  onPress: (index: number) => Promise<void>;
 }) {
   let borderRadius = 5;
   let animations = props.buttons.map(
     () => React.useRef(new Animated.Value(0)).current
   );
+  let percentAnimations = props.buttons.map(
+    () => React.useRef(new Animated.Value(0)).current
+  );
+  const width = Dimensions.get('screen').width * 0.85;
+  const height = Dimensions.get('screen').height * 0.125;
   return (
     <View style={styles.buttonGroup}>
       {props.buttons.map((val, ind) => {
@@ -72,6 +79,14 @@ function ButtonGroup(props: {
           inputRange: [0, 1],
           outputRange: ['black', 'white'],
         });
+        let percent = percentAnimations[ind].interpolate({
+          inputRange: [0, 1],
+          outputRange: [0.5 * width, props.percentages[ind] * width],
+        });
+        let textOpacity = percentAnimations[ind].interpolate({
+          inputRange: [0, 1],
+          outputRange: [1, props.percentages[ind] == 0 ? 0 : 1],
+        });
 
         Animated.timing(animations[ind], {
           toValue: props.activeIndex == ind ? 1 : 0,
@@ -79,11 +94,18 @@ function ButtonGroup(props: {
           duration: 200,
         }).start();
 
+        Animated.timing(percentAnimations[ind], {
+          toValue: props.activeIndex != -1 ? 1 : 0,
+          useNativeDriver: false,
+          duration: 200,
+        }).start();
         return (
           <AnimatedTouchableOpacity
             key={val}
-            onPress={() => {
+            onPress={async () => {
               if (ind != props.activeIndex) {
+                await props.onPress(ind);
+
                 Animated.timing(animations[ind], {
                   toValue: 1,
                   useNativeDriver: false,
@@ -96,19 +118,37 @@ function ButtonGroup(props: {
                     duration: 200,
                   }).start();
                 }
-                props.onPress(ind);
+                props.buttons.forEach((val, ind) => {
+                  Animated.timing(percentAnimations[ind], {
+                    toValue: 1,
+                    useNativeDriver: false,
+                    duration: 200,
+                  }).start();
+                });
               } else {
-                Animated.timing(animations[ind], {
-                  toValue: 0,
-                  useNativeDriver: false,
-                  duration: 200,
-                }).start();
-                props.onPress(-1);
+                Animated.parallel([
+                  ...props.buttons.map((val, i) =>
+                    Animated.spring(percentAnimations[i], {
+                      toValue: 0,
+                      useNativeDriver: false,
+                      bounciness: 10,
+                      speed: 6,
+                    })
+                  ),
+                  Animated.timing(animations[ind], {
+                    toValue: 0,
+                    useNativeDriver: false,
+                    duration: 200,
+                  }),
+                ]).start(() => {
+                  props.onPress(-1);
+                });
               }
             }}
             style={[
               styles.button,
               {
+                width: percent,
                 backgroundColor: bgColor,
                 borderTopLeftRadius: ind == 0 ? borderRadius : 0,
                 borderBottomLeftRadius: ind == 0 ? borderRadius : 0,
@@ -116,14 +156,54 @@ function ButtonGroup(props: {
                   ind == props.buttons.length - 1 ? borderRadius : 0,
                 borderTopRightRadius:
                   ind == props.buttons.length - 1 ? borderRadius : 0,
+                overflow: 'hidden',
                 //borderRightWidth: ind == 0 ? 0.5 : 0,
                 //borderColor: 'gray',
               },
             ]}
           >
-            <Animated.Text style={[styles.buttonText, { color: textColor }]}>
+            <Animated.Text
+              style={[
+                styles.buttonText,
+                {
+                  color: textColor,
+                  overflow: 'hidden',
+                  opacity: textOpacity,
+                  transform: [
+                    {
+                      translateY: percentAnimations[ind].interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0, -25],
+                      }),
+                    },
+                  ],
+                  fontSize: percentAnimations[ind].interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [25, 25],
+                  }),
+                },
+              ]}
+            >
               {val}
             </Animated.Text>
+            {props.activeIndex != -1 && (
+              <Animated.Text
+                style={{
+                  fontSize: 30,
+                  fontFamily: 'Futura',
+                  fontWeight: 'bold',
+                  color: 'white',
+                  position: 'absolute',
+                  opacity: percentAnimations[ind].interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0, 1],
+                  }),
+                  transform: [{ translateY: 10 }, { translateX: 10 }],
+                }}
+              >
+                {props.percentages[ind] * 100 + '%'}
+              </Animated.Text>
+            )}
           </AnimatedTouchableOpacity>
         );
       })}
@@ -176,6 +256,22 @@ export default class VoteScreen extends React.Component<Props, State> {
         max = Object.keys(comment.likes).length;
       }
     }
+    let yesVotes = Object.values(this.state.billData.votes).filter(
+      (val) => val == Vote.Yes
+    ).length;
+    let noVotes = Object.values(this.state.billData.votes).filter(
+      (val) => val == Vote.No
+    ).length;
+    let votes = Object.values(this.state.billData.votes).filter(
+      (val) => val != Vote.None
+    ).length;
+    if (votes > 0) {
+      yesVotes = yesVotes / votes;
+      noVotes = noVotes / votes;
+    } else {
+      yesVotes = 0.5;
+      noVotes = 0.5;
+    }
     return (
       <View style={styles.container}>
         <ProgressHUD visible={this.state.progress} />
@@ -188,15 +284,19 @@ export default class VoteScreen extends React.Component<Props, State> {
           activeColors={['#69f0ae', '#ff8a80']}
           inactiveColor={'#fff'}
           activeIndex={this.state.vote}
-          onPress={(index) => {
-            this.setState({ vote: index }, () => {
-              setBillVote(this.props.route.params.bill, this.state.vote);
-              if (this.state.user) {
-                let billData = this.state.billData;
-                billData.votes[this.state.user.uid] = index;
-                this.setState({ billData: billData });
-              }
-            });
+          percentages={[yesVotes, noVotes]}
+          onPress={async (index) => {
+            return new Promise<void>((resolve, reject) =>
+              this.setState({ vote: index }, () => {
+                setBillVote(this.props.route.params.bill, this.state.vote);
+                if (this.state.user) {
+                  let billData = this.state.billData;
+                  billData.votes[this.state.user.uid] = index;
+                  this.setState({ billData: billData });
+                }
+                resolve();
+              })
+            );
           }}
         />
         {top ? (
@@ -619,7 +719,7 @@ const styles = StyleSheet.create({
   },
   buttonGroup: {
     width: '85%',
-    height: '10%',
+    height: '12.5%',
     marginHorizontal: '7.5%',
 
     flexDirection: 'row',
@@ -630,7 +730,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
   },
   button: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },

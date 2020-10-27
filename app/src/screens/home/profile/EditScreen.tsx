@@ -11,7 +11,9 @@ import { Icon } from 'react-native-elements';
 import { FlatList, TextInput } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '../../../assets';
-import { fetchUser, User } from '../../../models';
+import ProgressHUD from '../../../components/ProgressHUD';
+import { fetchUser, storeUser, User } from '../../../models';
+import { updateProfile } from '../../../util';
 import { ProfileEditScreenProps } from './ProfileTab';
 
 type Props = {
@@ -19,11 +21,13 @@ type Props = {
 };
 type State = {
   user?: User;
+  progress: boolean;
 };
 type InputType = {
   placeholder: string;
   value: string;
   onTextChange: (query: string) => void;
+  email?: boolean;
   editable: boolean;
 };
 
@@ -32,6 +36,7 @@ export default class EditScreen extends React.Component<Props, State> {
     super(props);
     this.state = {
       user: undefined,
+      progress: false,
     };
   }
 
@@ -63,6 +68,8 @@ export default class EditScreen extends React.Component<Props, State> {
             onChangeText={props.onTextChange}
             placeholder={props.placeholder}
             editable={props.editable ? true : false}
+            keyboardType={props.email ? 'email-address' : 'default'}
+            returnKeyType="done"
           />
         </View>
       </View>
@@ -112,6 +119,7 @@ export default class EditScreen extends React.Component<Props, State> {
               this.setState({ user: user });
             }
           },
+          email: true,
           editable: true,
         },
         {
@@ -124,6 +132,7 @@ export default class EditScreen extends React.Component<Props, State> {
 
       return (
         <View style={styles.card}>
+          <ProgressHUD visible={this.state.progress} />
           <SafeAreaView style={styles.container}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               {this.closeButton()}
@@ -148,6 +157,7 @@ export default class EditScreen extends React.Component<Props, State> {
                   onTextChange={item.onTextChange}
                   value={item.value}
                   editable={item.editable}
+                  email={item.email}
                 />
               )}
             />
@@ -155,12 +165,28 @@ export default class EditScreen extends React.Component<Props, State> {
             <KeyboardAvoidingView>
               <TouchableOpacity
                 style={{
-                  backgroundColor: '#6abf69',
+                  backgroundColor: '#69f0ae',
                   padding: '4%',
                   borderRadius: 10,
                   justifyContent: 'center',
                   alignItems: 'center',
                   margin: '5%',
+                }}
+                onPress={() => {
+                  if (this.state.user) {
+                    this.setState({ progress: true });
+                    updateProfile(this.state.user)
+                      .then((val) => {
+                        if (val) {
+                          if (this.state.user) {
+                            storeUser(this.state.user);
+                          }
+                        }
+                      })
+                      .finally(() => {
+                        this.setState({ progress: false });
+                      });
+                  }
                 }}
               >
                 <Text

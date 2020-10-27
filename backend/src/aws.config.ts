@@ -1,5 +1,5 @@
 export default {
-  aws_table_name: "Users",
+  aws_user_table_name: "Users",
   aws_voting_table_name: "BillData",
   aws_local_config: {},
   aws_remote_config: {

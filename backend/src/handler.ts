@@ -57,7 +57,7 @@ export const user_exists = async (event: any = {}): Promise<any> => {
     var client = new aws.DynamoDB.DocumentClient();
 
     const params: DocumentClient.QueryInput = {
-      TableName: awsconfig.aws_table_name,
+      TableName: awsconfig.aws_user_table_name,
       KeyConditionExpression: "uid = :uid",
       ExpressionAttributeValues: {
         ":uid": data.uid,
@@ -125,7 +125,7 @@ export const new_user = async (event: any = {}): Promise<any> => {
   data.user.pfp_url = s3Data.Location;
   data.user.liked = {};
   const params: DocumentClient.PutItemInput = {
-    TableName: awsconfig.aws_table_name,
+    TableName: awsconfig.aws_user_table_name,
     Item: data.user,
   };
   let response = await client.put(params).promise();
@@ -267,7 +267,7 @@ export const refresh = async (event: any = {}): Promise<any> => {
   var client = new aws.DynamoDB.DocumentClient();
 
   const params: DocumentClient.QueryInput = {
-    TableName: awsconfig.aws_table_name,
+    TableName: awsconfig.aws_user_table_name,
     KeyConditionExpression: "uid = :uid",
     ExpressionAttributeValues: {
       ":uid": data.uid,
@@ -348,7 +348,7 @@ export const like = async (event: any = {}): Promise<any> => {
   var client = new aws.DynamoDB.DocumentClient();
 
   const existParams: DocumentClient.UpdateItemInput = {
-    TableName: awsconfig.aws_table_name,
+    TableName: awsconfig.aws_user_table_name,
     Key: {
       uid: uid,
     },
@@ -372,7 +372,7 @@ export const like = async (event: any = {}): Promise<any> => {
   }
 
   const params: DocumentClient.UpdateItemInput = {
-    TableName: awsconfig.aws_table_name,
+    TableName: awsconfig.aws_user_table_name,
     Key: {
       uid: uid,
     },
@@ -672,6 +672,40 @@ export const upload_pfp = async (event: any = {}): Promise<any> => {
   });
 };
 
-export const update_profile = async (event: any = {}): Promise<any> => {};
+export const update_profile = async (event: any = {}): Promise<any> => {
+  let data = JSON.parse(event.body);
+  let uid = data.uid;
+  let name = data.name;
+  let address = data.address;
+  let email = data.email;
+
+  // set up dynamodb client
+  aws.config.update(awsconfig.aws_remote_config);
+  var client = new aws.DynamoDB.DocumentClient();
+  // bill exists, so update
+  const params: DocumentClient.UpdateItemInput = {
+    TableName: awsconfig.aws_user_table_name,
+    Key: {
+      uid: uid,
+    },
+    UpdateExpression: "set #name = :name, #address = :address, #email = :email",
+    ExpressionAttributeNames: {
+      "#name": "name",
+      "#address": "address",
+      "#email": "email",
+    },
+    ExpressionAttributeValues: {
+      ":name": name,
+      ":address": address,
+      ":email": email,
+    },
+  };
+  let response = await client.update(params).promise();
+  if (response.$response.error) {
+    return createError(JSON.stringify(response.$response.error));
+  } else {
+    return createSuccess({ result: true });
+  }
+};
 export const delete_user = async (event: any = {}): Promise<any> => {};
 export const email_rep = async (event: any = {}): Promise<any> => {};
