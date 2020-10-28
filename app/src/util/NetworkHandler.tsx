@@ -28,8 +28,8 @@ const awsURLs = {
     'https://tde26c6cp5.execute-api.us-east-2.amazonaws.com/prod/new-user',
   refresh:
     'https://tde26c6cp5.execute-api.us-east-2.amazonaws.com/prod/refresh',
-  randBills:
-    'https://tde26c6cp5.execute-api.us-east-2.amazonaws.com/prod/rand-bills',
+  billFeed:
+    'https://tde26c6cp5.execute-api.us-east-2.amazonaws.com/prod/bill-feed',
   search: 'https://tde26c6cp5.execute-api.us-east-2.amazonaws.com/prod/search',
   like: 'https://tde26c6cp5.execute-api.us-east-2.amazonaws.com/prod/like',
   likedBills:
@@ -120,11 +120,12 @@ export async function createUser(user: User): Promise<boolean> {
     });
 }
 
-export async function randomBills(): Promise<Bill[]> {
+export async function loadBillFeed(): Promise<Bill[]> {
   if (!isNetworkAvailable()) {
     return [];
   }
-  return Axios.get(awsURLs.randBills)
+  let user = await fetchUser();
+  return Axios.post(awsURLs.billFeed, { uid: user.uid })
     .then((response) => {
       if (response.status == 200) {
         return response.data.bills;
@@ -255,7 +256,8 @@ export async function setBillVote(bill: Bill, vote: Vote): Promise<any> {
 
 export async function addComment(
   bill: Bill,
-  comment: Comment
+  comment: Comment,
+  shouldSendReps: boolean
 ): Promise<boolean> {
   if (!isNetworkAvailable()) {
     return false;
@@ -266,6 +268,7 @@ export async function addComment(
     bill_id: bill.number,
     uid: uid,
     comment: comment,
+    shouldSendReps: shouldSendReps,
   })
     .then((response) => {
       if (response.status == 200) {

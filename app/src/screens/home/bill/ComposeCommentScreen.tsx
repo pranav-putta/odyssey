@@ -173,7 +173,7 @@ export default class ComposeCommentScreen extends React.PureComponent<
                 date: Date.now(),
               };
               this.setState({ showProgress: true });
-              addComment(this.props.route.params.bill, comment).then((val) => {
+              addComment(this.props.route.params.bill, comment, this.state.shouldSendReps).then((val) => {
                 this.setState({ showProgress: false });
                 if (val) {
                   this.props.navigation.pop();

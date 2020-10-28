@@ -38,12 +38,12 @@ functions:
           path: refresh
           method: post
           cors: true
-  randBills:
-    handler: dist/handler.rand_bills
+  loadBillFeed:
+    handler: dist/handler.load_bill_feed
     events:
       - http:
-          path: rand-bills
-          method: get
+          path: bill-feed
+          method: post
           cors: true
   likedBills:
     handler: dist/handler.liked_bills

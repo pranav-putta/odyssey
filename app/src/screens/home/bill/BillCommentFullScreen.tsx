@@ -26,7 +26,7 @@ export default function BillCommentFullScreeen(props: {
       <TouchableOpacity
         style={styles.closeButton}
         onPress={() => {
-          props.navigation.goBack();
+          props.navigation.pop();
         }}
       >
         <Icon size={26} name="arrow-left" type="feather" color="black" />
@@ -40,7 +40,7 @@ export default function BillCommentFullScreeen(props: {
         <Image
           style={styles.profile}
           source={{
-            uri: user?.pfp_url,
+            uri: `https://odyssey-user-pfp.s3.us-east-2.amazonaws.com/${comment.uid}_pfp.jpg`,
           }}
         />
         <View

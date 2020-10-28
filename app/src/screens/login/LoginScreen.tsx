@@ -203,8 +203,12 @@ class LoginScreen extends React.Component<Props, State> {
     }).start();
   };
 
-  toggleProgress = (show: boolean) => {
-    this.setState({ showProgress: show });
+  toggleProgress = async (show: boolean) => {
+    return new Promise<void>((resolve, reject) => {
+      this.setState({ showProgress: show }, () => {
+        resolve();
+      });
+    });
   };
 
   // open up login screen
@@ -323,8 +327,9 @@ class LoginScreen extends React.Component<Props, State> {
         checkUserExists(result?.user.uid || '');
       })
       .catch((err) => {
-        this.toggleProgress(false);
-        Alert.alert('The code was incorrect');
+        this.toggleProgress(false).then(() => {
+          Alert.alert('The code was incorrect');
+        });
       });
   };
 
@@ -571,6 +576,7 @@ class LoginScreen extends React.Component<Props, State> {
               keyboardType="phone-pad"
               clearButtonMode="while-editing"
               placeholder="Enter your phone number"
+              placeholderTextColor={colors.textInputPlaceholderColor}
               ref={this.phoneNumberTextInput}
             />
           </Animated.View>
@@ -625,6 +631,7 @@ class LoginScreen extends React.Component<Props, State> {
           style={{ height: 0, width: 0 }}
           keyboardType="phone-pad"
           value={this.state.verificationText}
+          placeholderTextColor={colors.textInputPlaceholderColor}
           onChangeText={(text: string) => {
             var newVerifs = Array(6).fill(' ');
             if (text.length > 6) {
@@ -652,6 +659,7 @@ class LoginScreen extends React.Component<Props, State> {
         </Text>
         <Animated.View style={styles.loginPhoneNumber}>
           <TextInput
+            placeholderTextColor={colors.textInputPlaceholderColor}
             style={{ fontSize: 18, width: '100%' }}
             value={this.state.name}
             onChangeText={(text) => {
@@ -695,6 +703,7 @@ class LoginScreen extends React.Component<Props, State> {
             }}
             keyboardType="number-pad"
             placeholder="Enter your age"
+            placeholderTextColor={colors.textInputPlaceholderColor}
           />
         </Animated.View>
         {this.continueButton(() => {
@@ -728,6 +737,7 @@ class LoginScreen extends React.Component<Props, State> {
           returnKeyType={'default'}
           fetchDetails={false}
           textInputProps={{}}
+          placeholderTextColor={colors.textInputPlaceholderColor}
           numberOfLines={3}
           onPress={(data: any, details = null) => {
             const address = data.description;

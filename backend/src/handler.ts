@@ -202,7 +202,7 @@ const get_reps = async (address: string) => {
  * generates random bill
  * @param event
  */
-export const rand_bills = async (event: any = {}): Promise<any> => {
+export const load_bill_feed = async (event: any = {}): Promise<any> => {
   //let uuid = event["queryStringParameters"].uuid;
   let pgPool = new pg.Pool(pgConfig);
   let bills = await pgPool.query(

@@ -32,6 +32,25 @@ const replaceAt = (index: number, replacement: string, str: string) => {
   );
 };
 
+let Header = (props: { name: string; type: string }) => (
+  <View
+    style={{
+      backgroundColor: '#eeeeee',
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: '2.5%',
+      borderRadius: 5,
+      shadowOpacity: 0.1,
+      shadowColor: 'black',
+      shadowRadius: 5,
+      shadowOffset: { width: 0, height: 1 },
+      alignSelf: 'flex-start',
+    }}
+  >
+    <Icon name={props.name} type={props.type} size={20} color={'#424242'} />
+  </View>
+);
+
 export default class RepScreen extends React.Component<Props, State> {
   render() {
     const { rep } = this.props.route.params;
@@ -81,6 +100,7 @@ export default class RepScreen extends React.Component<Props, State> {
                 <View style={styles.contactItemContainer}>
                   {item.address ? (
                     <TouchableOpacity
+                      style={{ flexDirection: 'row', alignItems: 'center' }}
                       onPress={() => {
                         let address = item.address.replace(' ', '+');
                         Linking.canOpenURL(`maps://?addr=${address}`).then(
@@ -95,8 +115,9 @@ export default class RepScreen extends React.Component<Props, State> {
                         );
                       }}
                     >
+                      <Header name="building" type="font-awesome-5" />
                       <Text
-                        numberOfLines={2}
+                        numberOfLines={3}
                         adjustsFontSizeToFit={true}
                         style={styles.address}
                       >
@@ -106,7 +127,7 @@ export default class RepScreen extends React.Component<Props, State> {
                   ) : undefined}
                   {item.phoneNumber && (
                     <TouchableOpacity
-                      style={{ marginTop: '2.5%' }}
+                      style={{ marginTop: '2.5%', flexDirection: 'row' }}
                       onPress={() => {
                         try {
                           let number = item.phoneNumber.replace(/\D/g, '');
@@ -119,24 +140,27 @@ export default class RepScreen extends React.Component<Props, State> {
                         } catch (err) {}
                       }}
                     >
+                      <Header name="phone" type="feather" />
+
                       <Text style={styles.phoneNumber}>{item.phoneNumber}</Text>
                     </TouchableOpacity>
                   )}
                   {item.email && (
                     <TouchableOpacity
-                      style={{ marginTop: '2.5%' }}
+                      style={{ marginTop: '1.5%', flexDirection: 'row' }}
                       onPress={() => {
                         try {
                           Linking.canOpenURL(`mailto:${item.email}`).then(
                             (val) => {
                               if (val) {
                                 Linking.openURL(`mailto:${item.email}`);
-                              } 
+                              }
                             }
                           );
                         } catch (err) {}
                       }}
                     >
+                      <Header name="mail" type="feather" />
                       <Text style={styles.phoneNumber}>{item.email}</Text>
                     </TouchableOpacity>
                   )}
@@ -235,7 +259,6 @@ const styles = StyleSheet.create({
   contactItemContainer: {
     width: '100%',
     padding: '3.5%',
-    justifyContent: 'center',
     paddingHorizontal: '5%',
     borderRadius: 5,
     backgroundColor: colors.textInputBackground,
@@ -243,8 +266,14 @@ const styles = StyleSheet.create({
   },
   address: {
     fontFamily: 'Futura',
-    fontWeight: '500',
+    fontWeight: '600',
     fontSize: 15,
+    paddingHorizontal: '5%',
+    color: 'black',
   },
-  phoneNumber: { color: '#2979ff' },
+  phoneNumber: {
+    color: '#2979ff',
+    alignSelf: 'center',
+    marginHorizontal: '5%',
+  },
 });

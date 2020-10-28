@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ReactNode, ReactNodeArray } from 'react';
 import {
   Animated,
   Dimensions,
@@ -22,10 +22,17 @@ import {
 } from './BillDetailsStack';
 import * as Animatable from 'react-native-animatable';
 import { SharedElement } from 'react-navigation-shared-element';
+import StickyParallaxHeader from 'react-native-sticky-parallax-header';
+import { BlurView } from '@react-native-community/blur';
 
 interface Props {
   navigation: BillDetailsInfoScreenProps;
   route: BillDetailInfoScreenRouteProps;
+}
+
+enum ScrollDirection {
+  up,
+  down,
 }
 
 type State = {
@@ -35,8 +42,12 @@ type State = {
   liked: boolean;
   transition: Animated.Value;
   transitionComplete: boolean;
-  contentRef: React.RefObject<View>;
+  contentRef: React.RefObject<ScrollView>;
+  scroll: Animated.Value;
   likeY: number;
+  scrollPos: number;
+  scrollDirection: ScrollDirection;
+  scrollAnimating: boolean;
 };
 
 const voteButtonAnimation = {
@@ -83,9 +94,11 @@ const voteButtonAnimation = {
   },
 };
 
-export default class BillInfoScreen extends React.PureComponent<Props, State> {
-  private billImage = React.createRef<View>();
+const AnimatedSharedElement = Animated.createAnimatedComponent(SharedElement);
+const AnimatedFastImage = Animated.createAnimatedComponent(FastImage);
+const { height } = Dimensions.get('screen');
 
+export default class BillInfoScreen extends React.PureComponent<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = {
@@ -95,8 +108,12 @@ export default class BillInfoScreen extends React.PureComponent<Props, State> {
       liked: false,
       transition: new Animated.Value(0),
       transitionComplete: true,
-      contentRef: React.createRef<View>(),
+      contentRef: React.createRef<ScrollView>(),
       likeY: 220,
+      scroll: new Animated.Value(0),
+      scrollPos: 0,
+      scrollDirection: ScrollDirection.down,
+      scrollAnimating: false,
     };
 
     fetchUser().then((user) => {
@@ -125,135 +142,79 @@ export default class BillInfoScreen extends React.PureComponent<Props, State> {
     });
   }
 
-  renderLayer() {
-    const {
-      bill,
-      category,
-      imageDims,
-      textCardDims,
-      cardDims,
-    } = this.props.route.params;
-    const { height, width } = Dimensions.get('screen');
+  render() {
+    const { bill, category } = this.props.route.params;
 
-    return (
-      <Animated.View
-        style={{
-          width: '100%',
-          height: '100%',
-          position: 'absolute',
-          zIndex: 100,
-          backgroundColor: this.state.transition.interpolate({
-            inputRange: [0, 0.5, 1],
-            outputRange: ['transparent', 'white', 'white'],
-          }),
-        }}
-      >
-        <Animated.View
-          style={{
-            position: 'absolute',
-            width: this.state.transition.interpolate({
-              inputRange: [0, 0.5, 0.85, 1],
-              outputRange: [imageDims.width, width * 1.1, width, width],
-            }),
-            height: this.state.transition.interpolate({
-              inputRange: [0, 0.5, 1],
-              outputRange: [imageDims.height, height * 0.33, height * 0.33],
-            }),
-            top: this.state.transition.interpolate({
-              inputRange: [0, 0.85, 1],
-              outputRange: [imageDims.pageY, 0, 0],
-            }),
-            right: this.state.transition.interpolate({
-              inputRange: [0, 0.5, 0.85, 1],
-              outputRange: [imageDims.pageX, -width * 0.05, 0, 0],
-            }),
-            shadowColor: 'black',
-            shadowOpacity: this.state.transition.interpolate({
-              inputRange: [0, 0.25, 1],
-              outputRange: [0, 0.5, 0.5],
-            }),
-            shadowRadius: 15,
-            shadowOffset: { width: 0, height: 10 },
-            zIndex: 200,
-            borderRadius: 30,
-            borderBottomLeftRadius: this.state.transition.interpolate({
-              inputRange: [0, 1],
-              outputRange: [0, 30],
-            }),
-            borderBottomRightRadius: this.state.transition.interpolate({
-              inputRange: [0, 1],
-              outputRange: [0, 30],
-            }),
-          }}
-        >
-          <Animated.Image
+    const renderForeground = () => {
+      return (
+        <View>
+          <AnimatedSharedElement
+            id={`bill.${bill.number}.photo`}
             style={[
-              styles.image,
+              styles.imageContainer,
               {
-                borderRadius: 35,
-                borderBottomLeftRadius: this.state.transition.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [0, 30],
-                }),
-                borderBottomRightRadius: this.state.transition.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [0, 30],
-                }),
+                minHeight: 0.125 * height,
+                maxHeight: 0.35 * height,
+                height: 0.3 * height,
+                zIndex: 100,
                 transform: [
                   {
-                    scale: this.state.transition.interpolate({
-                      inputRange: [0, 0.5, 1],
-                      outputRange: [1, 1.03, 1],
+                    scale: this.state.scroll.interpolate({
+                      inputRange: [
+                        -0.3 * height,
+                        -0.2 * height,
+                        0,
+                        0.3 * height,
+                      ],
+                      outputRange: [1.2, 1.2, 1, 1],
+                    }),
+                  },
+                  {
+                    translateY: this.state.scroll.interpolate({
+                      inputRange: [-1, 0, 1],
+                      outputRange: [-0.5, 0, 0],
                     }),
                   },
                 ],
               },
             ]}
-            source={{ uri: category.image }}
-          />
-        </Animated.View>
-        <Animated.View
-          style={{
-            position: 'absolute',
-            width: this.state.transition.interpolate({
-              inputRange: [0, 0.75, 1],
-              outputRange: [cardDims.width, width, width],
-            }),
-            height: this.state.transition.interpolate({
-              inputRange: [0, 0.75, 1],
-              outputRange: [cardDims.height, height * 0.67, height * 0.67],
-            }),
-            top: this.state.transition.interpolate({
-              inputRange: [0, 0.75, 1],
-              outputRange: [cardDims.pageY, height * 0.33, height * 0.33],
-            }),
-            right: this.state.transition.interpolate({
-              inputRange: [0, 0.75, 1],
-              outputRange: [cardDims.pageX, 0, 0],
-            }),
-            backgroundColor: 'white',
-            flex: 2,
-            shadowColor: 'black',
-            shadowRadius: 15,
-            shadowOffset: { width: 0, height: 0 },
-            shadowOpacity: this.state.transition.interpolate({
-              inputRange: [0, 0.35, 1],
-              outputRange: [0.25, 0, 0],
-            }),
-            zIndex: 10,
-            borderRadius: this.state.transition.interpolate({
-              inputRange: [0, 1],
-              outputRange: [25, 0],
-            }),
-            paddingVertical: '5%',
-            paddingHorizontal: '7.5%',
-          }}
-        >
-          <View style={{ flex: 1 }}>
+          >
+            <AnimatedFastImage
+              resizeMode="cover"
+              style={[
+                styles.image,
+                {
+                  transform: [
+                    {
+                      translateY: this.state.scroll.interpolate({
+                        inputRange: [0, 0.3 * height],
+                        outputRange: [0, 0.1 * height],
+                      }),
+                    },
+                  ],
+                },
+              ]}
+              source={{ uri: category.image }}
+            />
+          </AnimatedSharedElement>
+          <Animated.View
+            style={{
+              marginHorizontal: '7.5%',
+              marginTop: '3.5%',
+              transform: [
+                {
+                  translateY: this.state.scroll.interpolate({
+                    inputRange: [-1, 0, 0.3 * height],
+                    outputRange: [0, 0, -0.1 * height],
+                  }),
+                },
+              ],
+            }}
+          >
             <View style={styles.categoriesContainer}>
               <Text style={styles.number}>{formatBillNumber(bill)}</Text>
-
-              <View
+              <SharedElement
+                id={`bill.${bill.number}.category`}
                 style={[
                   styles.category,
                   { backgroundColor: category.categoryColor },
@@ -262,173 +223,76 @@ export default class BillInfoScreen extends React.PureComponent<Props, State> {
                 <Text
                   style={[
                     styles.categoryText,
-                    {
-                      color: category.categoryTextColor,
-                    },
+                    { color: category.categoryTextColor },
                   ]}
                 >
                   {bill.category}
                 </Text>
-              </View>
+              </SharedElement>
             </View>
+            <Text style={styles.title}>{bill.title}</Text>
+          </Animated.View>
+        </View>
+      );
+    };
+    const renderHeader = () => {
+      return (
+        <Animated.View
+          style={[
+            {
+              position: 'absolute',
+              width: '100%',
+              height: 0.125 * height,
+              zIndex: 100,
+            },
+            {
+              opacity: this.state.scroll.interpolate({
+                inputRange: [0, 0.15 * height, 0.25 * height],
+                outputRange: [0, 0, 1],
+                extrapolate: 'clamp',
+              }),
+            },
+          ]}
+        >
+          <BlurView
+            style={{
+              position: 'absolute',
+              width: '100%',
+              height: '100%',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+            blurType="ultraThinMaterial"
+            blurAmount={5}
+          >
             <Text
-              style={[styles.title]}
+              style={{
+                color: 'white',
+                fontWeight: 'bold',
+                fontFamily: 'Futura',
+                marginHorizontal: '20%',
+                marginTop: '10%',
+                fontSize: 16,
+                textAlign: 'center',
+              }}
               numberOfLines={2}
               adjustsFontSizeToFit={true}
             >
               {bill.title}
             </Text>
-            <Animated.View
-              style={{
-                flex: 1,
-                opacity: this.state.transition.interpolate({
-                  inputRange: [0, 0.15, 0.65, 1],
-                  outputRange: [1, 0, 0, 1],
-                }),
-
-                height: this.state.transition.interpolate({
-                  inputRange: [0, 0.05, 0.65, 1],
-                  outputRange: ['100%', '0%', '0%', '100%'],
-                }),
-                overflow: 'hidden',
-              }}
-            >
-              <Text ellipsizeMode="tail" style={[styles.synopsis]}>
-                {bill.short_summary}
-              </Text>
-            </Animated.View>
-          </View>
+          </BlurView>
         </Animated.View>
-        <Animated.View
-          style={{
-            height: height * 0.07,
-            width: width * 0.85,
-            position: 'absolute',
-            bottom: height * 0.035,
-            zIndex: 10000,
-            left: width * 0.075,
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            opacity: this.state.transition.interpolate({
-              inputRange: [0, 0.75, 1],
-              outputRange: [0, 0, 1],
-            }),
-          }}
-        >
-          <View style={styles.fullBill}>
-            <TouchableOpacity
-              style={{
-                flex: 1,
-                alignItems: 'center',
-                flexDirection: 'row',
-                justifyContent: 'center',
-              }}
-              onPress={() => {
-                Linking.canOpenURL(this.props.route.params.bill.url).then(
-                  (supported) => {
-                    if (supported) {
-                      Linking.openURL(this.props.route.params.bill.url);
-                    }
-                  }
-                );
-              }}
-            >
-              <Icon
-                type="feather"
-                name="external-link"
-                size={24}
-                color="#0091ea"
-              />
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: '600',
-                  fontFamily: 'Futura',
-                  marginLeft: '10%',
-                }}
-              >
-                See full bill page
-              </Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.voteButton}>
-            <TouchableScale
-              style={{
-                flex: 1,
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-              onPress={() => {
-                // @ts-ignore
-                this.props.navigation.push('Vote', this.props.route.params);
-              }}
-            >
-              <Icon
-                type="material-community"
-                name="vote-outline"
-                size={30}
-                color="white"
-              />
-            </TouchableScale>
-          </View>
-        </Animated.View>
-        <Animated.View
-          style={[
-            styles.closeButton,
-            {
-              opacity: this.state.transition.interpolate({
-                inputRange: [0, 0.75, 1],
-                outputRange: [0, 0, 1],
-              }),
-              zIndex: 10000,
-            },
-          ]}
-        >
-          <Icon size={26} name="arrow-left" type="feather" color="black" />
-        </Animated.View>
-        <Animated.View
-          style={[
-            styles.likeButton,
-            {
-              opacity: this.state.transition.interpolate({
-                inputRange: [0, 0.75, 1],
-                outputRange: [0, 0, 1],
-              }),
-              zIndex: 10000,
-            },
-          ]}
-        >
-          <Icon
-            size={30}
-            name={this.state.liked ? 'heart-sharp' : 'heart-outline'}
-            type="ionicon"
-            color={this.state.liked ? colors.republican : 'black'}
-          />
-        </Animated.View>
-      </Animated.View>
-    );
-  }
-
-  renderTransitionLayer() {
-    const { category, imageDims } = this.props.route.params;
-    const { height, width } = Dimensions.get('screen');
-    return (
-      <View
-        style={{
-          width: '100%',
-          height: '100%',
-          position: 'absolute',
-          zIndex: 100,
-          backgroundColor: 'white',
-        }}
-      ></View>
-    );
-  }
-
-  render() {
-    const { bill, category } = this.props.route.params;
-    const { height, width } = Dimensions.get('screen');
+      );
+    };
+    const renderBody = () => {
+      return (
+        <View style={[styles.content]}>
+          <Text ellipsizeMode="tail" style={styles.synopsis}>
+            {bill.short_summary + bill.full_summary}
+          </Text>
+        </View>
+      );
+    };
     return (
       <View
         style={{
@@ -436,157 +300,205 @@ export default class BillInfoScreen extends React.PureComponent<Props, State> {
           backgroundColor: 'white',
         }}
       >
-        <SharedElement
-          id={`bill.${bill.number}.photo`}
-          style={[styles.imageContainer, { height: 0.33 * height }]}
-        >
-          <FastImage style={styles.image} source={{ uri: category.image }} />
-        </SharedElement>
-        <View
+        {renderHeader()}
+        <Animated.ScrollView
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { y: this.state.scroll } } }],
+            {
+              useNativeDriver: true,
+              listener: (e) => {
+                //@ts-ignore
+                let newPos = e.nativeEvent.contentOffset.y;
+                this.setState({
+                  scrollDirection:
+                    newPos - this.state.scrollPos > 0
+                      ? ScrollDirection.down
+                      : ScrollDirection.up,
+                });
+                this.setState({ scrollPos: newPos });
+              },
+            }
+          )}
           ref={this.state.contentRef}
-          style={[styles.content, { height: 0.67 * height }]}
+          onScrollBeginDrag={() => {
+            this.setState({ scrollAnimating: false });
+          }}
+          onMomentumScrollEnd={(e: any) => {
+            if (!this.state.scrollAnimating) {
+              let y = e.nativeEvent.contentOffset.y;
+              let isDown = this.state.scrollDirection == ScrollDirection.down;
+              if (y > 0.05 * height && y < 0.3 * height && isDown) {
+                this.state.contentRef.current?.scrollTo({ y: 0.275 * height });
+                this.setState({ scrollAnimating: true });
+              } else if (y <= 0.05 * height && isDown) {
+                this.state.contentRef.current?.scrollTo({ y: 0 });
+                this.setState({ scrollAnimating: true });
+              } else if (y <= 0.35 * height && !isDown) {
+                this.state.contentRef.current?.scrollTo({ y: 0 });
+                this.setState({ scrollAnimating: true });
+              } else {
+                this.state.contentRef.current?.scrollTo({ y: y });
+              }
+            }
+          }}
+          onScrollEndDrag={(e: any) => {
+            if (!this.state.scrollAnimating) {
+              let y = e.nativeEvent.contentOffset.y;
+              let isDown = this.state.scrollDirection == ScrollDirection.down;
+              if (y > 0.05 * height && y < 0.3 * height && isDown) {
+                this.state.contentRef.current?.scrollTo({ y: 0.275 * height });
+                this.setState({ scrollAnimating: true });
+              } else if (y <= 0.05 * height && isDown) {
+                this.state.contentRef.current?.scrollTo({ y: 0 });
+                this.setState({ scrollAnimating: true });
+              } else if (y <= 0.35 * height && !isDown) {
+                this.state.contentRef.current?.scrollTo({ y: 0 });
+                this.setState({ scrollAnimating: true });
+              }
+            }
+          }}
+          overScrollMode="never"
+          scrollToOverflowEnabled={true}
         >
-          <View style={styles.categoriesContainer}>
-            <Text style={styles.number}>{formatBillNumber(bill)}</Text>
-            <SharedElement
-              id={`bill.${bill.number}.category`}
-              style={[
-                styles.category,
-                { backgroundColor: category.categoryColor },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.categoryText,
-                  { color: category.categoryTextColor },
-                ]}
-              >
-                {bill.category}
-              </Text>
-            </SharedElement>
-          </View>
-          <Text style={styles.title}>{bill.title}</Text>
-
-          <ScrollView>
-            <Text ellipsizeMode="tail" style={styles.synopsis}>
-              {bill.short_summary}
-            </Text>
-          </ScrollView>
-          <View
-            style={{
-              height: height * 0.07,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'flex-start',
-              marginBottom: '7%',
-            }}
-          >
-            <View style={styles.fullBill}>
-              <TouchableOpacity
-                style={{
-                  flex: 1,
-                  alignItems: 'center',
-                  flexDirection: 'row',
-                  justifyContent: 'center',
-                }}
-                onPress={() => {
-                  Linking.canOpenURL(this.props.route.params.bill.url).then(
-                    (supported) => {
-                      if (supported) {
-                        Linking.openURL(this.props.route.params.bill.url);
-                      }
-                    }
-                  );
-                }}
-              >
-                <Icon
-                  type="feather"
-                  name="external-link"
-                  size={24}
-                  color="#0091ea"
-                />
-                <Text
-                  style={{
-                    fontSize: 16,
-                    fontWeight: '600',
-                    fontFamily: 'Futura',
-                    marginLeft: '10%',
-                  }}
-                >
-                  See full bill page
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <Animatable.View
-              animation={voteButtonAnimation}
-              iterationCount={'infinite'}
-              duration={2000}
-              iterationDelay={3000}
-              style={styles.voteButton}
-            >
-              <TouchableScale
-                style={{
-                  flex: 1,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}
-                onPress={() => {
-                  // @ts-ignore
-                  this.props.navigation.push('Vote', this.props.route.params);
-                }}
-              >
-                <Icon
-                  type="material-community"
-                  name="vote-outline"
-                  size={30}
-                  color="white"
-                />
-              </TouchableScale>
-            </Animatable.View>
-          </View>
-        </View>
+          {renderForeground()}
+          {renderBody()}
+        </Animated.ScrollView>
         {this.closeButton()}
         {this.likeButton()}
+        {this.footer()}
       </View>
     );
   }
 
-  likeButton = () => {
-    this.state.contentRef.current?.measure((x, y) => {
-      this.setState({ likeY: y - 65 });
-    });
+  footer = () => {
+    const { height } = Dimensions.get('screen');
     return (
-      <Animatable.View
-        animation={'fadeIn'}
-        style={[styles.likeButton, { top: '25%' }]}
+      <View
+        style={{
+          height: height * 0.07,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'flex-start',
+          marginBottom: '7%',
+          marginHorizontal: '7.5%',
+          backgroundColor: 'transparent',
+        }}
       >
-        <TouchableOpacity
-          style={{ width: '100%', height: '100%' }}
-          onPress={() => {
-            likeBill(this.props.route.params.bill, !this.state.liked);
-            storeBillLike(this.props.route.params.bill, !this.state.liked);
-            this.setState({ liked: !this.state.liked });
-          }}
-        >
-          <Animatable.View
-            animation={this.state.liked ? 'pulse' : undefined}
-            iterationCount="infinite"
+        <View style={styles.fullBill}>
+          <TouchableOpacity
             style={{
-              width: '100%',
-              height: '100%',
-              justifyContent: 'center',
+              flex: 1,
               alignItems: 'center',
+              flexDirection: 'row',
+              justifyContent: 'center',
+            }}
+            onPress={() => {
+              Linking.canOpenURL(this.props.route.params.bill.url).then(
+                (supported) => {
+                  if (supported) {
+                    Linking.openURL(this.props.route.params.bill.url);
+                  }
+                }
+              );
             }}
           >
             <Icon
-              size={26}
-              name={this.state.liked ? 'heart-sharp' : 'heart-outline'}
-              type="ionicon"
-              color={this.state.liked ? colors.republican : 'black'}
+              type="feather"
+              name="external-link"
+              size={24}
+              color="#0091ea"
             />
-          </Animatable.View>
-        </TouchableOpacity>
-      </Animatable.View>
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: '600',
+                fontFamily: 'Futura',
+                marginLeft: '10%',
+              }}
+            >
+              See full bill page
+            </Text>
+          </TouchableOpacity>
+        </View>
+        <Animatable.View
+          animation={voteButtonAnimation}
+          iterationCount={'infinite'}
+          duration={2000}
+          iterationDelay={3000}
+          style={styles.voteButton}
+        >
+          <TouchableScale
+            style={{
+              flex: 1,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+            onPress={() => {
+              // @ts-ignore
+              this.props.navigation.push('Vote', this.props.route.params);
+            }}
+          >
+            <Icon
+              type="material-community"
+              name="vote-outline"
+              size={30}
+              color="white"
+            />
+          </TouchableScale>
+        </Animatable.View>
+      </View>
+    );
+  };
+
+  likeButton = () => {
+    return (
+      <Animated.View
+        style={{
+          position: 'absolute',
+          width: 40,
+          height: 40,
+          top: '23%',
+          right: '6%',
+          zIndex: 100,
+          transform: [
+            {
+              translateY: this.state.scroll.interpolate({
+                inputRange: [-1, 0, height * 0.25, height * 0.3],
+                outputRange: [0, 0, -0.17 * height, -0.17 * height],
+              }),
+            },
+          ],
+        }}
+      >
+        <Animatable.View animation={'fadeIn'} style={[styles.likeButton]}>
+          <TouchableOpacity
+            style={{ width: '100%', height: '100%' }}
+            onPress={() => {
+              likeBill(this.props.route.params.bill, !this.state.liked);
+              storeBillLike(this.props.route.params.bill, !this.state.liked);
+              this.setState({ liked: !this.state.liked });
+            }}
+          >
+            <Animatable.View
+              animation={this.state.liked ? 'pulse' : undefined}
+              iterationCount="infinite"
+              style={{
+                width: '100%',
+                height: '100%',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <Icon
+                size={26}
+                name={this.state.liked ? 'heart-sharp' : 'heart-outline'}
+                type="ionicon"
+                color={this.state.liked ? colors.republican : 'black'}
+              />
+            </Animatable.View>
+          </TouchableOpacity>
+        </Animatable.View>
+      </Animated.View>
     );
   };
 
@@ -626,7 +538,6 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 2,
     shadowColor: 'black',
     shadowOpacity: 0.5,
     shadowRadius: 15,
@@ -635,16 +546,14 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     height: '100%',
-    borderRadius: 30,
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
     flex: 1,
   },
   content: {
-    backgroundColor: 'white',
     borderRadius: 20,
-    paddingVertical: '5%',
-    paddingBottom: '2%',
+    marginTop: '2.5%',
+    marginBottom: '10%',
     paddingHorizontal: '7.5%',
     zIndex: 0,
   },
@@ -658,7 +567,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: 'Futura',
     fontWeight: '700',
-    marginTop: '5%',
+    marginTop: '1%',
   },
   categoriesContainer: {
     flexDirection: 'row',
@@ -707,18 +616,15 @@ const styles = StyleSheet.create({
   },
   likeButton: {
     position: 'absolute',
-    width: 45,
-    height: 45,
-    right: '6%',
-    top: '6%',
-    zIndex: 100,
+    width: '100%',
+    height: '100%',
     backgroundColor: 'white',
     borderRadius: 12.5,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: 'black',
     shadowRadius: 5,
-    shadowOpacity: 0.45,
+    shadowOpacity: 0.25,
     shadowOffset: { width: 0, height: 1 },
   },
   backButton: {

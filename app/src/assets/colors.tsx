@@ -6,6 +6,7 @@ export default {
   dominoTextColor: '#eceff1',
   dominoCaptionColor: '#eceff1',
   textInputBackground: '#eceff1',
+  textInputPlaceholderColor: '#9e9e9e',
   searchBarBackground: '#f5f5f5',
   searchBarPlaceholder: '#9e9e9e',
   searchBarSliderIcon: '#424242',

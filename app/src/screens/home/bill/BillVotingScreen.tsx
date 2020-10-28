@@ -103,9 +103,9 @@ function ButtonGroup(props: {
           <AnimatedTouchableOpacity
             key={val}
             onPress={async () => {
-              if (ind != props.activeIndex) {
-                await props.onPress(ind);
+              await props.onPress(ind);
 
+              if (ind != props.activeIndex) {
                 Animated.timing(animations[ind], {
                   toValue: 1,
                   useNativeDriver: false,
@@ -118,21 +118,20 @@ function ButtonGroup(props: {
                     duration: 200,
                   }).start();
                 }
-                props.buttons.forEach((val, ind) => {
-                  Animated.timing(percentAnimations[ind], {
+                props.buttons.forEach((val, i) => {
+                  Animated.timing(percentAnimations[i], {
                     toValue: 1,
                     useNativeDriver: false,
                     duration: 200,
-                  }).start();
+                  }).start(() => {});
                 });
               } else {
                 Animated.parallel([
                   ...props.buttons.map((val, i) =>
-                    Animated.spring(percentAnimations[i], {
+                    Animated.timing(percentAnimations[i], {
                       toValue: 0,
                       useNativeDriver: false,
-                      bounciness: 10,
-                      speed: 6,
+                      duration: 200,
                     })
                   ),
                   Animated.timing(animations[ind], {
@@ -192,7 +191,7 @@ function ButtonGroup(props: {
                   fontSize: 30,
                   fontFamily: 'Futura',
                   fontWeight: 'bold',
-                  color: 'white',
+                  color: props.activeIndex == ind ? 'white' : 'black',
                   position: 'absolute',
                   opacity: percentAnimations[ind].interpolate({
                     inputRange: [0, 1],
@@ -201,7 +200,7 @@ function ButtonGroup(props: {
                   transform: [{ translateY: 10 }, { translateX: 10 }],
                 }}
               >
-                {props.percentages[ind] * 100 + '%'}
+                {Math.round(props.percentages[ind] * 100 )+ '%'}
               </Animated.Text>
             )}
           </AnimatedTouchableOpacity>
@@ -228,9 +227,7 @@ export default class VoteScreen extends React.Component<Props, State> {
 
   componentDidMount() {
     this.reload();
-    this.props.navigation.addListener('focus', () => {
-      this.reload();
-    });
+    this.props.navigation.addListener('focus', this.reload);
   }
 
   reload = () => {
@@ -321,9 +318,21 @@ export default class VoteScreen extends React.Component<Props, State> {
 
   topComment = (top: Comment) => {
     let vote = this.state.billData.votes[top.uid];
+    let formattedDate = dateformat(new Date(top.date), 'mmm dd, yyyy');
+
     let picture = `https://odyssey-user-pfp.s3.us-east-2.amazonaws.com/${top.uid}_pfp.jpg`;
     return (
-      <View style={styles.topComment}>
+      <TouchableOpacity
+        style={styles.topComment}
+        onPress={() => {
+          this.props.navigation.push('CommentFullScreen', {
+            comment: top,
+            formattedDate: formattedDate,
+            voteColor: this.voteToColor(vote),
+            voteText: this.voteToText(vote),
+          });
+        }}
+      >
         <Icon
           type="font-awesome-5"
           name="quote-right"
@@ -358,7 +367,7 @@ export default class VoteScreen extends React.Component<Props, State> {
           <Image
             style={styles.profile}
             source={{
-              uri: picture,
+              uri: picture + '?cache=' + Date.now(),
             }}
           />
           <View style={styles.profileName}>
@@ -406,7 +415,7 @@ export default class VoteScreen extends React.Component<Props, State> {
             </Text>
           </View>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 

@@ -12,6 +12,7 @@
   "dependencies": {
     "@gorhom/animated-tabbar": "^2.0.0",
     "@react-native-community/async-storage": "^1.11.0",
+    "@react-native-community/blur": "^3.6.0",
     "@react-native-community/cameraroll": "^4.0.1",
     "@react-native-community/clipboard": "^1.5.0",
     "@react-native-community/geolocation": "^2.0.2",
@@ -47,6 +48,7 @@
     "react-native-shared-element": "^0.7.0",
     "react-native-snap-carousel": "^3.9.1",
     "react-native-splash-screen": "^3.2.0",
+    "react-native-sticky-parallax-header": "^0.4.0",
     "react-native-swipeout": "^2.3.6",
     "react-native-touchable-scale": "^2.1.1",
     "react-native-vector-icons": "^7.0.0",

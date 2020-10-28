@@ -99,9 +99,11 @@ export default class BillTab extends React.Component<Props, State> {
             },
           }}
           name="Details"
-          sharedElements={(route, other) => {
-            const { bill } = route.params;
-            return [{ id: `bill.${bill.number}.photo` }];
+          sharedElements={(route, other, showing) => {
+            if (other.name === 'Discover' && showing) {
+              const { bill } = route.params;
+              return [{ id: `bill.${bill.number}.photo` }];
+            }
           }}
           component={BillDetailStack}
           listeners={{

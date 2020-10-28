@@ -43,28 +43,49 @@ class ProfileScreen extends React.Component<Props, State> {
     });
   }
 
-  Item = (props: { icon: string; item: string; index: number }) => {
+  Item = (props: {
+    icon: { name: string; type: string };
+    item: string;
+    index: number;
+    name: string;
+  }) => {
     return (
       <View
         style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'flex-start',
           marginTop: props.index == 0 ? '0%' : '5%',
         }}
       >
-        <Image
-          style={{ flex: 1.2, width: 50, height: 50, resizeMode: 'center' }}
-          source={{
-            uri: props.icon,
+        <View
+          style={{
+            backgroundColor: 'white',
+            alignItems: 'center',
+            padding: '2.5%',
+            borderRadius: 5,
+            shadowOpacity: 0.15,
+            shadowColor: 'black',
+            shadowRadius: 5,
+            shadowOffset: { width: 0, height: 1 },
+            alignSelf: 'flex-start',
+            flexDirection: 'row',
           }}
-        />
+        >
+          <Icon type={props.icon.type} name={props.icon.name} size={18} />
+          <Text
+            style={{
+              marginLeft: '2.5%',
+              fontFamily: 'Futura',
+              fontWeight: '500',
+            }}
+          >
+            {props.name}
+          </Text>
+        </View>
         <Text
           style={{
-            marginLeft: '5%',
-            flex: 10,
+            marginTop: '2.5%',
+            marginLeft: '2.5%',
             fontFamily: 'Futura',
-            fontSize: 16,
+            fontSize: 14,
             fontWeight: '500',
           }}
           numberOfLines={2}
@@ -187,16 +208,20 @@ class ProfileScreen extends React.Component<Props, State> {
             }}
           >
             <this.Item
-              icon={
-                'https://cdn1.iconfinder.com/data/icons/flat-and-simple-part-1/128/location-512.png'
-              }
+              icon={{
+                name: 'home',
+                type: 'feather',
+              }}
+              name="Address"
               item={user.address}
               index={0}
             />
             <this.Item
-              icon={
-                'https://cdn4.iconfinder.com/data/icons/gradient-ui-1/512/phone-256.png'
-              }
+              icon={{
+                name: 'phone',
+                type: 'feather',
+              }}
+              name="Phone"
               item={this.formatPhoneNumber(user.phoneNumber)}
               index={1}
             />

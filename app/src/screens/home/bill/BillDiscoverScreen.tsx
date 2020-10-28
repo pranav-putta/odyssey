@@ -19,7 +19,7 @@ import {
   Representative,
 } from '../../../models';
 import { Bill } from '../../../models/Bill';
-import { likedBills, randomBills, refresh } from '../../../util';
+import { likedBills, loadBillFeed, refresh } from '../../../util';
 import BillCard, { BillCardSpecs } from './BillCard';
 import FastImage from 'react-native-fast-image';
 // @ts-ignore
@@ -119,7 +119,6 @@ const BillCarousel = (props: {
       inactiveSlideOpacity={0.7}
       centerContent={true}
       loop={false}
-      autoplay={props.focused}
       autoplayInterval={10000}
       onScroll={Animated.event(
         [{ nativeEvent: { contentOffset: { x: scrollX } } }],
@@ -130,7 +129,8 @@ const BillCarousel = (props: {
 };
 
 export default class BillDiscoverScreen extends React.Component<Props, State> {
-  private carousel = React.createRef<Carousel<Bill>>();
+  private newCarousel = React.createRef<Carousel<Bill>>();
+  private likedCarousel = React.createRef<Carousel<Bill>>();
 
   componentDidMount() {
     this.loadData();
@@ -144,7 +144,7 @@ export default class BillDiscoverScreen extends React.Component<Props, State> {
       this.setState({ representatives: data });
       data = await fetchCategories();
       this.setState({ categories: data });
-      let bills = await randomBills();
+      let bills = await loadBillFeed();
       let lbills = await likedBills();
       this.setState({
         bills: bills,
@@ -152,6 +152,13 @@ export default class BillDiscoverScreen extends React.Component<Props, State> {
         likedBills: lbills,
         progress: true,
       });
+      if (this.state.currentTab == BillTabKey.new) {
+        this.newCarousel.current?.startAutoplay();
+        this.likedCarousel.current?.stopAutoplay();
+      } else {
+        this.likedCarousel.current?.startAutoplay();
+        this.newCarousel.current?.stopAutoplay();
+      }
     }
   };
 
@@ -174,8 +181,17 @@ export default class BillDiscoverScreen extends React.Component<Props, State> {
 
     this.props.navigation.addListener('blur', () => {
       this.setState({ focused: false });
+      this.newCarousel.current?.stopAutoplay();
+      this.likedCarousel.current?.stopAutoplay();
     });
     this.props.navigation.addListener('focus', () => {
+      if (this.state.currentTab == BillTabKey.new) {
+        this.newCarousel.current?.startAutoplay();
+        this.likedCarousel.current?.stopAutoplay();
+      } else {
+        this.likedCarousel.current?.startAutoplay();
+        this.newCarousel.current?.stopAutoplay();
+      }
       this.setState({ focused: true });
     });
   }
@@ -187,6 +203,13 @@ export default class BillDiscoverScreen extends React.Component<Props, State> {
         style={styles.tabButton}
         disabled={active}
         onPress={() => {
+          if (key == BillTabKey.liked && key != this.state.currentTab) {
+            this.likedCarousel.current?.stopAutoplay();
+            this.newCarousel.current?.startAutoplay();
+          } else if (key == BillTabKey.new && key != this.state.currentTab) {
+            this.likedCarousel.current?.startAutoplay();
+            this.newCarousel.current?.stopAutoplay();
+          }
           this.setState({ currentTab: key });
         }}
       >
@@ -232,7 +255,7 @@ export default class BillDiscoverScreen extends React.Component<Props, State> {
     if (this.state.currentTab == BillTabKey.new) {
       return (
         <BillCarousel
-          carouselRef={this.carousel}
+          carouselRef={this.newCarousel}
           bills={this.state.bills}
           categories={this.state.categories}
           onPress={(item, image, container, content) => {
@@ -250,7 +273,7 @@ export default class BillDiscoverScreen extends React.Component<Props, State> {
     } else if (this.state.currentTab == BillTabKey.liked) {
       return (
         <BillCarousel
-          carouselRef={this.carousel}
+          carouselRef={this.likedCarousel}
           bills={this.state.likedBills}
           categories={this.state.categories}
           onPress={(item, image, container, content) => {
@@ -353,7 +376,8 @@ export default class BillDiscoverScreen extends React.Component<Props, State> {
                 this.setState({ refreshing: true });
                 refresh().finally(() => {
                   this.loadData().finally(() => {
-                    this.carousel.current?.snapToItem(0, true);
+                    this.newCarousel.current?.snapToItem(0, true);
+                    this.likedCarousel.current?.snapToItem(0, true);
                     this.setState({ refreshing: false });
                   });
                 });
