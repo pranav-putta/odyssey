@@ -54,14 +54,14 @@ class SearchBarScreen extends React.Component<Props, State> {
     this.typingTimeout = setTimeout(() => {}, 0);
   }
 
-  toggleSearch = () => {
+  toggleSearch = (val: boolean) => {
     Animated.timing(this.popularCategoriesAnimation, {
-      toValue: this.state.searchStarted ? 1 : 0,
+      toValue: val ? 0 : 1,
       useNativeDriver: true,
       duration: 150,
     }).start(() => {
       this.setState({
-        searchStarted: !this.state.searchStarted,
+        searchStarted: val,
         searchBills: [],
       });
     });
@@ -91,33 +91,31 @@ class SearchBarScreen extends React.Component<Props, State> {
               style={styles.searchBarTextInput}
               value={this.state.searchQuery}
               onFocus={() => {
-                this.toggleSearch();
+                this.toggleSearch(true);
               }}
               onBlur={() => {
-                this.toggleSearch();
+                if (this.state.searchBills.length == 0) {
+                  this.toggleSearch(false);
+                }
               }}
               returnKeyType="search"
               onChangeText={(query) => {
                 this.setState({ searchQuery: query });
-                if (query !== '') {
-                  if (this.typingTimeout) {
-                    clearTimeout(this.typingTimeout);
-                  }
-                  this.typingTimeout = setTimeout(() => {
-                    let searchBy = this.state.searchBy;
-                    Analytics.search(query, searchBy);
-                    console.log('searching');
-                    if (query.length != 0) {
-                      search(searchBy, query).then((bills) => {
-                        this.setState({ searchBills: bills });
-                      });
-                    } else {
-                      this.setState({ searchBills: [] });
-                    }
-                  }, 300);
-                } else {
-                  this.setState({ searchBills: [] });
+                if (this.typingTimeout) {
+                  clearTimeout(this.typingTimeout);
                 }
+                this.typingTimeout = setTimeout(() => {
+                  let searchBy = this.state.searchBy;
+                  Analytics.search(query, searchBy);
+                  console.log('searching');
+                  if (query.length != 0) {
+                    search(searchBy, query).then((bills) => {
+                      this.setState({ searchBills: bills });
+                    });
+                  } else {
+                    this.setState({ searchBills: [] });
+                  }
+                }, 300);
               }}
               clearButtonMode="always"
             />
@@ -174,12 +172,14 @@ class SearchBarScreen extends React.Component<Props, State> {
             </Animated.View>
           ) : undefined}
           {this.state.searchBills.length != 0 ? (
-            <Animated.View>
+            <Animated.View style={{ flex: 1 }}>
               <FlatList
                 style={styles.searchList}
                 data={this.state.searchBills}
                 keyExtractor={(item) => formatBillNumber(item)}
                 keyboardDismissMode="on-drag"
+                overScrollMode="always"
+                scrollToOverflowEnabled={true}
                 renderItem={(data) => {
                   return (
                     <SearchBillCard
@@ -210,6 +210,7 @@ const styles = StyleSheet.create({
   },
   container: {
     marginTop: '5%',
+    flex: 1,
   },
   header: {
     fontSize: 30,
