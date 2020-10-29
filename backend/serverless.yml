@@ -22,7 +22,7 @@ functions:
     events:
       - http:
           path: user-exists
-          method: get
+          method: post
           cors: true
   newUser:
     handler: dist/handler.new_user

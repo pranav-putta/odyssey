@@ -15,15 +15,24 @@ import { colors } from '../../../assets';
 import { formatBillNumber } from '../../../models/Bill';
 //@ts-ignore
 import TouchableScale from 'react-native-touchable-scale';
-import { fetchUser, likeBill, storeBillLike } from '../../../util';
+import {
+  fetchUser,
+  getNotification,
+  likeBill,
+  storeBillLike,
+  storeNotification,
+} from '../../../util';
 import {
   BillDetailInfoScreenRouteProps,
   BillDetailsInfoScreenProps,
 } from './BillDetailsStack';
 import * as Animatable from 'react-native-animatable';
 import { SharedElement } from 'react-navigation-shared-element';
-import StickyParallaxHeader from 'react-native-sticky-parallax-header';
 import { BlurView } from '@react-native-community/blur';
+import { DefaultCategory } from '../../../models/Category';
+import { Config } from '../../../util/Config';
+import { Analytics } from '../../../util/AnalyticsHandler';
+import inappmessaging from '@react-native-firebase/in-app-messaging';
 
 interface Props {
   navigation: BillDetailsInfoScreenProps;
@@ -143,7 +152,16 @@ export default class BillInfoScreen extends React.PureComponent<Props, State> {
   }
 
   render() {
-    const { bill, category } = this.props.route.params;
+    let { bill, category } = this.props.route.params;
+    category = Config.getTopics()[bill.category];
+    if (!category) {
+      category = DefaultCategory;
+      console.log('info screen');
+
+      Config.alertUpdateConfig().then(() => {
+        this.forceUpdate();
+      });
+    }
 
     const renderForeground = () => {
       return (
@@ -244,6 +262,13 @@ export default class BillInfoScreen extends React.PureComponent<Props, State> {
               width: '100%',
               height: 0.125 * height,
               zIndex: 100,
+              shadowRadius: 10,
+              shadowOpacity: 0.35,
+              shadowColor: 'black',
+              shadowOffset: { width: 0, height: 2 },
+              borderBottomLeftRadius: 15,
+              borderBottomRightRadius: 15,
+              overflow: 'hidden',
             },
             {
               opacity: this.state.scroll.interpolate({
@@ -256,7 +281,6 @@ export default class BillInfoScreen extends React.PureComponent<Props, State> {
         >
           <BlurView
             style={{
-              position: 'absolute',
               width: '100%',
               height: '100%',
               justifyContent: 'center',
@@ -393,6 +417,7 @@ export default class BillInfoScreen extends React.PureComponent<Props, State> {
               justifyContent: 'center',
             }}
             onPress={() => {
+              Analytics.billFullPage(this.props.route.params.bill);
               Linking.canOpenURL(this.props.route.params.bill.url).then(
                 (supported) => {
                   if (supported) {

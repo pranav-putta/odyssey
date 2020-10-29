@@ -28,9 +28,15 @@ import AsyncStorage from '@react-native-community/async-storage';
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import { GridList } from './components/GridList';
-import Global from '../../util/global';
-import { createUser, userExists } from '../../util';
+import {
+  createUser,
+  NotificationHandler,
+  storeUser,
+  userExists,
+} from '../../util';
 import { LoginNavigation } from '../../App';
+import { Config } from '../../util/Config';
+import { Analytics } from '../../util/AnalyticsHandler';
 
 // state type definitions
 type State = {
@@ -66,7 +72,6 @@ type State = {
 
 type Props = {
   navigation: LoginNavigation;
-  callback: () => void;
 };
 class LoginScreen extends React.Component<Props, State> {
   // animation variables
@@ -280,6 +285,7 @@ class LoginScreen extends React.Component<Props, State> {
       })
       .finally(() => {
         // hide progress dialog
+        Analytics.phoneNumberEntered(this.state.phoneNumber);
         this.toggleProgress(false);
       });
   };
@@ -337,18 +343,23 @@ class LoginScreen extends React.Component<Props, State> {
   completeLogin = () => {
     // set storage item
     AsyncStorage.setItem(storage.userSignedIn, 'true');
+    let uid = auth().currentUser?.uid;
+    if (uid) {
+      Analytics.setUID(uid);
+      Analytics.login(uid, true);
+    }
     // send navigation to home screen
     // reset login state
     //this.props.navigation.navigate('Home');
-    this.props.callback();
+    this.props.navigation.navigate('Home');
+    NotificationHandler.subscribeToAlerts();
   };
 
   handleCreateUser = () => {
     // show progress
     Keyboard.dismiss();
     this.toggleProgress(true);
-
-    createUser({
+    let user = {
       uid: this.state.uid,
       phoneNumber: this.state.phoneNumber,
       name: this.state.name,
@@ -359,11 +370,20 @@ class LoginScreen extends React.Component<Props, State> {
       created_time: Date.now(),
       pfp_url: '',
       email: '',
-    })
+    };
+
+    createUser(user)
       .then((response) => {
         if (response) {
           // if user is done creating
-          this.completeLogin();
+          // push user into database
+          storeUser(user)
+            .then(() => {
+              this.completeLogin();
+            })
+            .catch(() => {
+              Alert.alert("Couldn't store user!");
+            });
         } else {
           // if user doesn't exist, collect data
           Alert.alert(JSON.stringify(response));
@@ -374,6 +394,7 @@ class LoginScreen extends React.Component<Props, State> {
         Alert.alert(JSON.stringify(error));
       })
       .finally(() => {
+        Analytics.signUp(this.state.uid, 'phone');
         // hide progress
         this.toggleProgress(false);
       });
@@ -831,7 +852,7 @@ class LoginScreen extends React.Component<Props, State> {
         <GridList<Topic>
           n={2}
           style={{ marginBottom: '15%' }}
-          data={Global.getTopicsAsArray().filter((val) => val.display)}
+          data={Config.getSmallTopicsAsArray().filter((val) => val.display)}
           item={(data: Topic): React.ReactElement => {
             let clicked = this.state.selectedTopics[data.name] || false;
             return (

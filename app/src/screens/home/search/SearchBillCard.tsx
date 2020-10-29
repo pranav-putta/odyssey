@@ -1,9 +1,10 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Bill } from '../../../models/Bill';
-import Global from '../../../util/global';
 import FastImage from 'react-native-fast-image';
 import * as Animatable from 'react-native-animatable';
+import { Config } from '../../../util/Config';
+import { DefaultTopic } from '../../../models/Topic';
 
 type Props = {
   bill: Bill;
@@ -14,7 +15,14 @@ type State = {};
 
 export default class SearchBillCard extends React.PureComponent<Props, State> {
   render() {
-    const topic = Global.getTopics()[this.props.bill.category];
+    let topic = Config.getSmallTopics()[this.props.bill.category];
+    if (!topic) {
+      console.log("search screen")
+      topic = DefaultTopic;
+      Config.alertUpdateConfig().then(() => {
+        this.forceUpdate();
+      });
+    }
     return (
       <Animatable.View animation="fadeIn" style={styles.container}>
         <TouchableOpacity

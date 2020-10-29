@@ -7,13 +7,24 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import ProfileTab from './profile/ProfileTab';
 import { RouteProp } from '@react-navigation/native';
-import { HomeParams } from '../../App';
+import { HomeNavigation, HomeParams } from '../../App';
+import {
+  getNotification,
+  NotificationHandler,
+  removeNotification,
+  storeNotification,
+} from '../../util/';
+import inAppMessaging from '@react-native-firebase/in-app-messaging';
+import NotificationCard from '../../components/NotificationCard';
+import { Notification } from '../../models/Notification';
 
 type State = {
   showTabs: boolean;
   selectedTab: string;
+  notification?: Notification;
 };
 type Props = {
+  navigation: HomeNavigation;
   route: HomeParams;
 };
 
@@ -58,7 +69,22 @@ class HomeScreen extends React.PureComponent<Props, State> {
     this.state = {
       showTabs: true,
       selectedTab: TabKey.bills,
+      notification: undefined,
     };
+  }
+
+  componentDidMount() {
+    this.initialize();
+  }
+
+  private async initialize() {
+    // check for notifications
+    await inAppMessaging().setMessagesDisplaySuppressed(false);
+
+    let response = await NotificationHandler.requestUserPermission();
+    if (response) {
+      await NotificationHandler.createForegroundListener();
+    }
   }
 
   render() {

@@ -119,8 +119,7 @@ exports.user_exists = function (event) {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    data = event["queryStringParameters"];
-                    console.log("what the fuck");
+                    data = JSON.parse(event.body);
                     if (!(data && data.uid && typeof data.uid === "string")) return [3 /*break*/, 2];
                     // set up dynamodb client
                     aws.config.update(aws_config_1.default.aws_remote_config);
@@ -239,7 +238,7 @@ var get_reps = function (address) { return __awaiter(void 0, void 0, void 0, fun
         var url = "https://civicinfo.googleapis.com/civicinfo/v2/representatives?" + ext;
         return axios_1.default.get(url);
     }
-    var rawReps, officials, ids_1, params, i, pgPool, members, error_1;
+    var rawReps, divisions, officials, ids_1, districts_1, params, i, pgPool, members, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -247,8 +246,15 @@ var get_reps = function (address) { return __awaiter(void 0, void 0, void 0, fun
                 return [4 /*yield*/, findReps(address)];
             case 1:
                 rawReps = _a.sent();
+                divisions = rawReps.data.divisions;
                 officials = rawReps.data.officials;
                 ids_1 = [];
+                districts_1 = [];
+                Object.keys(divisions).forEach(function (div) {
+                    var divParts = div.split(":");
+                    districts_1.push(Number.parseInt(divParts[divParts.length - 1]));
+                });
+                // todo: update this for new detection protocol
                 officials.forEach(function (element) {
                     if (element.hasOwnProperty("urls") &&
                         Array.isArray(element.urls) &&

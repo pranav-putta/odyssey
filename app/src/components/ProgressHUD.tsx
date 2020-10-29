@@ -1,8 +1,9 @@
 import React from 'react';
-import {View, Text, StyleSheet, ActivityIndicator} from 'react-native';
-import {colors} from '../assets';
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { colors } from '../assets';
 import Modal from 'react-native-modal';
-import {WaveIndicator} from 'react-native-indicators';
+// @ts-ignore
+import { WaveIndicator } from 'react-native-indicators';
 
 type State = {};
 

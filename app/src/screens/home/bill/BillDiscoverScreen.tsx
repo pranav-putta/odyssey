@@ -9,13 +9,15 @@ import {
   Dimensions,
   Animated,
   Linking,
+  Alert,
 } from 'react-native';
 import Carousel from 'react-native-snap-carousel';
 import { Icon } from 'react-native-elements';
 import { colors } from '../../../assets';
 import {
-  fetchCategories,
   fetchRepresentatives,
+  getNotification,
+  removeNotification,
   Representative,
 } from '../../../models';
 import { Bill } from '../../../models/Bill';
@@ -31,6 +33,10 @@ import ProgressHUD from '../../../components/ProgressHUD';
 import { Measure } from './BillDetailsStack';
 import { SharedElement } from 'react-navigation-shared-element';
 import { TouchableOpacity } from 'react-native-gesture-handler';
+import { Config } from '../../../util/Config';
+import { Analytics } from '../../../util/AnalyticsHandler';
+import { Notification } from '../../../models/Notification';
+import NotificationCard from '../../../components/NotificationCard';
 
 const width = Dimensions.get('screen').width;
 const height = Dimensions.get('screen').height;
@@ -47,10 +53,10 @@ interface State {
   refreshing: boolean;
   loaded: boolean;
   representatives: Representative[];
-  categories: any;
   focused: boolean;
   likedBills: Bill[];
   progress: boolean;
+  notification?: Notification;
 }
 
 enum BillTabKey {
@@ -61,24 +67,11 @@ enum BillTabKey {
 // carousel for new tab
 const BillCarousel = (props: {
   bills: Bill[];
-  categories: any;
-  onPress: (
-    item: { bill: Bill; category: Category },
-    image: Measure,
-    container: Measure,
-    content: Measure
-  ) => void;
+  onPress: (item: { bill: Bill; category: Category }) => void;
   focused: boolean;
   carouselRef: React.RefObject<Carousel<Bill>>;
 }) => {
   const scrollX = React.useRef(new Animated.Value(0)).current;
-  const measure = async (obj: React.RefObject<View>) => {
-    return new Promise<Measure>((resolve, reject) => {
-      obj.current?.measure((x, y, w, h, px, py) => [
-        resolve({ x: x, y: y, width: w, height: h, pageX: px, pageY: py }),
-      ]);
-    });
-  };
   return (
     <Carousel
       ref={props.carouselRef}
@@ -89,7 +82,7 @@ const BillCarousel = (props: {
       }}
       data={props.bills}
       renderItem={(item: { item: Bill; index: number }) => {
-        let category = props.categories[item.item.category];
+        let category = Config.getTopics()[item.item.category];
         return (
           <BillCard
             index={item.index}
@@ -97,16 +90,8 @@ const BillCarousel = (props: {
             scrollX={scrollX}
             category={category}
             onPress={async (image, container, content) => {
-              const imageDims = await measure(container);
-              const containerDims = await measure(container);
-              const contentDims = await measure(content);
-              console.log(imageDims);
-              props.onPress(
-                { bill: item.item, category: category },
-                imageDims,
-                containerDims,
-                contentDims
-              );
+              Analytics.billClick(item.item);
+              props.onPress({ bill: item.item, category: category });
             }}
           />
         );
@@ -134,31 +119,46 @@ export default class BillDiscoverScreen extends React.Component<Props, State> {
 
   componentDidMount() {
     this.loadData();
+    this.props.navigation.addListener('focus', () => {
+      this.checkNotification();
+    });
+  }
+  private async checkNotification() {
+    let notif = await getNotification();
+    if (notif) {
+      this.setState({ notification: notif });
+      removeNotification();
+    }
   }
 
-  loadData = async () => {
-    this.setState({ progress: true });
+  loadData = async (): Promise<void> => {
     if (!this.state.loaded || this.state.refreshing) {
-      await refresh();
-      let data = await fetchRepresentatives();
-      this.setState({ representatives: data });
-      data = await fetchCategories();
-      this.setState({ categories: data });
-      let bills = await loadBillFeed();
-      let lbills = await likedBills();
-      this.setState({
-        bills: bills,
-        loaded: true,
-        likedBills: lbills,
-        progress: true,
+      console.log('here');
+      return new Promise<void>((resolve, reject) => {
+        this.setState({ progress: true }, async () => {
+          await refresh();
+          let data = await fetchRepresentatives();
+          this.setState({ representatives: data });
+          let bills = await loadBillFeed();
+          let lbills = await likedBills();
+          this.setState({
+            bills: bills,
+            loaded: true,
+            likedBills: lbills,
+            progress: false,
+          });
+          resolve();
+          this.checkNotification();
+
+          if (this.state.currentTab == BillTabKey.new) {
+            this.newCarousel.current?.startAutoplay();
+            this.likedCarousel.current?.stopAutoplay();
+          } else {
+            this.likedCarousel.current?.startAutoplay();
+            this.newCarousel.current?.stopAutoplay();
+          }
+        });
       });
-      if (this.state.currentTab == BillTabKey.new) {
-        this.newCarousel.current?.startAutoplay();
-        this.likedCarousel.current?.stopAutoplay();
-      } else {
-        this.likedCarousel.current?.startAutoplay();
-        this.newCarousel.current?.stopAutoplay();
-      }
     }
   };
 
@@ -173,7 +173,6 @@ export default class BillDiscoverScreen extends React.Component<Props, State> {
       currentTab: BillTabKey.new,
       repSelected: false,
       repSelectedInfo: undefined,
-      categories: {},
       focused: this.props.navigation.isFocused(),
       likedBills: [],
       progress: false,
@@ -252,41 +251,51 @@ export default class BillDiscoverScreen extends React.Component<Props, State> {
 
   // get the current tab selected and return corresponding view
   currentTabContent = () => {
-    if (this.state.currentTab == BillTabKey.new) {
+    if (
+      this.state.currentTab == BillTabKey.new &&
+      this.state.bills.length > 0
+    ) {
       return (
         <BillCarousel
           carouselRef={this.newCarousel}
           bills={this.state.bills}
-          categories={this.state.categories}
-          onPress={(item, image, container, content) => {
+          onPress={(item) => {
             this.props.navigation.push('Details', {
               bill: item.bill,
               category: item.category,
-              imageDims: image,
-              textCardDims: container,
-              cardDims: content,
             });
           }}
           focused={this.state.focused}
         />
       );
-    } else if (this.state.currentTab == BillTabKey.liked) {
+    } else if (
+      this.state.currentTab == BillTabKey.liked &&
+      this.state.likedBills.length > 0
+    ) {
       return (
         <BillCarousel
           carouselRef={this.likedCarousel}
           bills={this.state.likedBills}
-          categories={this.state.categories}
-          onPress={(item, image, container, content) => {
+          onPress={(item) => {
             this.props.navigation.push('Details', {
               bill: item.bill,
               category: item.category,
-              imageDims: image,
-              textCardDims: container,
-              cardDims: content,
             });
           }}
           focused={this.state.focused}
         />
+      );
+    } else {
+      return (
+        <View
+          style={{ justifyContent: 'center', alignItems: 'center', flex: 1 }}
+        >
+          <Text
+            style={{ fontFamily: 'Futura', fontSize: 20, fontWeight: '400' }}
+          >
+            Nothing here!
+          </Text>
+        </View>
       );
     }
   };
@@ -367,18 +376,23 @@ export default class BillDiscoverScreen extends React.Component<Props, State> {
   discover = () => {
     return (
       <SafeAreaView style={{ flex: 1 }}>
+        <NotificationCard
+          notification={this.state.notification}
+          dismiss={() => {
+            this.setState({ notification: undefined });
+          }}
+        />
         <ScrollView
           contentContainerStyle={{ flex: 1 }}
           refreshControl={
             <RefreshControl
               refreshing={this.state.refreshing}
               onRefresh={() => {
-                this.setState({ refreshing: true });
-                refresh().finally(() => {
+                this.setState({ refreshing: true }, () => {
                   this.loadData().finally(() => {
+                    this.setState({ refreshing: false });
                     this.newCarousel.current?.snapToItem(0, true);
                     this.likedCarousel.current?.snapToItem(0, true);
-                    this.setState({ refreshing: false });
                   });
                 });
               }}
@@ -445,8 +459,8 @@ export default class BillDiscoverScreen extends React.Component<Props, State> {
             backgroundColor: 'white',
           }}
         >
-          <ProgressHUD visible={this.state.progress} />
           <Text>Loading...</Text>
+          <ProgressHUD visible={true} />
         </View>
       );
     }

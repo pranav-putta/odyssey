@@ -17,6 +17,7 @@ import ProgressHUD from '../../../components/ProgressHUD';
 import { fetchRepresentatives, Representative, User } from '../../../models';
 import { Comment } from '../../../models/BillData';
 import { addComment, fetchUser } from '../../../util';
+import { Analytics } from '../../../util/AnalyticsHandler';
 import {
   BillDetailCommentScreenRouteProps,
   BillDetailsCommentScreenProps,
@@ -163,6 +164,7 @@ export default class ComposeCommentScreen extends React.PureComponent<
               backgroundColor: '#448aff',
             }}
             onPress={async () => {
+              Analytics.createNewComment(this.props.route.params.bill, this.state.shouldSendReps)
               // create comment and send
               let user = await fetchUser();
               let comment: Comment = {

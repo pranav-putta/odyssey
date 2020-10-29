@@ -12,7 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '../../../assets';
 import { Icon } from 'react-native-elements';
 import { FlatList } from 'react-native-gesture-handler';
-import Global from '../../../util/global';
+import { Config } from '../../../util/Config';
 import CategoryCard from './CategoryCard';
 import SearchSettingModal from './SearchSettingsModal';
 import { search } from '../../../util';
@@ -20,6 +20,7 @@ import SearchBillCard from './SearchBillCard';
 import { Bill, formatBillNumber } from '../../../models/Bill';
 import { BillSearchScreenProps } from './SearchTab';
 import ProgressHUD from '../../../components/ProgressHUD';
+import { Analytics } from '../../../util/AnalyticsHandler';
 
 type State = {
   searchStarted: boolean;
@@ -36,6 +37,7 @@ type Props = {
 
 class SearchBarScreen extends React.Component<Props, State> {
   private popularCategoriesAnimation: Animated.Value;
+  private typingTimeout: ReturnType<typeof setTimeout>;
 
   constructor(props: Props) {
     super(props);
@@ -49,6 +51,7 @@ class SearchBarScreen extends React.Component<Props, State> {
     };
 
     this.popularCategoriesAnimation = new Animated.Value(1);
+    this.typingTimeout = setTimeout(() => {}, 0);
   }
 
   toggleSearch = () => {
@@ -57,7 +60,10 @@ class SearchBarScreen extends React.Component<Props, State> {
       useNativeDriver: true,
       duration: 150,
     }).start(() => {
-      this.setState({ searchStarted: !this.state.searchStarted });
+      this.setState({
+        searchStarted: !this.state.searchStarted,
+        searchBills: [],
+      });
     });
   };
 
@@ -68,6 +74,7 @@ class SearchBarScreen extends React.Component<Props, State> {
         <SearchSettingModal
           visible={this.state.searchSettingsVisible}
           setSearchType={(val) => {
+            Analytics.searchSettingsChanged(val);
             this.setState({ searchBy: val });
           }}
           dismiss={() => {
@@ -90,14 +97,24 @@ class SearchBarScreen extends React.Component<Props, State> {
                 this.toggleSearch();
               }}
               returnKeyType="search"
-              onChange={(e) => {
-                let query = e.nativeEvent.text;
-                let searchBy = this.state.searchBy;
+              onChangeText={(query) => {
                 this.setState({ searchQuery: query });
-                if (query.length != 0) {
-                  search(searchBy, query).then((bills) => {
-                    this.setState({ searchBills: bills });
-                  });
+                if (query !== '') {
+                  if (this.typingTimeout) {
+                    clearTimeout(this.typingTimeout);
+                  }
+                  this.typingTimeout = setTimeout(() => {
+                    let searchBy = this.state.searchBy;
+                    Analytics.search(query, searchBy);
+                    console.log('searching');
+                    if (query.length != 0) {
+                      search(searchBy, query).then((bills) => {
+                        this.setState({ searchBills: bills });
+                      });
+                    } else {
+                      this.setState({ searchBills: [] });
+                    }
+                  }, 300);
                 } else {
                   this.setState({ searchBills: [] });
                 }
@@ -107,6 +124,7 @@ class SearchBarScreen extends React.Component<Props, State> {
             <TouchableOpacity
               style={styles.searchBarSliderButton}
               onPress={() => {
+                Analytics.searchSettingsClicked();
                 this.setState({ searchSettingsVisible: true });
               }}
             >
@@ -125,11 +143,14 @@ class SearchBarScreen extends React.Component<Props, State> {
                 contentContainerStyle={{ paddingLeft: '0%' }}
                 style={styles.categoryList}
                 keyExtractor={(item) => item.name}
-                data={Global.getTopicsAsArray().filter((val) => val.display)}
+                data={Config.getSmallTopicsAsArray().filter(
+                  (val) => val.display
+                )}
                 renderItem={(data) => {
                   return (
                     <CategoryCard
                       onPress={() => {
+                        Analytics.searchCategoryClicked(data.item.name);
                         this.setState({ searchQuery: data.item.name });
                         this.setState({ progress: true });
                         search(this.state.searchBy, data.item.name).then(
@@ -163,7 +184,7 @@ class SearchBarScreen extends React.Component<Props, State> {
                   return (
                     <SearchBillCard
                       onPress={() => {
-                        const categories = Global.getCategories();
+                        const categories = Config.getTopics();
                         this.props.navigation.navigate('Details', {
                           bill: data.item,
                           category: categories[data.item.category],

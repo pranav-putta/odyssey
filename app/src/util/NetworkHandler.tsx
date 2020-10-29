@@ -3,7 +3,6 @@ import {
   fetchDataVersion,
   fetchUser,
   Representative,
-  storeBillLike,
   storeDataVersion,
   storeRepresentative,
   storeUser,
@@ -11,10 +10,9 @@ import {
 } from '../models';
 import NetInfo from '@react-native-community/netinfo';
 import Axios from 'axios';
-import auth from '@react-native-firebase/auth';
 import { Bill } from '../models/Bill';
 import { BillData, Comment, Vote } from '../models/BillData';
-import ImageResizer from 'react-native-image-resizer';
+import perf from '@react-native-firebase/perf';
 
 export async function isNetworkAvailable() {
   const response = await NetInfo.fetch();
@@ -53,6 +51,56 @@ const awsURLs = {
     'https://tde26c6cp5.execute-api.us-east-2.amazonaws.com/prod/email-rep',
 };
 
+export function setupPerfMonitor() {
+  Axios.interceptors.request.use(async function (config: any) {
+    try {
+      const httpMetric = perf().newHttpMetric(config.url || '', 'POST');
+      config.metadata = { httpMetric };
+
+      await httpMetric.start();
+    } finally {
+      return config;
+    }
+  });
+  Axios.interceptors.response.use(
+    async function (response: any) {
+      try {
+        // Request was successful, e.g. HTTP code 200
+
+        const { httpMetric } = response.config.metadata;
+
+        // add any extra metric attributes if needed
+        // httpMetric.putAttribute('userId', '12345678');
+
+        httpMetric.setHttpResponseCode(response.status);
+        httpMetric.setResponseContentType(response.headers['content-type']);
+        await httpMetric.stop();
+      } finally {
+        return response;
+      }
+    },
+    async function (error) {
+      try {
+        // Request failed, e.g. HTTP code 500
+
+        const { httpMetric } = error.config.metadata;
+
+        // add any extra metric attributes if needed
+        // httpMetric.putAttribute('userId', '12345678');
+
+        httpMetric.setHttpResponseCode(error.response.status);
+        httpMetric.setResponseContentType(
+          error.response.headers['content-type']
+        );
+        await httpMetric.stop();
+      } finally {
+        // Ensure failed requests throw after interception
+        return Promise.reject(error);
+      }
+    }
+  );
+}
+
 /**
  * refreshes all pertinent user data in the background
  */
@@ -81,8 +129,8 @@ export async function userExists(uid: string): Promise<boolean> {
     return false;
   }
 
-  return await Axios.get(awsURLs.userExists, {
-    params: { uid: uid },
+  return await Axios.post(awsURLs.userExists, {
+    uid: uid,
   })
     .then((response) => {
       if (response.status == 200 && response.data.result) {

@@ -119,9 +119,7 @@ class ProfileScreen extends React.Component<Props, State> {
 
   render() {
     const user = this.state.user;
-    console.log(user?.pfp_url);
     if (user) {
-      console.log(user.pfp_url);
       return (
         <SafeAreaView style={styles.container}>
           <View style={styles.headerBar}>

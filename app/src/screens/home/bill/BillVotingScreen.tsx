@@ -30,6 +30,7 @@ import {
 } from './BillDetailsStack';
 import { User } from '../../../models';
 import Clipboard from '@react-native-community/clipboard';
+import { Analytics } from '../../../util/AnalyticsHandler';
 
 enum Vote {
   None = -1,
@@ -200,7 +201,7 @@ function ButtonGroup(props: {
                   transform: [{ translateY: 10 }, { translateX: 10 }],
                 }}
               >
-                {Math.round(props.percentages[ind] * 100 )+ '%'}
+                {Math.round(props.percentages[ind] * 100) + '%'}
               </Animated.Text>
             )}
           </AnimatedTouchableOpacity>
@@ -285,6 +286,7 @@ export default class VoteScreen extends React.Component<Props, State> {
           onPress={async (index) => {
             return new Promise<void>((resolve, reject) =>
               this.setState({ vote: index }, () => {
+                Analytics.voteEvent(this.props.route.params.bill, index);
                 setBillVote(this.props.route.params.bill, this.state.vote);
                 if (this.state.user) {
                   let billData = this.state.billData;
@@ -325,6 +327,7 @@ export default class VoteScreen extends React.Component<Props, State> {
       <TouchableOpacity
         style={styles.topComment}
         onPress={() => {
+          Analytics.commentClicked(this.props.route.params.bill, top);
           this.props.navigation.push('CommentFullScreen', {
             comment: top,
             formattedDate: formattedDate,
@@ -464,6 +467,7 @@ export default class VoteScreen extends React.Component<Props, State> {
         key={comment.name + comment.text}
         activeOpacity={0.6}
         onPress={() => {
+          Analytics.commentClicked(this.props.route.params.bill, comment);
           this.props.navigation.push('CommentFullScreen', {
             comment: comment,
             formattedDate: formattedDate,
@@ -485,12 +489,14 @@ export default class VoteScreen extends React.Component<Props, State> {
             },
             (btn) => {
               if (btn == 0) {
+                Analytics.commentCopied(this.props.route.params.bill, comment);
                 Clipboard.setString(comment.text);
               } else if (
                 btn == 1 &&
                 this.state.user &&
                 this.state.user.uid == comment.uid
               ) {
+                Analytics.commentDeleted(this.props.route.params.bill, comment);
                 deleteComment(this.props.route.params.bill, index).then();
                 let billData = this.state.billData;
                 billData.comments.splice(index, 1);
@@ -590,6 +596,15 @@ export default class VoteScreen extends React.Component<Props, State> {
                 onPress={() => {
                   if (this.state.user) {
                     let billData = this.state.billData;
+                    let like = !billData.comments[index].likes[
+                      this.state.user.uid
+                    ];
+                    Analytics.commentLikeChange(
+                      this.props.route.params.bill,
+                      comment,
+                      like
+                    );
+
                     billData.comments[index].likes[
                       this.state.user.uid
                     ] = !billData.comments[index].likes[this.state.user.uid];
@@ -657,6 +672,7 @@ export default class VoteScreen extends React.Component<Props, State> {
             flexDirection: 'row',
           }}
           onPress={() => {
+            Analytics.createCommentButtonClicked(this.props.route.params.bill);
             this.props.navigation.push('Comment', {
               bill: this.props.route.params.bill,
             });

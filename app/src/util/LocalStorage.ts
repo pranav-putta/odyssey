@@ -1,14 +1,15 @@
 import AsyncStorage from '@react-native-community/async-storage';
 import { User } from '../models';
 import { Bill } from '../models/Bill';
-import { Category } from '../models/Category';
+import { Notification } from '../models/Notification';
 import { Representative } from '../models/Representative';
-import categories from './default/categories.json';
 
 const keyUser = 'kOdysseyUser';
 const keyRepresentatives = 'kOdysseyRepresentatives';
 const keyDataVersion = 'kOdysseyDataVersion';
 const keyCategories = 'kOdysseyCategories';
+const keyConfigFetchTime = 'keyConfigFetchTime';
+const keyNotification = 'keyNotification';
 
 export async function storeUser(user: User) {
   try {
@@ -51,6 +52,30 @@ export async function storeDataVersion(version: number) {
   }
 }
 
+export async function storeConfigFetchTime(time: number) {
+  try {
+    await AsyncStorage.setItem(keyConfigFetchTime, JSON.stringify(time));
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function storeNotification(notification?: string) {
+  try {
+    await AsyncStorage.setItem(keyNotification, notification || '');
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function removeNotification() {
+  try {
+    await AsyncStorage.removeItem(keyNotification);
+  } catch (err) {
+    throw err;
+  }
+}
+
 export async function fetchUser(): Promise<User> {
   let out = await AsyncStorage.getItem(keyUser);
   return JSON.parse(out || '{}');
@@ -65,8 +90,16 @@ export async function fetchDataVersion(): Promise<number> {
   let out = await AsyncStorage.getItem(keyDataVersion);
   return Number.parseFloat(out || '0');
 }
+export async function getConfigFetchTime() {
+  let out = await AsyncStorage.getItem(keyConfigFetchTime);
+  return Number.parseFloat(out || '21600');
+}
 
-export async function fetchCategories(): Promise<any> {
-  let out = await AsyncStorage.getItem(keyCategories);
-  return out ? JSON.parse(out) : <any>categories;
+export async function getNotification(): Promise<Notification | undefined> {
+  let out = await AsyncStorage.getItem(keyNotification);
+  if (out) {
+    console.log('true' + JSON.parse(out));
+    return JSON.parse(out);
+  }
+  return undefined;
 }

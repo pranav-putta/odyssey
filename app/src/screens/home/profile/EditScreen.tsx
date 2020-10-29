@@ -6,15 +6,18 @@ import {
   Text,
   KeyboardAvoidingView,
   Linking,
+  Alert,
 } from 'react-native';
+import AsyncStorage from '@react-native-community/async-storage';
 import { Icon } from 'react-native-elements';
 import { FlatList, TextInput } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors } from '../../../assets';
+import { colors, storage } from '../../../assets';
 import ProgressHUD from '../../../components/ProgressHUD';
 import { fetchUser, storeUser, User } from '../../../models';
-import { updateProfile } from '../../../util';
+import { deleteUser, updateProfile } from '../../../util';
 import { ProfileEditScreenProps } from './ProfileTab';
+import auth from '@react-native-firebase/auth';
 
 type Props = {
   navigation: ProfileEditScreenProps;
@@ -232,6 +235,29 @@ export default class EditScreen extends React.Component<Props, State> {
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={{ justifyContent: 'center', alignItems: 'center' }}
+                  onPress={() => {
+                    Alert.alert(
+                      'Delete Account',
+                      'Are you sure you want to permanently delete your account and data?',
+                      [
+                        {
+                          text: 'Delete',
+                          style: 'destructive',
+                          onPress: () => {
+                            deleteUser().finally(() => {
+                              auth().signOut();
+                              AsyncStorage.setItem(
+                                storage.userSignedIn,
+                                'false'
+                              );
+                            });
+                          },
+                        },
+                        { text: 'Cancel', style: 'cancel' },
+                      ],
+                      { cancelable: true }
+                    );
+                  }}
                 >
                   <Text
                     style={{

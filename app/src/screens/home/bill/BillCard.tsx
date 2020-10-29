@@ -10,9 +10,11 @@ import {
 import { colors } from '../../../assets';
 import FastImage from 'react-native-fast-image';
 import { Bill, formatBillNumber } from '../../../models/Bill';
-import { Category } from '../../../models/Category';
+import { Category, DefaultCategory } from '../../../models/Category';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { SharedElement } from 'react-navigation-shared-element';
+import { Config } from '../../../util/Config';
+import ProgressHUD from '../../../components/ProgressHUD';
 
 type State = {};
 
@@ -38,17 +40,18 @@ export const BillCardSpecs = {
   spacing: 10,
 };
 
-const AnimatedTouchableOpacity = Animated.createAnimatedComponent(
-  TouchableOpacity
-);
-
 export default class BillCard extends React.PureComponent<Props, State> {
   private imageRef = React.createRef<View>();
   private containerRef = React.createRef<any>();
   private contentRef = React.createRef<any>();
 
   render() {
-    const { bill, category, index, scrollX, onPress } = this.props;
+    let { bill, index, scrollX, onPress } = this.props;
+    let category = Config.getTopics()[bill.category];
+    if (!category) {
+      category = DefaultCategory;
+      Config.alertUpdateConfig();
+    }
     const { width, spacing } = BillCardSpecs;
     const fullSize = width + 2 * spacing;
     const extraPadding = -index * spacing * 2;

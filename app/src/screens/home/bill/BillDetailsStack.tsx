@@ -39,7 +39,6 @@ export type BillDetailStackParams = {
   Vote: {
     bill: Bill;
     category: Category;
-    refresh?: () => void;
   };
   Comment: {
     bill: Bill;

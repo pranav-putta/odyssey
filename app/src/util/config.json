@@ -1,0 +1,259 @@
+{
+  "topicsConfig": {
+    "Agriculture": {
+      "bgColor": "#533628",
+      "categoryColor": "#53362850",
+      "categoryTextColor": "#533628",
+      "image": "https://static.vecteezy.com/system/resources/previews/000/092/976/original/vector-roosters-on-field.jpg",
+      "display": true
+    },
+    "Justice": {
+      "bgColor": "#E48C1B",
+      "categoryColor": "#E48C1B50",
+      "categoryTextColor": "#E48C1B",
+      "image": "https://static.vecteezy.com/system/resources/previews/000/101/294/original/vector-lady-justice.jpg",
+      "display": true
+    },
+    "Economy": {
+      "bgColor": "#03192E",
+      "categoryColor": "#03192E50",
+      "categoryTextColor": "#03192E",
+      "image": "https://static.vecteezy.com/system/resources/previews/000/172/083/original/the-investor-hand-vector.jpg",
+      "display": true
+    },
+    "K-12": {
+      "bgColor": "#FFB762",
+      "categoryColor": "#FFB76250",
+      "categoryTextColor": "#FFB762",
+      "image": "https://static.vecteezy.com/system/resources/thumbnails/000/578/748/small_2x/group-study.png",
+      "display": true
+    },
+    "College": {
+      "bgColor": "#FFFAD0",
+      "categoryColor": "#FFFAD050",
+      "categoryTextColor": "#FFFAD0",
+      "image": "https://static.vecteezy.com/system/resources/previews/000/155/829/original/free-back-to-school-vector-elements.jpg",
+      "display": true
+    },
+    "Energy": {
+      "bgColor": "#FEFBD0",
+      "categoryColor": "#FEFBD050",
+      "categoryTextColor": "#FEFBD0",
+      "image": "https://static.vecteezy.com/system/resources/previews/000/173/767/original/free-natural-resources-vector.jpg",
+      "display": true
+    },
+    "Healthcare": {
+      "bgColor": "#FAFAFA",
+      "categoryColor": "#FAFAFA50",
+      "categoryTextColor": "#FAFAFA",
+      "image": "https://image.freepik.com/free-vector/medical-workers-analyzing-electronic-record_1262-19834.jpg",
+      "display": true
+    },
+    "Infrastructure": {
+      "bgColor": "#49B6B3",
+      "categoryColor": "#49B6B350",
+      "categoryTextColor": "#49B6B3",
+      "image": "https://static.vecteezy.com/system/resources/previews/000/135/650/original/vector-high-speed-rail-tgv-city-train-lanscape-ilustration.jpg",
+      "display": true
+    },
+    "Internal": {
+      "bgColor": "#A8862F",
+      "categoryColor": "#A8862F50",
+      "categoryTextColor": "#A8862F",
+      "image": "https://static.vecteezy.com/system/resources/previews/000/133/247/original/petra-vector.jpg",
+      "display": true
+    },
+    "Labor": {
+      "bgColor": "#FCB040",
+      "categoryColor": "#FCB04050",
+      "categoryTextColor": "#FCB040",
+      "image": "https://static.vecteezy.com/system/resources/previews/000/133/756/original/surveyor-silhouette-sunset-free-vector.jpg",
+      "display": true
+    },
+    "Pensions": {
+      "bgColor": "#FEFEFD",
+      "categoryColor": "#FEFEFD50",
+      "categoryTextColor": "#FEFEFD",
+      "image": "https://static.vecteezy.com/system/resources/previews/000/542/271/original/vector-online-banking-illustration.jpg",
+      "display": true
+    },
+    "Utility": {
+      "bgColor": "#72768F",
+      "categoryColor": "#72768F50",
+      "categoryTextColor": "#72768F",
+      "image": "https://static.vecteezy.com/system/resources/previews/000/108/868/original/vector-electric-department-truck.jpg",
+      "display": true
+    },
+    "Government": {
+      "bgColor": "#82DCFF",
+      "categoryColor": "#82DCFF50",
+      "categoryTextColor": "#82DCFF",
+      "image": "https://static.vecteezy.com/system/resources/previews/001/263/568/original/bank-building-on-the-urban-landscape-with-trees-vector.jpg",
+      "display": true
+    },
+    "Taxes": {
+      "bgColor": "#01AEF0",
+      "categoryColor": "#01AEF050",
+      "categoryTextColor": "#01AEF0",
+      "image": "https://static.vecteezy.com/system/resources/previews/000/162/454/original/payroll-illustration-vector.jpg",
+      "display": true
+    },
+    "Tech": {
+      "bgColor": "#012869",
+      "categoryColor": "#01286950",
+      "categoryTextColor": "#012869",
+      "image": "https://static.vecteezy.com/system/resources/previews/000/695/849/original/datacenter-server-room-cloud-storage-technology-concept-vector.jpg",
+      "display": true
+    },
+    "VA": {
+      "bgColor": "#112D77",
+      "categoryColor": "#112D7750",
+      "categoryTextColor": "#112D77",
+      "image": "https://static.vecteezy.com/system/resources/previews/000/256/482/original/veteran-s-day-concept-soldier-illustration-flat-vector-background.jpg",
+      "display": true
+    },
+    "Other": {
+      "bgColor": "#5A2222",
+      "categoryColor": "#5A222250",
+      "categoryTextColor": "#5A2222",
+      "image": "https://static.vecteezy.com/system/resources/previews/000/130/378/original/lady-justice-vector-illustration-in-wood-carving-design-style.jpg",
+      "display": false
+    },
+    "DNE": {
+      "bgColor": "#ffab40",
+      "categoryColor": "#ffab4050",
+      "categoryTextColor": "#ffab40",
+      "image": "https://i.imgur.com/BZJkdTj.jpg",
+      "display": false
+    }
+  },
+
+  "smallTopicsConfig": {
+    "Energy": {
+      "name": "Energy",
+      "color": "#fff59d",
+      "textColor": "black",
+      "image": "https://www.iconfinder.com/data/icons/bitsies/128/Lightbulb-512.png",
+      "display": true
+    },
+    "Justice": {
+      "name": "Justice",
+      "color": "#40c4ff",
+      "textColor": "white",
+      "image": "https://cdn4.iconfinder.com/data/icons/success-filloutline/64/law-scale-justice-judge-balance-512.png",
+      "display": true
+    },
+    "Economy": {
+      "name": "Economy",
+      "color": "#1de9b6",
+      "textColor": "white",
+      "image": "https://cdn2.iconfinder.com/data/icons/business-and-economy/256/business_economic_finance_interprise_company_graph-512.png",
+      "display": true
+    },
+    "K-12": {
+      "name": "K-12",
+      "color": "#ce93d8",
+      "textColor": "white",
+      "image": "https://cdn3.iconfinder.com/data/icons/education-and-school-8/48/School-512.png",
+      "display": true
+    },
+    "College": {
+      "name": "College",
+      "color": "#ff8a80",
+      "textColor": "white",
+      "image": "https://cdn3.iconfinder.com/data/icons/higher-education-icon-set/256/diploma.png",
+      "display": true
+    },
+    "Healthcare": {
+      "name": "Healthcare",
+      "color": "#ffb74d",
+      "textColor": "white",
+      "image": "https://cdn4.iconfinder.com/data/icons/coronavirus-color/64/hospital-building-nursing-healthcare-medical-512.png",
+      "display": true
+    },
+    "Agriculture": {
+      "name": "Agriculture",
+      "color": "#00e676",
+      "textColor": "white",
+      "image": "https://www.iconfinder.com/data/icons/avatars-xmas-giveaway/128/avocado_scream_avatar_food-512.png",
+      "display": true
+    },
+    "Infrastructure": {
+      "name": "Infrastructure",
+      "color": "#a1887f",
+      "textColor": "white",
+      "image": "https://cdn0.iconfinder.com/data/icons/city-elements-flaticon/64/river-bridge-architecture_and_city-architectonic-engineering-buildings-landscape-512.png",
+      "display": true
+    },
+    "Internal": {
+      "name": "Internal",
+      "color": "#f44336",
+      "textColor": "white",
+      "image": "https://cdn0.iconfinder.com/data/icons/city-elements-flaticon/64/government-Government_buildings-embassy-building-country-architecture_and_city-buildings-512.png",
+      "display": true
+    },
+    "Labor": {
+      "name": "Commerce",
+      "color": "#ffeb3b",
+      "textColor": "black",
+      "image": "https://cdn0.iconfinder.com/data/icons/city-elements-filledoutline-1/64/cafe-food_and_restaurant-commerce_and_shopping-architecture_and_city-coffee_shop-store-buildings-512.png",
+      "display": true
+    },
+    "Government": {
+      "name": "Government",
+      "color": "#4fc3f7",
+      "textColor": "white",
+      "image": "https://cdn2.iconfinder.com/data/icons/us-election-2020/60/057-political-supporters-512.png",
+      "display": true
+    },
+    "Taxes": {
+      "name": "Taxes",
+      "color": "#4e575c",
+      "textColor": "white",
+      "image": "https://cdn3.iconfinder.com/data/icons/fintech-icon/128/13_Tax-512.png",
+      "display": true
+    },
+    "Tech": {
+      "name": "Tech",
+      "color": "#ba68c8",
+      "textColor": "white",
+      "image": "https://cdn2.iconfinder.com/data/icons/artificial-intelligence-6/64/ArtificialIntelligence12-512.png",
+      "display": true
+    },
+    "Utility": {
+      "name": "Utility",
+      "color": "#1e88e5",
+      "textColor": "white",
+      "image": "https://cdn0.iconfinder.com/data/icons/city-elements-filledoutline-1/64/restroom-public_toilet-toilet-portable_toilet-portable-van-public-bathroom-architecture_and_city-512.png",
+      "display": true
+    },
+    "Pensions": {
+      "name": "Pensions",
+      "color": "#00e676",
+      "textColor": "white",
+      "image": "https://cdn1.iconfinder.com/data/icons/business-456/500/growing-512.png",
+      "display": true
+    },
+    "VA": {
+      "name": "VA",
+      "color": "#fbc02d",
+      "textColor": "black",
+      "image": "https://cdn3.iconfinder.com/data/icons/avatar-55/64/Soldier-avatar-occupation-profession-man-human-512.png",
+      "display": true
+    },
+    "DNE": {
+      "name": "DNE",
+      "color": "#fbc02d",
+      "textColor": "black",
+      "image": "https://cdn3.iconfinder.com/data/icons/avatar-55/64/Soldier-avatar-occupation-profession-man-human-512.png",
+      "display": false
+    },
+    "Other": {
+      "name": "Other",
+      "color": "#fbc02d",
+      "textColor": "black",
+      "image": "https://cdn3.iconfinder.com/data/icons/avatar-55/64/Soldier-avatar-occupation-profession-man-human-512.png",
+      "display": false
+    }
+  }
+}

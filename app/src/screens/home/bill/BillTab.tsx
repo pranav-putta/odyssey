@@ -11,7 +11,6 @@ import { Category } from '../../../models/Category';
 import BillDetailStack, { Measure } from './BillDetailsStack';
 import BillDiscoverScreen from './BillDiscoverScreen';
 import RepScreen from './RepScreen';
-import { createFluidNavigator } from 'react-navigation-fluid-transitions';
 import { Animated } from 'react-native';
 import { createSharedElementStackNavigator } from 'react-navigation-shared-element';
 
@@ -30,9 +29,6 @@ export type BillScreenStackParamList = {
   Details: {
     bill: Bill;
     category: Category;
-    imageDims: Measure;
-    textCardDims: Measure;
-    cardDims: Measure;
   };
 };
 

@@ -11,8 +11,6 @@ interface Props<DataType> {
 
 interface State {}
 
-
-
 export class GridList<DataType> extends React.Component<
   Props<DataType>,
   State

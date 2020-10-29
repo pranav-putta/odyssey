@@ -48,8 +48,7 @@ function createSuccess(result: any) {
  * @param event
  */
 export const user_exists = async (event: any = {}): Promise<any> => {
-  let data = event["queryStringParameters"];
-  console.log("what the fuck");
+  let data = JSON.parse(event.body);
 
   if (data && data.uid && typeof data.uid === "string") {
     // set up dynamodb client
@@ -162,8 +161,17 @@ const get_reps = async (address: string) => {
 
   try {
     let rawReps = await findReps(address);
+    let divisions: any = rawReps.data.divisions;
     let officials: any[] = rawReps.data.officials;
     let ids: number[] = [];
+
+    let districts: number[] = [];
+    Object.keys(divisions).forEach((div) => {
+      let divParts = div.split(":");
+      districts.push(Number.parseInt(divParts[divParts.length - 1]));
+    });
+
+    // todo: update this for new detection protocol
     officials.forEach((element: any) => {
       if (
         element.hasOwnProperty("urls") &&
