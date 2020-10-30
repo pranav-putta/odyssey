@@ -15,8 +15,13 @@ import BootSplash from 'react-native-bootsplash';
 import AsyncStorage from '@react-native-community/async-storage';
 import { storage } from './assets';
 import { Config } from './util/Config';
-import inAppMessaging from '@react-native-firebase/in-app-messaging'
-import { fetchUser, NotificationHandler, setupPerfMonitor } from './util';
+import inAppMessaging from '@react-native-firebase/in-app-messaging';
+import {
+  fetchUser,
+  incrementAppLaunch,
+  NotificationHandler,
+  setupPerfMonitor,
+} from './util';
 import { Analytics } from './util/AnalyticsHandler';
 
 type Props = {
@@ -64,6 +69,7 @@ class App extends React.Component<Props, State> {
   async initialize() {
     await Config.initRemoteConfig();
     await inAppMessaging().setMessagesDisplaySuppressed(false);
+    await incrementAppLaunch();
     Analytics.launch();
     setupPerfMonitor();
     NotificationHandler.createNotificationOpenListener();

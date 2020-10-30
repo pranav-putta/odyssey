@@ -16,6 +16,7 @@ import { Icon } from 'react-native-elements';
 import { colors } from '../../../assets';
 import {
   fetchRepresentatives,
+  getAppLaunchCount,
   getNotification,
   removeNotification,
   Representative,
@@ -30,7 +31,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { BillScreenStackParamList } from './BillTab';
 import { Category } from '../../../models/Category';
 import ProgressHUD from '../../../components/ProgressHUD';
-import { Measure } from './BillDetailsStack';
+import Rate from 'react-native-rate';
 import { SharedElement } from 'react-navigation-shared-element';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { Config } from '../../../util/Config';
@@ -131,9 +132,19 @@ export default class BillDiscoverScreen extends React.Component<Props, State> {
     }
   }
 
+  async calculateShowAppStoreRateProb(): Promise<boolean> {
+    let ct = await getAppLaunchCount();
+    // sigmoid function
+    let prev = 3 * Math.pow(ct - 1, 1 / 3) - 4;
+    let next = 3 * Math.pow(ct, 1 / 3) - 4;
+    if (Math.floor(prev) !== Math.floor(next) && next > 0 && next % 2 == 0) {
+      return true;
+    }
+    return false;
+  }
+
   loadData = async (): Promise<void> => {
     if (!this.state.loaded || this.state.refreshing) {
-      console.log('here');
       return new Promise<void>((resolve, reject) => {
         this.setState({ progress: true }, async () => {
           await refresh();
@@ -149,6 +160,20 @@ export default class BillDiscoverScreen extends React.Component<Props, State> {
           });
           resolve();
           this.checkNotification();
+
+          let shouldShowRate = await this.calculateShowAppStoreRateProb();
+          if (shouldShowRate) {
+            Rate.rate(
+              {
+                preferInApp: true,
+                AppleAppID: '1537850349',
+                fallbackPlatformURL: 'https:/www.odysseyapp.us/feedback.html',
+              },
+              (success) => {
+                Analytics.ratingChosen(success);
+              }
+            );
+          }
 
           if (this.state.currentTab == BillTabKey.new) {
             this.newCarousel.current?.startAutoplay();

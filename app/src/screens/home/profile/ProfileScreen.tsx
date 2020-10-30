@@ -226,11 +226,34 @@ class ProfileScreen extends React.Component<Props, State> {
           </View>
           <View style={{ marginHorizontal: '10%', marginTop: '5%' }}>
             <TouchableOpacity
-              style={{ alignSelf: 'center', margin: '5%' }}
+              style={{
+                justifyContent: 'center',
+                alignItems: 'center',
+                padding: 15,
+                borderRadius: 5,
+              }}
               onPress={() => {
-                Linking.canOpenURL('http://www.odysseyapp.us').then((val) => {
+                auth().signOut();
+                AsyncStorage.setItem(storage.userSignedIn, 'false');
+              }}
+            >
+              <Text
+                style={{
+                  color: '#ff5252',
+                  fontFamily: 'Futura',
+                  fontWeight: '500',
+                  fontSize: 16,
+                }}
+              >
+                Log Out
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{ alignSelf: 'center', margin: '2.5%' }}
+              onPress={() => {
+                Linking.canOpenURL('https://www.odysseyapp.us').then((val) => {
                   if (val) {
-                    Linking.openURL('http://www.odysseyapp.us');
+                    Linking.openURL('https://www.odysseyapp.us');
                   }
                 });
               }}
@@ -250,13 +273,18 @@ class ProfileScreen extends React.Component<Props, State> {
               style={{
                 justifyContent: 'center',
                 alignItems: 'center',
-                backgroundColor: '#ff5252',
+                backgroundColor: '#448aff',
                 padding: 15,
-                borderRadius: 10,
+                borderRadius: 5,
               }}
               onPress={() => {
-                auth().signOut();
-                AsyncStorage.setItem(storage.userSignedIn, 'false');
+                Linking.canOpenURL(
+                  'https://www.odysseyapp.us/feedback.html'
+                ).then((val) => {
+                  if (val) {
+                    Linking.openURL('https://www.odysseyapp.us/feedback.html');
+                  }
+                });
               }}
             >
               <Text
@@ -267,7 +295,7 @@ class ProfileScreen extends React.Component<Props, State> {
                   fontSize: 20,
                 }}
               >
-                Log Out
+                Share your feedback!
               </Text>
             </TouchableOpacity>
           </View>

@@ -6620,6 +6620,11 @@ react-native-modal@^11.5.6:
     prop-types "^15.6.2"
     react-native-animatable "1.3.3"
 
+react-native-rate@^1.2.4:
+  version "1.2.4"
+  resolved "https://registry.yarnpkg.com/react-native-rate/-/react-native-rate-1.2.4.tgz#bb4024bebc28f40cd4eed70b5c5cbfa733ea68aa"
+  integrity sha512-lvmxu4UJ7/OfpNwww3AmTzAkKdD8z65VNguoKanRyBhrSm/IeNYLe482Vku9YodgWNkjZfl2AtJ51Sv9rhUu3A==
+
 react-native-ratings@^7.2.0:
   version "7.3.0"
   resolved "https://registry.yarnpkg.com/react-native-ratings/-/react-native-ratings-7.3.0.tgz#32e11e4ed944ba8adbbc995d601df3f131619b6f"

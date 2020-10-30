@@ -10,6 +10,21 @@ const keyDataVersion = 'kOdysseyDataVersion';
 const keyCategories = 'kOdysseyCategories';
 const keyConfigFetchTime = 'keyConfigFetchTime';
 const keyNotification = 'keyNotification';
+const keyAppLaunch = 'keyAppLaunch';
+
+export async function incrementAppLaunch() {
+  try {
+    let ct = await getAppLaunchCount();
+    await AsyncStorage.setItem(keyAppLaunch, JSON.stringify(ct + 1));
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function getAppLaunchCount(): Promise<number> {
+  let out = await AsyncStorage.getItem(keyAppLaunch);
+  return Number.parseFloat(out || '0');
+}
 
 export async function storeUser(user: User) {
   try {

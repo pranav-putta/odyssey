@@ -127,7 +127,7 @@
 		932E988C25453C1A007D8188 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		934CFAFC2546782300E988B7 /* Odyssey-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Odyssey-Bridging-Header.h"; sourceTree = "<group>"; };
 		934CFAFD2546782400E988B7 /* LaunchScreenViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchScreenViewController.swift; sourceTree = "<group>"; };
-		9386C569254A05F5001B3614 /* Odyssey.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Odyssey.entitlements; sourceTree = "<group>"; };
+		93ED50B0254BAB7C00117228 /* Odyssey.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Odyssey.entitlements; sourceTree = "<group>"; };
 		968FD1B3F59E400AA396172E /* Octicons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Octicons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Octicons.ttf"; sourceTree = "<group>"; };
 		98522CA1A9409B73B8C9FEC2 /* libPods-Odyssey.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Odyssey.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A0838D437BAA4AE086BA34F1 /* Roboto-BoldItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Roboto-BoldItalic.ttf"; path = "../src/assets/fonts/Roboto-BoldItalic.ttf"; sourceTree = "<group>"; };
@@ -247,7 +247,7 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
-				9386C569254A05F5001B3614 /* Odyssey.entitlements */,
+				93ED50B0254BAB7C00117228 /* Odyssey.entitlements */,
 				932E988C25453C1A007D8188 /* GoogleService-Info.plist */,
 				13B07FAE1A68108700A75B9A /* app */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
@@ -447,7 +447,7 @@
 					13B07F861A680F5B00A75B9A = {
 						DevelopmentTeam = AZ5PZM4HCM;
 						LastSwiftMigration = 1200;
-						ProvisioningStyle = Automatic;
+						ProvisioningStyle = Manual;
 					};
 					2D02E47A1E0B4A5D006451C7 = {
 						CreatedOnToolsVersion = 8.2.1;
@@ -557,7 +557,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "export NODE_BINARY=node\n../node_modules/react-native/scripts/react-native-xcode.sh";
+			shellScript = "export NODE_BINARY=node\n../node_modules/react-native/scripts/react-native-xcode.sh\n";
 		};
 		2D02E4CB1E0B4B27006451C7 /* Bundle React Native Code And Images */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -929,9 +929,9 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Odyssey.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1.01;
+				CODE_SIGN_IDENTITY = "iPhone Distribution";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1.22;
 				DEVELOPMENT_TEAM = AZ5PZM4HCM;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = app/Info.plist;
@@ -944,7 +944,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = us.odysseyapp.odyssey;
 				PRODUCT_NAME = Odyssey;
-				PROVISIONING_PROFILE_SPECIFIER = "";
+				PROVISIONING_PROFILE_SPECIFIER = "Odyssey App Provisioning Profile";
 				SWIFT_OBJC_BRIDGING_HEADER = "Odyssey-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -960,9 +960,9 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Odyssey.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1.01;
+				CODE_SIGN_IDENTITY = "iPhone Distribution";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1.22;
 				DEVELOPMENT_TEAM = AZ5PZM4HCM;
 				INFOPLIST_FILE = app/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
@@ -974,7 +974,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = us.odysseyapp.odyssey;
 				PRODUCT_NAME = Odyssey;
-				PROVISIONING_PROFILE_SPECIFIER = "";
+				PROVISIONING_PROFILE_SPECIFIER = "Odyssey App Provisioning Profile";
 				SWIFT_OBJC_BRIDGING_HEADER = "Odyssey-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

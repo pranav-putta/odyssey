@@ -25,6 +25,12 @@ export module Analytics {
     return analytics().setUserId(uid);
   }
 
+  export async function ratingChosen(success: boolean) {
+    return analytics().logEvent('rating_option', {
+      opened: success,
+    });
+  }
+
   export async function phoneNumberEntered(number: string) {
     return analytics().logEvent(eventPhoneNumberEntered, {
       number: number,

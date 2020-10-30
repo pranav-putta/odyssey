@@ -560,10 +560,10 @@ class LoginScreen extends React.Component<Props, State> {
               style={{ color: '#2196f3' }}
               onPress={() => {
                 Linking.canOpenURL(
-                  'http://www.odysseyapp.us/privacy.html'
+                  'https://www.odysseyapp.us/privacy.html'
                 ).then((val) => {
                   if (val) {
-                    Linking.openURL('http://www.odysseyapp.us/privacy.html');
+                    Linking.openURL('https://www.odysseyapp.us/privacy.html');
                   }
                 });
               }}
@@ -970,7 +970,7 @@ class LoginScreen extends React.Component<Props, State> {
         >
           <TouchableOpacity
             onPress={() => {
-              Linking.openURL('http://www.odysseyapp.us');
+              Linking.openURL('https://www.odysseyapp.us');
             }}
           >
             <Icon name="info" type="feather" color={'white'} />

@@ -40,7 +40,7 @@ class NotificationCard extends React.Component<Props, State> {
               />
               <View style={styles.content}>
                 <Text style={styles.title}>{notification.title}</Text>
-                <Text style={styles.body}>{notification.title}</Text>
+                <Text style={styles.body}>{notification.body}</Text>
               </View>
               <View style={styles.buttons}>
                 {notification.buttons.map((val) => (
@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Futura',
     fontSize: 15,
     fontWeight: '600',
-    marginHorizontal: '2.5%',
+    marginHorizontal: '5%',
   },
 });
 
