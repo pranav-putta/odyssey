@@ -92,11 +92,8 @@ export default class RepScreen extends React.Component<Props, State> {
           </View>
           <View style={styles.content}>
             <Text style={styles.contactText}>Contacts</Text>
-            <FlatList
-              scrollEnabled={false}
-              keyExtractor={(item) => item.address}
-              data={rep.contacts}
-              renderItem={({ item, index }) => (
+            <ScrollView>
+              {rep.contacts.map((item) => (
                 <View style={styles.contactItemContainer}>
                   {item.address ? (
                     <TouchableOpacity
@@ -165,8 +162,54 @@ export default class RepScreen extends React.Component<Props, State> {
                     </TouchableOpacity>
                   )}
                 </View>
-              )}
-            />
+              ))}
+
+              {rep.content &&
+                rep.content.map((item) => (
+                  <TouchableOpacity
+                    style={[
+                      styles.contactItemContainer,
+                      {
+                        flexDirection: 'row',
+                        padding: '2.5%',
+                        paddingHorizontal: '2.5%',
+                      },
+                    ]}
+                    onPress={() => {
+                      Linking.canOpenURL(item.link).then((val) => {
+                        if (val) {
+                          Linking.openURL(item.link);
+                        }
+                      });
+                    }}
+                  >
+                    <FastImage
+                      style={{ width: 50, height: 50, borderRadius: 10 }}
+                      source={{
+                        uri: item.image,
+                      }}
+                    />
+                    <View style={{ marginHorizontal: '2.5%', flex: 1 }}>
+                      <Text
+                        style={{ fontFamily: 'Futura', fontWeight: 'bold' }}
+                      >
+                        {item.title}
+                      </Text>
+                      <Text style={{ fontFamily: 'Futura', fontWeight: '400' }}>
+                        {item.subtitle}
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      style={{
+                        alignSelf: 'center',
+                        marginRight: '1.5%',
+                      }}
+                    >
+                      <Icon name="arrow-right" type="feather" />
+                    </TouchableOpacity>
+                  </TouchableOpacity>
+                ))}
+            </ScrollView>
           </View>
         </View>
       </View>
@@ -216,7 +259,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  content: { marginTop: '5%' },
+  content: { marginTop: '5%', flex: 1 },
   image: {
     width: 60,
     height: 60,

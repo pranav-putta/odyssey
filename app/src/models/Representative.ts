@@ -9,6 +9,14 @@ export interface Representative {
   phoneNumber: string;
   address: string;
   chamber: string;
+  content?: Content[];
+}
+
+export interface Content {
+  image: string;
+  title: string;
+  subtitle: string;
+  link: string;
 }
 
 export interface Contact {

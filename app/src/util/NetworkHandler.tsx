@@ -114,6 +114,7 @@ export async function refresh(): Promise<any> {
     version: version,
   })
     .then((res) => {
+      // console.error(res);
       let user: User = res.data.userData;
       let reps = res.data.reps;
       let version = res.data.version;
@@ -121,7 +122,9 @@ export async function refresh(): Promise<any> {
       storeRepresentative(reps);
       storeDataVersion(version);
     })
-    .catch((err) => {});
+    .catch((err) => {
+      console.error(err);
+    });
 }
 
 export async function userExists(uid: string): Promise<boolean> {

@@ -12,10 +12,6 @@ const feedback = () => {
     .messaging()
     .send({
       topic: "alerts",
-      notification: {
-        title: "Feedback",
-        body: "Share your thoughts",
-      },
       data: {
         messageType: "card",
         content: JSON.stringify({
@@ -28,7 +24,7 @@ const feedback = () => {
               color: "#2196f3",
               action: {
                 action: "link",
-                path: "https://www.odysseyapp.us/feedback",
+                path: "https://www.odysseyapp.us/feedback.html",
               },
             },
             {
