@@ -515,6 +515,8 @@ PODS:
     - RNFBApp
   - RNGestureHandler (1.8.0):
     - React
+  - RNInAppBrowser (3.5.1):
+    - React-Core
   - RNRate (1.2.4):
     - React
   - RNScreens (2.11.0):
@@ -603,6 +605,7 @@ DEPENDENCIES:
   - "RNFBPerf (from `../node_modules/@react-native-firebase/perf`)"
   - "RNFBRemoteConfig (from `../node_modules/@react-native-firebase/remote-config`)"
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
+  - RNInAppBrowser (from `../node_modules/react-native-inappbrowser-reborn`)
   - RNRate (from `../node_modules/react-native-rate`)
   - RNScreens (from `../node_modules/react-native-screens`)
   - RNSharedElement (from `../node_modules/react-native-shared-element`)
@@ -746,6 +749,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-firebase/remote-config"
   RNGestureHandler:
     :path: "../node_modules/react-native-gesture-handler"
+  RNInAppBrowser:
+    :path: "../node_modules/react-native-inappbrowser-reborn"
   RNRate:
     :path: "../node_modules/react-native-rate"
   RNScreens:
@@ -840,6 +845,7 @@ SPEC CHECKSUMS:
   RNFBPerf: 45847854fbc6f04c7f32e747a4b8104d75ceb661
   RNFBRemoteConfig: 8a3a05ede4aa589d4f8c6b35f4662377c36b2957
   RNGestureHandler: 7a5833d0f788dbd107fbb913e09aa0c1ff333c39
+  RNInAppBrowser: 48b95ba7a4eaff5cc223bca338d3e319561dbd1b
   RNRate: 15b861025a7821730761fce7f44561ce7e0b2de0
   RNScreens: 0e91da98ab26d5d04c7b59a9b6bd694124caf88c
   RNSharedElement: 00b1a1420d213a34459bb9a5aacabb38107d7948

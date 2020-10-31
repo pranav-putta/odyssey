@@ -15,9 +15,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, storage } from '../../../assets';
 import ProgressHUD from '../../../components/ProgressHUD';
 import { fetchUser, storeUser, User } from '../../../models';
-import { deleteUser, updateProfile } from '../../../util';
+import { Network } from '../../../util';
 import { ProfileEditScreenProps } from './ProfileTab';
 import auth from '@react-native-firebase/auth';
+import { Browser } from '../../../util/Browser';
 
 type Props = {
   navigation: ProfileEditScreenProps;
@@ -178,7 +179,7 @@ export default class EditScreen extends React.Component<Props, State> {
                 onPress={() => {
                   if (this.state.user) {
                     this.setState({ progress: true });
-                    updateProfile(this.state.user)
+                    Network.updateProfile(this.state.user)
                       .then((val) => {
                         if (val) {
                           if (this.state.user) {
@@ -212,15 +213,11 @@ export default class EditScreen extends React.Component<Props, State> {
                     padding: '2.5%',
                   }}
                   onPress={() => {
-                    Linking.canOpenURL(
-                      'https://www.odysseyapp.us/contact-us.html'
-                    ).then((val) => {
-                      if (val) {
-                        Linking.openURL(
-                          'https://www.odysseyapp.us/contact-us.html'
-                        );
-                      }
-                    });
+                    Browser.openURL(
+                      'https://www.odysseyapp.us/contact-us.html',
+                      true,
+                      false
+                    );
                   }}
                 >
                   <Text
@@ -244,7 +241,7 @@ export default class EditScreen extends React.Component<Props, State> {
                           text: 'Delete',
                           style: 'destructive',
                           onPress: () => {
-                            deleteUser().finally(() => {
+                            Network.deleteUser().finally(() => {
                               auth().signOut();
                               AsyncStorage.setItem(
                                 storage.userSignedIn,

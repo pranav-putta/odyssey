@@ -19,8 +19,8 @@ import inAppMessaging from '@react-native-firebase/in-app-messaging';
 import {
   fetchUser,
   incrementAppLaunch,
+  Network,
   NotificationHandler,
-  setupPerfMonitor,
 } from './util';
 import { Analytics } from './util/AnalyticsHandler';
 
@@ -71,7 +71,7 @@ class App extends React.Component<Props, State> {
     await inAppMessaging().setMessagesDisplaySuppressed(false);
     await incrementAppLaunch();
     Analytics.launch();
-    setupPerfMonitor();
+    Network.setupPerfMonitor();
     NotificationHandler.createNotificationOpenListener();
     this.chooseRoute();
   }

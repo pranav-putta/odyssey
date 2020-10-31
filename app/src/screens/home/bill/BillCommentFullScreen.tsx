@@ -2,9 +2,6 @@ import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import { Icon } from 'react-native-elements';
-import { colors } from '../../../assets';
-import { likeComment } from '../../../util';
-import { Comment } from '../../../models/BillData';
 import {
   BillDetailCommentFullScreenRouteProps,
   BillDetailsCommentFullScreenProps,

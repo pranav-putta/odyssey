@@ -1,17 +1,13 @@
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { RouteProp } from '@react-navigation/native';
-import {
-  StackNavigationProp,
-  createStackNavigator,
-} from '@react-navigation/stack';
+import { StackNavigationProp } from '@react-navigation/stack';
 import React from 'react';
 import { Representative } from '../../../models';
 import { Bill } from '../../../models/Bill';
 import { Category } from '../../../models/Category';
-import BillDetailStack, { Measure } from './BillDetailsStack';
+import BillDetailStack from './BillDetailsStack';
 import BillDiscoverScreen from './BillDiscoverScreen';
 import RepScreen from './RepScreen';
-import { Animated } from 'react-native';
 import { createSharedElementStackNavigator } from 'react-navigation-shared-element';
 
 interface Props {

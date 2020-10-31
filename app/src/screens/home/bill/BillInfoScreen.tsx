@@ -2,7 +2,6 @@ import React, { ReactNode, ReactNodeArray } from 'react';
 import {
   Animated,
   Dimensions,
-  Linking,
   ScrollView,
   StyleSheet,
   Text,
@@ -17,10 +16,8 @@ import { formatBillNumber } from '../../../models/Bill';
 import TouchableScale from 'react-native-touchable-scale';
 import {
   fetchUser,
-  getNotification,
-  likeBill,
+  Network,
   storeBillLike,
-  storeNotification,
 } from '../../../util';
 import {
   BillDetailInfoScreenRouteProps,
@@ -33,6 +30,7 @@ import { DefaultCategory } from '../../../models/Category';
 import { Config } from '../../../util/Config';
 import { Analytics } from '../../../util/AnalyticsHandler';
 import inappmessaging from '@react-native-firebase/in-app-messaging';
+import { Browser } from '../../../util/Browser';
 
 interface Props {
   navigation: BillDetailsInfoScreenProps;
@@ -418,13 +416,7 @@ export default class BillInfoScreen extends React.PureComponent<Props, State> {
             }}
             onPress={() => {
               Analytics.billFullPage(this.props.route.params.bill);
-              Linking.canOpenURL(this.props.route.params.bill.url).then(
-                (supported) => {
-                  if (supported) {
-                    Linking.openURL(this.props.route.params.bill.url);
-                  }
-                }
-              );
+              Browser.openURL(this.props.route.params.bill.url, true, true);
             }}
           >
             <Icon
@@ -499,7 +491,7 @@ export default class BillInfoScreen extends React.PureComponent<Props, State> {
           <TouchableOpacity
             style={{ width: '100%', height: '100%' }}
             onPress={() => {
-              likeBill(this.props.route.params.bill, !this.state.liked);
+              Network.likeBill(this.props.route.params.bill, !this.state.liked);
               storeBillLike(this.props.route.params.bill, !this.state.liked);
               this.setState({ liked: !this.state.liked });
             }}

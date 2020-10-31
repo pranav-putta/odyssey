@@ -5,7 +5,6 @@ import {
   StyleSheet,
   Dimensions,
   Animated,
-  Share,
 } from 'react-native';
 import { colors } from '../../../assets';
 import FastImage from 'react-native-fast-image';
@@ -14,7 +13,6 @@ import { Category, DefaultCategory } from '../../../models/Category';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { SharedElement } from 'react-navigation-shared-element';
 import { Config } from '../../../util/Config';
-import ProgressHUD from '../../../components/ProgressHUD';
 
 type State = {};
 

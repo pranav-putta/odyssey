@@ -15,12 +15,12 @@ import { FlatList } from 'react-native-gesture-handler';
 import { Config } from '../../../util/Config';
 import CategoryCard from './CategoryCard';
 import SearchSettingModal from './SearchSettingsModal';
-import { search } from '../../../util';
 import SearchBillCard from './SearchBillCard';
 import { Bill, formatBillNumber } from '../../../models/Bill';
 import { BillSearchScreenProps } from './SearchTab';
 import ProgressHUD from '../../../components/ProgressHUD';
 import { Analytics } from '../../../util/AnalyticsHandler';
+import { Network } from '../../../util';
 
 type State = {
   searchStarted: boolean;
@@ -69,7 +69,7 @@ class SearchBarScreen extends React.Component<Props, State> {
 
   render() {
     return (
-      <SafeAreaView style={styles.card}>
+      <View style={styles.card}>
         <ProgressHUD visible={this.state.progress} />
         <SearchSettingModal
           visible={this.state.searchSettingsVisible}
@@ -109,7 +109,7 @@ class SearchBarScreen extends React.Component<Props, State> {
                   Analytics.search(query, searchBy);
                   console.log('searching');
                   if (query.length != 0) {
-                    search(searchBy, query).then((bills) => {
+                    Network.search(searchBy, query).then((bills) => {
                       this.setState({ searchBills: bills });
                     });
                   } else {
@@ -151,14 +151,15 @@ class SearchBarScreen extends React.Component<Props, State> {
                         Analytics.searchCategoryClicked(data.item.name);
                         this.setState({ searchQuery: data.item.name });
                         this.setState({ progress: true });
-                        search(this.state.searchBy, data.item.name).then(
-                          (bills) => {
-                            this.setState({
-                              searchBills: bills,
-                              progress: false,
-                            });
-                          }
-                        );
+                        Network.search(
+                          this.state.searchBy,
+                          data.item.name
+                        ).then((bills) => {
+                          this.setState({
+                            searchBills: bills,
+                            progress: false,
+                          });
+                        });
                       }}
                       category={data.item}
                     />
@@ -198,13 +199,15 @@ class SearchBarScreen extends React.Component<Props, State> {
             </Animated.View>
           ) : undefined}
         </View>
-      </SafeAreaView>
+        <View style={{ height: '11%' }} />
+      </View>
     );
   }
 }
 
 const styles = StyleSheet.create({
   card: {
+    paddingTop: '7.5%',
     flex: 1,
     backgroundColor: 'white',
   },

@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  Alert,
   Animated,
   ScrollView,
   StyleSheet,
@@ -12,18 +11,11 @@ import {
   Dimensions,
 } from 'react-native';
 import { Icon } from 'react-native-elements';
-import FastImage from 'react-native-fast-image';
 import { colors } from '../../../assets';
 import dateformat from 'dateformat';
 import ProgressHUD from '../../../components/ProgressHUD';
 import { BillData, Comment } from '../../../models/BillData';
-import {
-  deleteComment,
-  fetchUser,
-  getBillData,
-  likeComment,
-  setBillVote,
-} from '../../../util';
+import { fetchUser, Network } from '../../../util';
 import {
   BillDetailsVoteScreenProps,
   BillDetailVoteScreenRouteProps,
@@ -68,7 +60,6 @@ function ButtonGroup(props: {
     () => React.useRef(new Animated.Value(0)).current
   );
   const width = Dimensions.get('screen').width * 0.85;
-  const height = Dimensions.get('screen').height * 0.125;
   return (
     <View style={styles.buttonGroup}>
       {props.buttons.map((val, ind) => {
@@ -163,9 +154,12 @@ function ButtonGroup(props: {
             ]}
           >
             <Animated.Text
+              numberOfLines={1}
+              adjustsFontSizeToFit={true}
               style={[
                 styles.buttonText,
                 {
+                  marginHorizontal: '10%',
                   color: textColor,
                   overflow: 'hidden',
                   opacity: textOpacity,
@@ -188,6 +182,8 @@ function ButtonGroup(props: {
             </Animated.Text>
             {props.activeIndex != -1 && (
               <Animated.Text
+                numberOfLines={1}
+                adjustsFontSizeToFit={true}
                 style={{
                   fontSize: 30,
                   fontFamily: 'Futura',
@@ -233,7 +229,7 @@ export default class VoteScreen extends React.Component<Props, State> {
 
   reload = () => {
     this.setState({ progress: true });
-    getBillData(this.props.route.params.bill).then(async (val) => {
+    Network.getBillData(this.props.route.params.bill).then(async (val) => {
       this.setState({ billData: val, progress: false });
 
       let user = await fetchUser();
@@ -287,7 +283,10 @@ export default class VoteScreen extends React.Component<Props, State> {
             return new Promise<void>((resolve, reject) =>
               this.setState({ vote: index }, () => {
                 Analytics.voteEvent(this.props.route.params.bill, index);
-                setBillVote(this.props.route.params.bill, this.state.vote);
+                Network.setBillVote(
+                  this.props.route.params.bill,
+                  this.state.vote
+                );
                 if (this.state.user) {
                   let billData = this.state.billData;
                   billData.votes[this.state.user.uid] = index;
@@ -497,7 +496,10 @@ export default class VoteScreen extends React.Component<Props, State> {
                 this.state.user.uid == comment.uid
               ) {
                 Analytics.commentDeleted(this.props.route.params.bill, comment);
-                deleteComment(this.props.route.params.bill, index).then();
+                Network.deleteComment(
+                  this.props.route.params.bill,
+                  index
+                ).then();
                 let billData = this.state.billData;
                 billData.comments.splice(index, 1);
                 this.setState({ billData: billData });
@@ -609,7 +611,7 @@ export default class VoteScreen extends React.Component<Props, State> {
                       this.state.user.uid
                     ] = !billData.comments[index].likes[this.state.user.uid];
                     this.setState({ billData: billData });
-                    likeComment(
+                    Network.likeComment(
                       this.props.route.params.bill,
                       index,
                       billData.comments[index].likes[this.state.user.uid]

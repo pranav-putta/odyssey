@@ -29,14 +29,14 @@ import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import { GridList } from './components/GridList';
 import {
-  createUser,
+  Network,
   NotificationHandler,
   storeUser,
-  userExists,
 } from '../../util';
 import { LoginNavigation } from '../../App';
 import { Config } from '../../util/Config';
 import { Analytics } from '../../util/AnalyticsHandler';
+import { Browser } from '../../util/Browser';
 
 // state type definitions
 type State = {
@@ -298,7 +298,7 @@ class LoginScreen extends React.Component<Props, State> {
 
     const checkUserExists = (uuid: string) => {
       // check if user exists
-      userExists(uuid)
+      Network.userExists(uuid)
         .then((response) => {
           if (response) {
             // if user already exists
@@ -372,7 +372,7 @@ class LoginScreen extends React.Component<Props, State> {
       email: '',
     };
 
-    createUser(user)
+    Network.createUser(user)
       .then((response) => {
         if (response) {
           // if user is done creating
@@ -559,13 +559,11 @@ class LoginScreen extends React.Component<Props, State> {
             <Text
               style={{ color: '#2196f3' }}
               onPress={() => {
-                Linking.canOpenURL(
-                  'https://www.odysseyapp.us/privacy.html'
-                ).then((val) => {
-                  if (val) {
-                    Linking.openURL('https://www.odysseyapp.us/privacy.html');
-                  }
-                });
+                Browser.openURL(
+                  'https://www.odysseyapp.us/privacy.html',
+                  true,
+                  false
+                );
               }}
             >
               Privacy Policy
@@ -970,7 +968,11 @@ class LoginScreen extends React.Component<Props, State> {
         >
           <TouchableOpacity
             onPress={() => {
-              Linking.openURL('https://www.odysseyapp.us');
+              Browser.openURL(
+                'https://www.odysseyapp.us/about-us.html',
+                true,
+                false
+              );
             }}
           >
             <Icon name="info" type="feather" color={'white'} />

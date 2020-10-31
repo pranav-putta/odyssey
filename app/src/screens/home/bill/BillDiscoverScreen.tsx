@@ -8,8 +8,6 @@ import {
   StyleSheet,
   Dimensions,
   Animated,
-  Linking,
-  Alert,
 } from 'react-native';
 import Carousel from 'react-native-snap-carousel';
 import { Icon } from 'react-native-elements';
@@ -22,7 +20,6 @@ import {
   Representative,
 } from '../../../models';
 import { Bill } from '../../../models/Bill';
-import { likedBills, loadBillFeed, refresh } from '../../../util';
 import BillCard, { BillCardSpecs } from './BillCard';
 import FastImage from 'react-native-fast-image';
 // @ts-ignore
@@ -38,6 +35,8 @@ import { Config } from '../../../util/Config';
 import { Analytics } from '../../../util/AnalyticsHandler';
 import { Notification } from '../../../models/Notification';
 import NotificationCard from '../../../components/NotificationCard';
+import { Browser } from '../../../util/Browser';
+import { Network } from '../../../util';
 
 const width = Dimensions.get('screen').width;
 const height = Dimensions.get('screen').height;
@@ -103,7 +102,7 @@ const BillCarousel = (props: {
       layout={'default'}
       inactiveSlideScale={0.9}
       inactiveSlideOpacity={0.7}
-      centerContent={true}
+      centerContent={true}      
       loop={false}
       autoplayInterval={10000}
       onScroll={Animated.event(
@@ -120,7 +119,7 @@ export default class BillDiscoverScreen extends React.Component<Props, State> {
 
   componentDidMount() {
     this.loadData();
-    this.props.navigation.addListener('focus', () => {
+    this.props.navigation.addListener('focus', async () => {
       this.checkNotification();
     });
   }
@@ -147,11 +146,11 @@ export default class BillDiscoverScreen extends React.Component<Props, State> {
     if (!this.state.loaded || this.state.refreshing) {
       return new Promise<void>((resolve, reject) => {
         this.setState({ progress: true }, async () => {
-          await refresh();
+          await Network.refresh();
           let data = await fetchRepresentatives();
           this.setState({ representatives: data });
-          let bills = await loadBillFeed();
-          let lbills = await likedBills();
+          let bills = await Network.loadBillFeed();
+          let lbills = await Network.likedBills();
           this.setState({
             bills: bills,
             loaded: true,
@@ -435,13 +434,11 @@ export default class BillDiscoverScreen extends React.Component<Props, State> {
             <Text style={styles.discover}>Discover</Text>
             <TouchableOpacity
               onPress={() => {
-                Linking.canOpenURL(
-                  'https://www.odysseyapp.us/about-us.html'
-                ).then((val) => {
-                  if (val) {
-                    Linking.openURL('https://www.odysseyapp.us/about-us.html');
-                  }
-                });
+                Browser.openURL(
+                  'https://www.odysseyapp.us/about-us.htm',
+                  false,
+                  false
+                );
               }}
             >
               <Icon name="info" type="feather" color="#2196f3" />

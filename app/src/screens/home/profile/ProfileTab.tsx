@@ -7,11 +7,9 @@ import React from 'react';
 import { ProfileTabScreenProps } from '../HomeScreen';
 import EditScreen from './EditScreen';
 import ProfileScreen from './ProfileScreen';
-import SettingsScreen from './SettingsScreen';
 
 type ProfileTabStackParams = {
   Profile: undefined;
-  Settings: undefined;
   Edit: undefined;
 };
 
@@ -20,10 +18,6 @@ const Stack = createStackNavigator<ProfileTabStackParams>();
 export type ProfileScreenProps = StackNavigationProp<
   ProfileTabStackParams,
   'Profile'
->;
-export type ProfileSettingsScreenProps = StackNavigationProp<
-  ProfileTabStackParams,
-  'Settings'
 >;
 export type ProfileEditScreenProps = StackNavigationProp<
   ProfileTabStackParams,
@@ -57,15 +51,6 @@ export default function ProfileTab(props: {
         listeners={{
           focus: () => {
             props.toggleTabs(true);
-          },
-        }}
-      />
-      <Stack.Screen
-        name="Settings"
-        component={SettingsScreen}
-        listeners={{
-          focus: () => {
-            props.toggleTabs(false);
           },
         }}
       />

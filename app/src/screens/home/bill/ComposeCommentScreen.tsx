@@ -16,7 +16,7 @@ import { TextInput } from 'react-native-gesture-handler';
 import ProgressHUD from '../../../components/ProgressHUD';
 import { fetchRepresentatives, Representative, User } from '../../../models';
 import { Comment } from '../../../models/BillData';
-import { addComment, fetchUser } from '../../../util';
+import { fetchUser, Network } from '../../../util';
 import { Analytics } from '../../../util/AnalyticsHandler';
 import {
   BillDetailCommentScreenRouteProps,
@@ -164,7 +164,10 @@ export default class ComposeCommentScreen extends React.PureComponent<
               backgroundColor: '#448aff',
             }}
             onPress={async () => {
-              Analytics.createNewComment(this.props.route.params.bill, this.state.shouldSendReps)
+              Analytics.createNewComment(
+                this.props.route.params.bill,
+                this.state.shouldSendReps
+              );
               // create comment and send
               let user = await fetchUser();
               let comment: Comment = {
@@ -175,7 +178,11 @@ export default class ComposeCommentScreen extends React.PureComponent<
                 date: Date.now(),
               };
               this.setState({ showProgress: true });
-              addComment(this.props.route.params.bill, comment, this.state.shouldSendReps).then((val) => {
+              Network.addComment(
+                this.props.route.params.bill,
+                comment,
+                this.state.shouldSendReps
+              ).then((val) => {
                 this.setState({ showProgress: false });
                 if (val) {
                   this.props.navigation.pop();

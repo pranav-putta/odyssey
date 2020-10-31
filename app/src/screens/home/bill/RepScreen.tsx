@@ -11,10 +11,9 @@ import {
 } from 'react-native';
 import { Icon } from 'react-native-elements';
 import FastImage from 'react-native-fast-image';
-import { FlatList, TextInput } from 'react-native-gesture-handler';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { SharedElement } from 'react-navigation-shared-element';
 import { colors } from '../../../assets';
+import { Browser } from '../../../util/Browser';
 import {
   RepresentativeScreenProps,
   RepresentativeScreenRouteProp,
@@ -176,11 +175,7 @@ export default class RepScreen extends React.Component<Props, State> {
                       },
                     ]}
                     onPress={() => {
-                      Linking.canOpenURL(item.link).then((val) => {
-                        if (val) {
-                          Linking.openURL(item.link);
-                        }
-                      });
+                      Browser.openURL(item.link, false, false);
                     }}
                   >
                     <FastImage

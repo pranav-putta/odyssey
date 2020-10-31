@@ -11,13 +11,14 @@ import { colors, storage } from '../../../assets';
 import auth from '@react-native-firebase/auth';
 import AsyncStorage from '@react-native-community/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { fetchUser, uploadPFP, userExists } from '../../../util';
+import { fetchUser, Network } from '../../../util';
 import { User } from '../../../models';
 import { Icon } from 'react-native-elements';
 import { ProfileScreenParams, ProfileScreenProps } from './ProfileTab';
 import ImagePicker from 'react-native-image-picker';
 import ImageResizer from 'react-native-image-resizer';
 import FastImage from 'react-native-fast-image';
+import { Browser } from '../../../util/Browser';
 
 type Props = {
   navigation: ProfileScreenProps;
@@ -166,7 +167,7 @@ class ProfileScreen extends React.Component<Props, State> {
                           50
                         ).then(({ uri }) => {
                           if (this.state.user) {
-                            uploadPFP(user, uri);
+                            Network.uploadPFP(user, uri);
                             let temp = this.state.user;
                             temp.pfp_url = response.uri;
                             this.setState({ user: temp });
@@ -251,11 +252,7 @@ class ProfileScreen extends React.Component<Props, State> {
             <TouchableOpacity
               style={{ alignSelf: 'center', margin: '2.5%' }}
               onPress={() => {
-                Linking.canOpenURL('https://www.odysseyapp.us').then((val) => {
-                  if (val) {
-                    Linking.openURL('https://www.odysseyapp.us');
-                  }
-                });
+                Browser.openURL('https://www.odysseyapp.us', false, false);
               }}
             >
               <Text
@@ -278,13 +275,11 @@ class ProfileScreen extends React.Component<Props, State> {
                 borderRadius: 5,
               }}
               onPress={() => {
-                Linking.canOpenURL(
-                  'https://www.odysseyapp.us/feedback.html'
-                ).then((val) => {
-                  if (val) {
-                    Linking.openURL('https://www.odysseyapp.us/feedback.html');
-                  }
-                });
+                Browser.openURL(
+                  'https://www.odysseyapp.us/feedback.html',
+                  true,
+                  false
+                );
               }}
             >
               <Text

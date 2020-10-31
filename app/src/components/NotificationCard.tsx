@@ -3,8 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  ActivityIndicator,
-  Linking,
 } from 'react-native';
 import { colors } from '../assets';
 import Modal from 'react-native-modal';
@@ -13,6 +11,7 @@ import { WaveIndicator } from 'react-native-indicators';
 import { Notification, NotificationActionTypes } from '../models/Notification';
 import FastImage from 'react-native-fast-image';
 import { TouchableOpacity } from 'react-native-gesture-handler';
+import { Browser } from '../util/Browser';
 
 type State = {};
 
@@ -48,11 +47,7 @@ class NotificationCard extends React.Component<Props, State> {
                     onPress={() => {
                       if (val.action.action == NotificationActionTypes.link) {
                         if (val.action.path) {
-                          Linking.canOpenURL(val.action.path).then((works) => {
-                            if (works && val.action.path) {
-                              Linking.openURL(val.action.path);
-                            }
-                          });
+                          Browser.openURL(val.action.path);
                         }
                       } else if (
                         val.action.action == NotificationActionTypes.screen
