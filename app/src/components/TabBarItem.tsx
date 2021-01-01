@@ -4,11 +4,13 @@ import {
   View,
   StyleProp,
   ViewStyle,
-  Animated,
   TouchableOpacity,
+  Animated,
+  Text,
+  Easing,
 } from 'react-native';
+import { colors } from '../assets';
 import { Icon } from 'react-native-elements';
-import { act } from 'react-test-renderer';
 
 type TabItemProps = {
   style?: StyleProp<ViewStyle>;
@@ -22,142 +24,147 @@ type TabItemProps = {
   width: number;
   tkey: string;
   active: boolean;
-  onPress: (tkey: string) => void;
+  onPress: () => void;
 };
 
 type TabItemState = {
-  // current animation progress
-  animation: Animated.Value;
   // if the current tab is expanded
-  expanded: boolean;
+  clicked: boolean;
 };
 
 class TabBarItem extends React.Component<TabItemProps, TabItemState> {
-  labelWidth: Animated.AnimatedInterpolation;
-  backgroundColor: Animated.AnimatedInterpolation;
-  iconColor: Animated.AnimatedInterpolation;
+  private animation: Animated.Value;
+  private labelOverlayTranslation: Animated.AnimatedInterpolation;
+  private tabTranslation: Animated.AnimatedInterpolation;
+  private iconScale: Animated.AnimatedInterpolation;
+
+  private show: Animated.CompositeAnimation;
+  private hide: Animated.CompositeAnimation;
 
   constructor(props: TabItemProps) {
     super(props);
     this.state = {
-      animation: new Animated.Value(props.active ? 1 : 0),
-      expanded: props.active,
+      clicked: props.active,
     };
 
-    // set up label width and margin left animation
-    this.labelWidth = this.state.animation.interpolate({
+    this.animation = new Animated.Value(props.active ? 1 : 0);
+    this.toggleClick = this.toggleClick.bind(this);
+    this.labelOverlayTranslation = this.animation.interpolate({
       inputRange: [0, 1],
-      outputRange: [0, this.props.width],
+      outputRange: ['0%', '100%'],
     });
-
-    this.backgroundColor = this.state.animation.interpolate({
-      inputRange: [0, 1],
-      outputRange: ['rgb(255, 255, 255)', this.props.color],
+    this.tabTranslation = this.animation.interpolate({
+      inputRange: [0, 0.5, 1],
+      outputRange: ['10%', '0%', '0%'],
     });
-
-    this.iconColor = this.state.animation.interpolate({
-      inputRange: [0, 1],
-      outputRange: ['rgb(0, 0, 0)', this.props.textColor],
+    this.iconScale = this.animation.interpolate({
+      inputRange: [0, 0.4, 0.8],
+      outputRange: [1, 1.25, 1],
+      extrapolate: 'clamp',
+    });
+    this.show = Animated.timing(this.animation, {
+      toValue: 1,
+      duration: 350,
+      useNativeDriver: true,
+    });
+    this.hide = Animated.timing(this.animation, {
+      toValue: 0,
+      duration: 150,
+      useNativeDriver: true,
     });
   }
-  // expand tab function
-  expand = () => {
-    this.setState({ expanded: true }, () => {
-      Animated.timing(this.state.animation, {
-        toValue: 1,
-        useNativeDriver: false,
-        duration: 250,
-      }).start();
-    });
-  };
-
-  collapse = () => {
-    this.setState({ expanded: false }, () => {
-      Animated.timing(this.state.animation, {
-        toValue: 0,
-        useNativeDriver: false,
-        duration: 250,
-      }).start();
-    });
-  };
+  componentDidMount() {}
 
   componentDidUpdate() {
-    // is this tab active
-    // if the tab is not active and is expanded, collapse it
-    if (!this.props.active && this.state.expanded) {
-      this.collapse();
-    } else if (this.props.active && !this.state.expanded) {
-      this.expand();
+    if (this.props.active != this.state.clicked) {
+      // active status has changed
+      if (this.props.active) {
+        this.show.start(() => {
+          this.toggleClick();
+        });
+      } else {
+        this.hide.start(() => {
+          this.toggleClick();
+        });
+      }
     }
+  }
+
+  toggleClick() {
+    this.setState({ clicked: this.props.active });
   }
 
   render() {
     // destructure for convenience
     const { textColor, icon, label, tkey, active, onPress } = this.props;
-
+    let color = active
+      ? colors.votingBackgroundColor
+      : colors.textInputPlaceholderColor;
     return (
-      <View style={tabStyles.container}>
-        <TouchableOpacity
-          disabled={active}
-          onPress={() => {
-            if (!active) {
-              this.expand();
-              onPress(tkey);
-            }
-          }}
-          style={[tabStyles.tabTouchable]}
-        >
+      <TouchableOpacity
+        style={styles.container}
+        onPress={() => {
+          if (!active) {
+            onPress();
+          }
+        }}
+      >
+        <View style={styles.tab}>
           <Animated.View
-            style={[
-              tabStyles.tabComponets,
-              {
-                backgroundColor: this.backgroundColor,
-              },
-            ]}
+            style={{
+              zIndex: 15,
+              transform: [
+                { translateY: this.tabTranslation },
+                { scale: this.iconScale },
+              ],
+            }}
           >
-            <Icon
-              type={icon.type}
-              name={icon.name}
-              color={this.state.expanded ? textColor : 'black'}
-              style={{ fontWeight: '200' }}
-            />
-            <Animated.Text
-              numberOfLines={1}
-              ellipsizeMode={'clip'}
-              style={[
-                tabStyles.label,
-                { width: this.labelWidth, color: textColor },
-              ]}
-            >
-              {label}
-            </Animated.Text>
+            <Icon type={icon.type} name={icon.name} size={28} color={color} />
           </Animated.View>
-        </TouchableOpacity>
-      </View>
+          <View>
+            <Text style={[styles.label, { color }]}>{label}</Text>
+            <Animated.View
+              style={[
+                styles.labelOverlay,
+                {
+                  transform: [
+                    { translateY: this.labelOverlayTranslation },
+                    { rotateZ: '10deg' },
+                  ],
+                },
+              ]}
+            ></Animated.View>
+          </View>
+        </View>
+      </TouchableOpacity>
     );
   }
 }
-const tabStyles = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     justifyContent: 'center',
-  },
-  tabTouchable: {
     alignItems: 'center',
-    justifyContent: 'center',
+    flex: 1,
+    paddingTop: '4%',
   },
-  tabComponets: {
-    alignItems: 'center',
+  tab: {
+    flex: 1,
     justifyContent: 'center',
-    flexDirection: 'row',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 20,
+    alignItems: 'center',
+    width: '60%',
+    borderRadius: 5,
   },
   label: {
-    textAlign: 'center',
-    marginLeft: 5,
-    fontWeight: '600',
+    fontFamily: 'Futura',
     fontSize: 16,
+    marginTop: 3,
+  },
+  labelOverlay: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'white',
+    alignSelf: 'center',
   },
 });
 

@@ -11,14 +11,10 @@ import {
 import { Icon } from 'react-native-elements';
 import FastImage from 'react-native-fast-image';
 import { colors } from '../../../assets';
-import { formatBillNumber } from '../../../models/Bill';
+import { BillActionTag, formatBillNumber } from '../../../models/Bill';
 //@ts-ignore
 import TouchableScale from 'react-native-touchable-scale';
-import {
-  fetchUser,
-  Network,
-  storeBillLike,
-} from '../../../util';
+import { Network, storeBillLike } from '../../../util';
 import {
   BillDetailInfoScreenRouteProps,
   BillDetailsInfoScreenProps,
@@ -31,10 +27,15 @@ import { Config } from '../../../util/Config';
 import { Analytics } from '../../../util/AnalyticsHandler';
 import inappmessaging from '@react-native-firebase/in-app-messaging';
 import { Browser } from '../../../util/Browser';
+import { PersistentStorage } from '../../../util/PersistentStorage';
+import { User } from '../../../redux/models/user';
+import store from '../../../redux/store';
+import BillProgressBar from '../../../components/BillProgressBar';
 
 interface Props {
   navigation: BillDetailsInfoScreenProps;
   route: BillDetailInfoScreenRouteProps;
+  user: User;
 }
 
 enum ScrollDirection {
@@ -62,37 +63,37 @@ const voteButtonAnimation = {
   0.1: {
     scaleX: 0.85,
     scaleY: 0.85,
-    transform: [{ rotate: '-7deg' }],
+    transform: [{ rotate: '-4deg' }],
   },
   0.2: {
     scaleX: 0.85,
     scaleY: 0.85,
-    transform: [{ rotate: '-7deg' }],
+    transform: [{ rotate: '-4deg' }],
   },
   0.3: {
-    scaleX: 1.3,
-    scaleY: 1.3,
-    transform: [{ rotate: '-7deg' }],
+    scaleX: 1.1,
+    scaleY: 1.1,
+    transform: [{ rotate: '-4deg' }],
   },
   0.4: {
-    transform: [{ rotate: '7deg' }],
+    transform: [{ rotate: '4deg' }],
   },
   0.5: {
-    transform: [{ rotate: '-7deg' }],
+    transform: [{ rotate: '-4deg' }],
   },
   0.6: {
-    transform: [{ rotate: '7deg' }],
+    transform: [{ rotate: '4deg' }],
   },
   0.7: {
-    transform: [{ rotate: '-7deg' }],
+    transform: [{ rotate: '-4deg' }],
   },
   0.8: {
-    transform: [{ rotate: '7deg' }],
+    transform: [{ rotate: '4deg' }],
   },
   0.9: {
-    scaleX: 1.3,
-    scaleY: 1.3,
-    transform: [{ rotate: '7deg' }],
+    scaleX: 1.1,
+    scaleY: 1.1,
+    transform: [{ rotate: '4deg' }],
   },
   1: {
     scaleX: 1,
@@ -123,8 +124,8 @@ export default class BillInfoScreen extends React.PureComponent<Props, State> {
       scrollAnimating: false,
     };
 
-    fetchUser().then((user) => {
-      if (user.liked[props.route.params.bill.number]) {
+    PersistentStorage.getUser().then((user) => {
+      if (user && user.liked[props.route.params.bill.number]) {
         this.setState({ liked: true });
       }
     });
@@ -151,6 +152,7 @@ export default class BillInfoScreen extends React.PureComponent<Props, State> {
 
   render() {
     let { bill, category } = this.props.route.params;
+    console.log(bill);
     category = Config.getTopics()[bill.category];
     if (!category) {
       category = DefaultCategory;
@@ -309,6 +311,7 @@ export default class BillInfoScreen extends React.PureComponent<Props, State> {
     const renderBody = () => {
       return (
         <View style={[styles.content]}>
+          <BillProgressBar bill={bill} />
           <Text ellipsizeMode="tail" style={styles.synopsis}>
             {bill.short_summary + bill.full_summary}
           </Text>
@@ -406,37 +409,6 @@ export default class BillInfoScreen extends React.PureComponent<Props, State> {
           backgroundColor: 'transparent',
         }}
       >
-        <View style={styles.fullBill}>
-          <TouchableOpacity
-            style={{
-              flex: 1,
-              alignItems: 'center',
-              flexDirection: 'row',
-              justifyContent: 'center',
-            }}
-            onPress={() => {
-              Analytics.billFullPage(this.props.route.params.bill);
-              Browser.openURL(this.props.route.params.bill.url, true, true);
-            }}
-          >
-            <Icon
-              type="feather"
-              name="external-link"
-              size={24}
-              color="#0091ea"
-            />
-            <Text
-              style={{
-                fontSize: 16,
-                fontWeight: '600',
-                fontFamily: 'Futura',
-                marginLeft: '10%',
-              }}
-            >
-              See full bill page
-            </Text>
-          </TouchableOpacity>
-        </View>
         <Animatable.View
           animation={voteButtonAnimation}
           iterationCount={'infinite'}
@@ -444,11 +416,12 @@ export default class BillInfoScreen extends React.PureComponent<Props, State> {
           iterationDelay={3000}
           style={styles.voteButton}
         >
-          <TouchableScale
+          <TouchableOpacity
             style={{
               flex: 1,
-              justifyContent: 'center',
               alignItems: 'center',
+              flexDirection: 'row',
+              justifyContent: 'center',
             }}
             onPress={() => {
               // @ts-ignore
@@ -461,8 +434,34 @@ export default class BillInfoScreen extends React.PureComponent<Props, State> {
               size={30}
               color="white"
             />
-          </TouchableScale>
+            <Text
+              style={{
+                fontSize: 18,
+                fontWeight: '600',
+                fontFamily: 'Futura',
+                marginLeft: '10%',
+                color: 'white',
+              }}
+            >
+              Share your thoughts!
+            </Text>
+          </TouchableOpacity>
         </Animatable.View>
+        <View style={styles.fullBill}>
+          <TouchableScale
+            style={{
+              flex: 1,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+            onPress={() => {
+              Analytics.billFullPage(this.props.route.params.bill);
+              Browser.openURL(this.props.route.params.bill.url, true, true);
+            }}
+          >
+            <Icon type="feather" name="external-link" size={30} color="black" />
+          </TouchableScale>
+        </View>
       </View>
     );
   };
@@ -538,6 +537,13 @@ export default class BillInfoScreen extends React.PureComponent<Props, State> {
         </TouchableOpacity>
       </Animatable.View>
     );
+  };
+}
+
+function mapStoreToProps() {
+  const user = store.getState().auth.user;
+  return {
+    user: user,
   };
 }
 
@@ -658,26 +664,25 @@ const styles = StyleSheet.create({
   voteButton: {
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 10,
-    backgroundColor: colors.votingBackgroundColor,
+    borderRadius: 7.5,
     shadowColor: 'black',
     shadowOpacity: 0.25,
     shadowRadius: 30,
     zIndex: 150,
-    flex: 1,
+    backgroundColor: colors.votingBackgroundColor,
+    marginRight: '5%',
+    flex: 7,
   },
   fullBill: {
-    padding: '4%',
     justifyContent: 'center',
-    borderRadius: 10,
+    borderRadius: 7.5,
     backgroundColor: 'white',
     shadowColor: 'black',
     shadowOpacity: 0.25,
+    width: height * 0.07,
     shadowRadius: 30,
     shadowOffset: { width: 0, height: 1 },
     zIndex: 150,
-    flex: 4,
-    marginRight: '5%',
   },
   voteText: {
     color: 'white',

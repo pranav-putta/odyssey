@@ -1,18 +1,18 @@
 import functions, { firebase } from '@react-native-firebase/functions';
 import {
   fetchDataVersion,
-  fetchUser,
   Representative,
   storeDataVersion,
   storeRepresentative,
   storeUser,
-  User,
 } from '../models';
 import NetInfo from '@react-native-community/netinfo';
 import Axios from 'axios';
 import { Bill } from '../models/Bill';
 import { BillData, Comment, Vote } from '../models/BillData';
 import perf from '@react-native-firebase/perf';
+import { User } from '../redux/models/user';
+import { PersistentStorage } from './PersistentStorage';
 
 export module Network {
   export async function isNetworkAvailable() {
@@ -106,26 +106,25 @@ export module Network {
   /**
    * refreshes all pertinent user data in the background
    */
-  export async function refresh(): Promise<any> {
+  export async function refresh(): Promise<
+    [User, Representative[]] | undefined
+  > {
     if (!isNetworkAvailable()) {
-      return {};
+      return undefined;
     }
-    let version = await fetchDataVersion();
     return Axios.post(awsURLs.refresh, {
       uid: firebase.auth().currentUser?.uid,
-      version: version,
     })
-      .then((res) => {
+      .then(async (res) => {
         // console.error(res);
         let user: User = res.data.userData;
-        let reps = res.data.reps;
-        let version = res.data.version;
-        storeUser(user);
-        storeRepresentative(reps);
-        storeDataVersion(version);
+        let reps = res.data.reps as Representative[];
+
+        return [user, reps] as [User, Representative[]];
       })
       .catch((err) => {
         console.error(err);
+        return undefined;
       });
   }
 
@@ -156,6 +155,7 @@ export module Network {
     }
 
     let id = await firebase.auth().currentUser?.getIdToken(true);
+    console.log(user);
     return Axios.post(awsURLs.newUser, {
       token: id,
       user: user,
@@ -177,8 +177,8 @@ export module Network {
     if (!isNetworkAvailable()) {
       return [];
     }
-    let user = await fetchUser();
-    return Axios.post(awsURLs.billFeed, { uid: user.uid })
+    let user = await PersistentStorage.getUser();
+    return Axios.post(awsURLs.billFeed, { uid: user?.uid })
       .then((response) => {
         if (response.status == 200) {
           return response.data.bills;
@@ -196,7 +196,9 @@ export module Network {
     if (!isNetworkAvailable()) {
       return [];
     }
-    return Axios.post(awsURLs.likedBills, { user: await fetchUser() })
+    return Axios.post(awsURLs.likedBills, {
+      user: await PersistentStorage.getUser(),
+    })
       .then((response) => {
         if (response.status == 200) {
           return response.data.bills;
@@ -238,8 +240,8 @@ export module Network {
     if (!isNetworkAvailable()) {
       return [];
     }
-    let user = await fetchUser();
-    let uid = user.uid;
+    let user = await PersistentStorage.getUser();
+    let uid = user?.uid;
     return Axios.post(awsURLs.like, {
       bill_id: bill.number,
       uid: uid,
@@ -290,8 +292,8 @@ export module Network {
     if (!isNetworkAvailable()) {
       return false;
     }
-    let user = await fetchUser();
-    let uid = user.uid;
+    let user = await PersistentStorage.getUser();
+    let uid = user?.uid;
     return Axios.post(awsURLs.vote, {
       bill_id: bill.number,
       uid: uid,
@@ -318,8 +320,8 @@ export module Network {
     if (!isNetworkAvailable()) {
       return false;
     }
-    let user = await fetchUser();
-    let uid = user.uid;
+    let user = await PersistentStorage.getUser();
+    let uid = user?.uid;
     return Axios.post(awsURLs.addComment, {
       bill_id: bill.number,
       uid: uid,
@@ -347,8 +349,8 @@ export module Network {
     if (!isNetworkAvailable()) {
       return false;
     }
-    let user = await fetchUser();
-    let uid = user.uid;
+    let user = await PersistentStorage.getUser();
+    let uid = user?.uid;
     return Axios.post(awsURLs.likeComment, {
       bill_id: bill.number,
       uid: uid,
@@ -446,9 +448,9 @@ export module Network {
     if (!isNetworkAvailable()) {
       return false;
     }
-    let user = await fetchUser();
+    let user = await PersistentStorage.getUser();
     return Axios.post(awsURLs.deleteUser, {
-      uid: user.uid,
+      uid: user?.uid,
     })
       .then((response) => {
         if (response.status == 200) {

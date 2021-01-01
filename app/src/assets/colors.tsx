@@ -20,6 +20,7 @@ export default {
   votingBackgroundColor: '#448aff',
   democrat: '#2196f3',
   republican: '#ff5252',
+  lightBlack: "#0f0f0f",
   cards: {
     temp: '#448aff',
   },

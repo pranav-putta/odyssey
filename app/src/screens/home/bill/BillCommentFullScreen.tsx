@@ -7,15 +7,15 @@ import {
   BillDetailsCommentFullScreenProps,
 } from './BillDetailsStack';
 import { Image } from 'react-native-animatable';
-import { fetchUser, User } from '../../../models';
-
+import { User } from '../../../redux/models/user';
+import { PersistentStorage } from '../../../util/PersistentStorage';
 export default function BillCommentFullScreeen(props: {
   navigation: BillDetailsCommentFullScreenProps;
   route: BillDetailCommentFullScreenRouteProps;
 }) {
   const { comment, formattedDate, voteColor, voteText } = props.route.params;
   const [user, setUser] = React.useState<User | undefined>();
-  fetchUser().then((user) => {
+  PersistentStorage.getUser().then((user) => {
     setUser(user);
   });
   return (

@@ -36,27 +36,33 @@ import { Analytics } from '../../../util/AnalyticsHandler';
 import { Notification } from '../../../models/Notification';
 import NotificationCard from '../../../components/NotificationCard';
 import { Browser } from '../../../util/Browser';
-import { Network } from '../../../util';
+import Space from '../../../components/Space';
+import { FeedService } from '../../../redux/feed/feed';
+import store from '../../../redux/store';
+import { UIStatus } from '../../../redux/ui/ui.types';
+import { FeedStatus } from '../../../redux/feed/feed.types';
+import { connect } from 'react-redux';
+import { User } from '../../../redux/models/user';
+import Skeleton, { Skeletons } from '../../../components/Skeleton';
 
 const width = Dimensions.get('screen').width;
 const height = Dimensions.get('screen').height;
 
 interface Props {
   navigation: StackNavigationProp<BillScreenStackParamList, any>;
+  currentUser: User;
+  feed: Bill[];
+  representatives: Representative[];
+  status: FeedStatus;
 }
 
 interface State {
-  bills: Bill[];
   currentTab: BillTabKey;
   repSelected: boolean;
   repSelectedInfo: Representative | undefined;
-  refreshing: boolean;
-  loaded: boolean;
-  representatives: Representative[];
-  focused: boolean;
   likedBills: Bill[];
-  progress: boolean;
   notification?: Notification;
+  progress: boolean;
 }
 
 enum BillTabKey {
@@ -68,18 +74,12 @@ enum BillTabKey {
 const BillCarousel = (props: {
   bills: Bill[];
   onPress: (item: { bill: Bill; category: Category }) => void;
-  focused: boolean;
-  carouselRef: React.RefObject<Carousel<Bill>>;
 }) => {
   const scrollX = React.useRef(new Animated.Value(0)).current;
   return (
     <Carousel
-      ref={props.carouselRef}
       enableMomentum={true}
       lockScrollWhileSnapping={true}
-      contentContainerCustomStyle={{
-        paddingTop: '2.5%',
-      }}
       data={props.bills}
       renderItem={(item: { item: Bill; index: number }) => {
         let category = Config.getTopics()[item.item.category];
@@ -96,13 +96,14 @@ const BillCarousel = (props: {
           />
         );
       }}
+      containerCustomStyle={{ maxHeight: height * 0.625 }}
       sliderWidth={width}
       itemWidth={width * 0.8}
       itemHeight={height}
       layout={'default'}
       inactiveSlideScale={0.9}
       inactiveSlideOpacity={0.7}
-      centerContent={true}      
+      centerContent={true}
       loop={false}
       autoplayInterval={10000}
       onScroll={Animated.event(
@@ -113,293 +114,39 @@ const BillCarousel = (props: {
   );
 };
 
-export default class BillDiscoverScreen extends React.Component<Props, State> {
-  private newCarousel = React.createRef<Carousel<Bill>>();
-  private likedCarousel = React.createRef<Carousel<Bill>>();
+function mapStoreToProps() {
+  let feed = store.getState().feed;
+  return feed;
+}
 
+class BillDiscoverScreen extends React.Component<Props, State> {
   componentDidMount() {
     this.loadData();
-    this.props.navigation.addListener('focus', async () => {
-      this.checkNotification();
-    });
-  }
-  private async checkNotification() {
-    let notif = await getNotification();
-    if (notif) {
-      this.setState({ notification: notif });
-      removeNotification();
-    }
-  }
-
-  async calculateShowAppStoreRateProb(): Promise<boolean> {
-    let ct = await getAppLaunchCount();
-    // sigmoid function
-    let prev = 3 * Math.pow(ct - 1, 1 / 3) - 4;
-    let next = 3 * Math.pow(ct, 1 / 3) - 4;
-    if (Math.floor(prev) !== Math.floor(next) && next > 0 && next % 2 == 0) {
-      return true;
-    }
-    return false;
   }
 
   loadData = async (): Promise<void> => {
-    if (!this.state.loaded || this.state.refreshing) {
-      return new Promise<void>((resolve, reject) => {
-        this.setState({ progress: true }, async () => {
-          await Network.refresh();
-          let data = await fetchRepresentatives();
-          this.setState({ representatives: data });
-          let bills = await Network.loadBillFeed();
-          let lbills = await Network.likedBills();
-          this.setState({
-            bills: bills,
-            loaded: true,
-            likedBills: lbills,
-            progress: false,
-          });
-          resolve();
-          this.checkNotification();
-
-          let shouldShowRate = await this.calculateShowAppStoreRateProb();
-          if (shouldShowRate) {
-            Rate.rate(
-              {
-                preferInApp: true,
-                AppleAppID: '1537850349',
-                fallbackPlatformURL: 'https:/www.odysseyapp.us/feedback.html',
-              },
-              (success) => {
-                Analytics.ratingChosen(success);
-              }
-            );
-          }
-
-          if (this.state.currentTab == BillTabKey.new) {
-            this.newCarousel.current?.startAutoplay();
-            this.likedCarousel.current?.stopAutoplay();
-          } else {
-            this.likedCarousel.current?.startAutoplay();
-            this.newCarousel.current?.stopAutoplay();
-          }
-        });
-      });
-    }
+    // TODO: Notification and app rating bar
+    store.dispatch(FeedService.refresh());
   };
 
   constructor(props: any) {
     super(props);
 
     this.state = {
-      refreshing: false,
-      loaded: false,
-      representatives: [],
-      bills: [],
       currentTab: BillTabKey.new,
       repSelected: false,
       repSelectedInfo: undefined,
-      focused: this.props.navigation.isFocused(),
       likedBills: [],
       progress: false,
     };
 
-    this.props.navigation.addListener('blur', () => {
-      this.setState({ focused: false });
-      this.newCarousel.current?.stopAutoplay();
-      this.likedCarousel.current?.stopAutoplay();
-    });
-    this.props.navigation.addListener('focus', () => {
-      if (this.state.currentTab == BillTabKey.new) {
-        this.newCarousel.current?.startAutoplay();
-        this.likedCarousel.current?.stopAutoplay();
-      } else {
-        this.likedCarousel.current?.startAutoplay();
-        this.newCarousel.current?.stopAutoplay();
-      }
-      this.setState({ focused: true });
-    });
+    this.loadData = this.loadData.bind(this);
   }
-  // generates top tab item { 'new' , 'liked' }
-  tabItem = (label: string, key: BillTabKey) => {
-    const active = key == this.state.currentTab;
+
+  render() {
+    let loading = this.props.status === FeedStatus.refreshing;
     return (
-      <TouchableScale
-        style={styles.tabButton}
-        disabled={active}
-        onPress={() => {
-          if (key == BillTabKey.liked && key != this.state.currentTab) {
-            this.likedCarousel.current?.stopAutoplay();
-            this.newCarousel.current?.startAutoplay();
-          } else if (key == BillTabKey.new && key != this.state.currentTab) {
-            this.likedCarousel.current?.startAutoplay();
-            this.newCarousel.current?.stopAutoplay();
-          }
-          this.setState({ currentTab: key });
-        }}
-      >
-        <Text
-          style={[
-            styles.tabText,
-            { color: active ? 'black' : colors.darkGray },
-          ]}
-        >
-          {label}
-        </Text>
-      </TouchableScale>
-    );
-  };
-
-  // creates tab bar
-  tabBar = () => {
-    return (
-      <View style={styles.topTabs}>
-        {this.tabItem('New', BillTabKey.new)}
-        {this.tabItem('Liked', BillTabKey.liked)}
-      </View>
-    );
-  };
-
-  // view for liked tab
-  likedTab = () => {
-    return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}
-      >
-        <Text style={{ fontSize: 24, marginBottom: '50%' }}>No Likes Yet!</Text>
-      </View>
-    );
-  };
-
-  // get the current tab selected and return corresponding view
-  currentTabContent = () => {
-    if (
-      this.state.currentTab == BillTabKey.new &&
-      this.state.bills.length > 0
-    ) {
-      return (
-        <BillCarousel
-          carouselRef={this.newCarousel}
-          bills={this.state.bills}
-          onPress={(item) => {
-            this.props.navigation.push('Details', {
-              bill: item.bill,
-              category: item.category,
-            });
-          }}
-          focused={this.state.focused}
-        />
-      );
-    } else if (
-      this.state.currentTab == BillTabKey.liked &&
-      this.state.likedBills.length > 0
-    ) {
-      return (
-        <BillCarousel
-          carouselRef={this.likedCarousel}
-          bills={this.state.likedBills}
-          onPress={(item) => {
-            this.props.navigation.push('Details', {
-              bill: item.bill,
-              category: item.category,
-            });
-          }}
-          focused={this.state.focused}
-        />
-      );
-    } else {
-      return (
-        <View
-          style={{ justifyContent: 'center', alignItems: 'center', flex: 1 }}
-        >
-          <Text
-            style={{ fontFamily: 'Futura', fontSize: 20, fontWeight: '400' }}
-          >
-            Nothing here!
-          </Text>
-        </View>
-      );
-    }
-  };
-
-  RepCard = (props: Representative) => {
-    let title = () => {
-      if (props.chamber === 'house') {
-        return 'My Representative';
-      } else if (props.chamber === 'senate') {
-        return 'My Senator';
-      } else {
-        return 'Undefined';
-      }
-    };
-    if (props) {
-      return (
-        <TouchableScale
-          style={styles.repcard}
-          onPress={() => {
-            this.props.navigation.push('Rep', { rep: props });
-          }}
-        >
-          <View style={{ flexDirection: 'row' }}>
-            <SharedElement id={`rep.${props.member_url}.photo`}>
-              <FastImage
-                style={styles.repcardImage}
-                source={{
-                  uri: props.picture_url,
-                }}
-              />
-            </SharedElement>
-            <View
-              style={{
-                justifyContent: 'space-between',
-                alignItems: 'flex-start',
-                alignSelf: 'flex-end',
-                marginLeft: '5%',
-              }}
-            >
-              <Text
-                style={{
-                  fontFamily: 'Roboto',
-                  fontSize: 17,
-                  fontWeight: 'bold',
-                  color: 'black',
-                }}
-              >
-                {title()}
-              </Text>
-              <Text
-                numberOfLines={1}
-                style={{
-                  fontFamily: 'Roboto',
-                  fontWeight: 'normal',
-                  color: 'black',
-                }}
-              >
-                {props.name}
-              </Text>
-            </View>
-            <Icon
-              type={'feather'}
-              name={'send'}
-              color={'black'}
-              size={20}
-              containerStyle={{
-                flex: 1,
-                alignSelf: 'center',
-              }}
-              style={{ alignSelf: 'flex-end' }}
-            />
-          </View>
-        </TouchableScale>
-      );
-    }
-  };
-
-  discover = () => {
-    return (
-      <SafeAreaView style={{ flex: 1 }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
         <NotificationCard
           notification={this.state.notification}
           dismiss={() => {
@@ -407,86 +154,199 @@ export default class BillDiscoverScreen extends React.Component<Props, State> {
           }}
         />
         <ScrollView
-          contentContainerStyle={{ flex: 1 }}
+          style={{ flex: 1 }}
+          overScrollMode={'never'}
           refreshControl={
-            <RefreshControl
-              refreshing={this.state.refreshing}
-              onRefresh={() => {
-                this.setState({ refreshing: true }, () => {
-                  this.loadData().finally(() => {
-                    this.setState({ refreshing: false });
-                    this.newCarousel.current?.snapToItem(0, true);
-                    this.likedCarousel.current?.snapToItem(0, true);
-                  });
-                });
-              }}
-            />
+            <RefreshControl onRefresh={this.loadData} refreshing={loading} />
           }
         >
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginHorizontal: '10%',
+          <Headline />
+          <Skeleton
+            styles={{
+              paddingHorizontal: '10%',
+              height: '20%',
+              marginTop: '2.5%',
             }}
+            loading={loading}
+            skeleton={Skeletons.RepCard}
           >
-            <Text style={styles.discover}>Discover</Text>
-            <TouchableOpacity
-              onPress={() => {
-                Browser.openURL(
-                  'https://www.odysseyapp.us/about-us.htm',
-                  false,
-                  false
-                );
+            <View
+              style={{
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginHorizontal: '10%',
+                marginTop: '2.5%',
               }}
             >
-              <Icon name="info" type="feather" color="#2196f3" />
-            </TouchableOpacity>
-          </View>
-          <View
-            style={{
-              marginTop: '2%',
-              marginBottom: '6%',
-              paddingHorizontal: '4%',
-              borderRadius: 10,
-              flexDirection: 'column',
+              {this.props.representatives.map((rep, i) => (
+                <>
+                  <RepCard
+                    key={rep.member_url}
+                    clicked={() => {
+                      this.props.navigation.push('Rep', { rep: rep });
+                    }}
+                    rep={rep}
+                  />
+                  {i !== this.props.representatives.length ? (
+                    <Space height={'1.5%'} />
+                  ) : null}
+                </>
+              ))}
+            </View>
+          </Skeleton>
+          <ProgressHUD visible={loading} />
+          <Space height={'2.5%'} />
+          <Space height={'1.5%'} />
+          <BillCarousel
+            bills={this.props.feed}
+            onPress={(item) => {
+              this.props.navigation.push('Details', item);
             }}
-          >
-            <View style={{ flexDirection: 'row' }}>
-              {this.RepCard(this.state.representatives[0])}
-            </View>
-            <View style={{ flexDirection: 'row' }}>
-              {this.RepCard(this.state.representatives[1])}
-            </View>
-          </View>
-          {this.tabBar()}
-          {this.currentTabContent()}
-          <View style={{ width: '100%', height: '7.5%', bottom: 0 }} />
+          />
         </ScrollView>
+        <Space height={'11%'} />
       </SafeAreaView>
     );
-  };
+  }
+}
 
-  render() {
-    if (this.state.loaded && this.state.bills) {
-      return <View style={styles.container}>{this.discover()}</View>;
+function Headline() {
+  return (
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginHorizontal: '10%',
+      }}
+    >
+      <Text style={styles.discover}>Discover</Text>
+      <TouchableOpacity
+        onPress={() => {
+          Browser.openURL(
+            'https://www.odysseyapp.us/about-us.htm',
+            false,
+            false
+          );
+        }}
+      >
+        <Icon name="info" type="feather" color="#2196f3" />
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+function RepCard(props: {
+  rep: Representative;
+  clicked: (rep: Representative) => void;
+}) {
+  const { rep, clicked } = props;
+  let title = () => {
+    if (rep.chamber === 'house') {
+      return 'My Representative';
+    } else if (rep.chamber === 'senate') {
+      return 'My Senator';
     } else {
-      return (
+      return 'Undefined';
+    }
+  };
+  return (
+    <TouchableOpacity
+      style={styles.repcard}
+      onPress={() => {
+        clicked(rep);
+      }}
+    >
+      <View style={{ flexDirection: 'row' }}>
+        <SharedElement id={`rep.${rep.member_url}.photo`}>
+          <FastImage
+            style={styles.repcardImage}
+            source={{
+              uri: rep.picture_url,
+            }}
+          />
+        </SharedElement>
         <View
           style={{
-            flex: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: 'white',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            alignSelf: 'flex-end',
+            marginLeft: '5%',
           }}
         >
-          <Text>Loading...</Text>
-          <ProgressHUD visible={true} />
+          <Text
+            style={{
+              fontFamily: 'Roboto',
+              fontSize: 17,
+              fontWeight: 'bold',
+              color: 'black',
+            }}
+          >
+            {title()}
+          </Text>
+          <Text
+            numberOfLines={1}
+            style={{
+              fontFamily: 'Roboto',
+              fontWeight: 'normal',
+              color: 'black',
+            }}
+          >
+            {rep.name}
+          </Text>
         </View>
-      );
-    }
-  }
+        <View style={{ flex: 1 }} />
+        <View
+          style={{
+            position: 'absolute',
+            right: 0,
+            alignSelf: 'center',
+            padding: 5,
+            borderRadius: 20,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <Icon
+            type={'feather'}
+            name={'arrow-right'}
+            color={'black'}
+            solid={true}
+            size={20}
+            containerStyle={{}}
+          />
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+function TabItem(props: { label: string; active: boolean }) {
+  return (
+    <TouchableScale
+      style={styles.tabButton}
+      disabled={props.active}
+      onPress={() => {}}
+    >
+      <Text
+        style={[
+          styles.tabText,
+          { color: props.active ? 'black' : colors.darkGray },
+        ]}
+      >
+        {props.label}
+      </Text>
+    </TouchableScale>
+  );
+}
+function TabBar(props: { current: BillTabKey }) {
+  // generates tab bar { 'new' , 'liked' }
+  return (
+    <View style={styles.topTabs}>
+      <TabItem active={props.current == BillTabKey.new} label={'New'} />
+      <TabItem active={props.current == BillTabKey.liked} label={'Liked'} />
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -525,8 +385,8 @@ const styles = StyleSheet.create({
   },
   topTabs: {
     flexDirection: 'row',
-    marginLeft: '10%',
-    marginBottom: '0.5%',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   helloText: {
     fontSize: 46,
@@ -547,14 +407,8 @@ const styles = StyleSheet.create({
     fontWeight: '400',
   },
   repcard: {
-    padding: 5,
     flexDirection: 'row',
-    width: '100%',
     alignItems: 'center',
-    borderRadius: 10,
-    flex: 1,
-    marginHorizontal: '5%',
-    marginTop: 5,
   },
   repcardImage: {
     width: 50,
@@ -570,3 +424,4 @@ const styles = StyleSheet.create({
     color: 'white',
   },
 });
+export default connect(mapStoreToProps)(BillDiscoverScreen);

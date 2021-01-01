@@ -77,11 +77,14 @@ export const user_exists = async (event: any = {}): Promise<any> => {
   }
 };
 
+export const get_user = async (event: any = {}): Promise<any> => {};
+
 /**
  * creates a new entry in users table with the supplied info
  * @param event user information
  */
 export const new_user = async (event: any = {}): Promise<any> => {
+  console.log("HERE");
   let data = JSON.parse(event.body);
   if (!data) {
     return createError("post data could not be parsed");
@@ -104,11 +107,14 @@ export const new_user = async (event: any = {}): Promise<any> => {
   aws.config.update(awsconfig.aws_remote_config);
   var client = new aws.DynamoDB.DocumentClient();
 
+  let photoURL =
+    data.user.pfp_url != ""
+      ? data.user.pfp_url
+      : "https://cdn.business2community.com/wp-content/uploads/2017/08/blank-profile-picture-973460_640.png";
+  console.log("User: " + data.user);
+
   // upload temp image
-  let image = await axios.get(
-    "https://cdn.business2community.com/wp-content/uploads/2017/08/blank-profile-picture-973460_640.png",
-    { responseType: "arraybuffer" }
-  );
+  let image = await axios.get(photoURL, { responseType: "arraybuffer" });
   let s3Data = await new aws.S3.ManagedUpload({
     params: {
       Bucket: "odyssey-user-pfp",

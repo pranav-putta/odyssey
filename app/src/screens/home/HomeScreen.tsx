@@ -17,6 +17,7 @@ import {
 import inAppMessaging from '@react-native-firebase/in-app-messaging';
 import NotificationCard from '../../components/NotificationCard';
 import { Notification } from '../../models/Notification';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 type State = {
   showTabs: boolean;
@@ -30,7 +31,7 @@ type Props = {
 
 const tabs: TabModel[] = [
   {
-    icon: { name: 'trello', type: 'feather' },
+    icon: { name: 'vote-yea', type: 'font-awesome-5' },
     label: 'Bills',
     tkey: TabKey.bills,
     width: 40,
@@ -89,7 +90,7 @@ class HomeScreen extends React.PureComponent<Props, State> {
 
   render() {
     return (
-      <View style={StyleSheet.absoluteFillObject}>
+      <View style={styles.container}>
         <Tab.Navigator
           tabBar={(props) => (
             <TabBar
@@ -135,18 +136,16 @@ class HomeScreen extends React.PureComponent<Props, State> {
             )}
           </Tab.Screen>
         </Tab.Navigator>
-        {Platform.select({
-          ios: (
-            <StatusBar
-              barStyle={'dark-content'}
-              hidden={false}
-              translucent={true}
-            />
-          ),
-        })}
       </View>
     );
   }
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: 'white',
+  },
+});
 
 export default HomeScreen;

@@ -14,10 +14,12 @@ import { Icon } from 'react-native-elements';
 import FastImage from 'react-native-fast-image';
 import { TextInput } from 'react-native-gesture-handler';
 import ProgressHUD from '../../../components/ProgressHUD';
-import { fetchRepresentatives, Representative, User } from '../../../models';
+import { fetchRepresentatives, Representative } from '../../../models';
 import { Comment } from '../../../models/BillData';
-import { fetchUser, Network } from '../../../util';
+import { User } from '../../../redux/models/user';
+import { Network } from '../../../util';
 import { Analytics } from '../../../util/AnalyticsHandler';
+import { PersistentStorage } from '../../../util/PersistentStorage';
 import {
   BillDetailCommentScreenRouteProps,
   BillDetailsCommentScreenProps,
@@ -54,8 +56,7 @@ export default class ComposeCommentScreen extends React.PureComponent<
     fetchRepresentatives().then((reps) => {
       this.setState({ reps: reps });
     });
-    fetchUser().then((user) => {
-      console.log(user.pfp_url);
+    PersistentStorage.getUser().then((user) => {
       this.setState({ user: user });
     });
   }
@@ -169,27 +170,29 @@ export default class ComposeCommentScreen extends React.PureComponent<
                 this.state.shouldSendReps
               );
               // create comment and send
-              let user = await fetchUser();
-              let comment: Comment = {
-                likes: {},
-                text: this.state.text,
-                uid: user.uid,
-                name: user.name,
-                date: Date.now(),
-              };
-              this.setState({ showProgress: true });
-              Network.addComment(
-                this.props.route.params.bill,
-                comment,
-                this.state.shouldSendReps
-              ).then((val) => {
-                this.setState({ showProgress: false });
-                if (val) {
-                  this.props.navigation.pop();
-                } else {
-                  Alert.alert("Couldn't submit your request");
-                }
-              });
+              let user = await PersistentStorage.getUser();
+              if (user) {
+                let comment: Comment = {
+                  likes: {},
+                  text: this.state.text,
+                  uid: user.uid,
+                  name: user.name,
+                  date: Date.now(),
+                };
+                this.setState({ showProgress: true });
+                Network.addComment(
+                  this.props.route.params.bill,
+                  comment,
+                  this.state.shouldSendReps
+                ).then((val) => {
+                  this.setState({ showProgress: false });
+                  if (val) {
+                    this.props.navigation.pop();
+                  } else {
+                    Alert.alert("Couldn't submit your request");
+                  }
+                });
+              }
             }}
           >
             <Text

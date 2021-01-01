@@ -14,11 +14,15 @@ const (
 	Assigned Tag = iota
 	// EffectiveDate - "bill becomes law"
 	EffectiveDate
+	// FirstReading - "bill is read in subcommittee"
+	FirstReading
+	// SecondReading - "bill is read by chamber"
+	SecondReading
 	// ArrivalInSenate - "Passed in house, passed to senate"
 	ArrivalInSenate
 	// ArrivalInHouse - "Passed in senate, passed to house"
 	ArrivalInHouse
-	// CoSponsor - "Added Co-Sponsosr"
+	// CoSponsor - "Added Co-Sponsor"
 	CoSponsor
 	// ThirdReadingVote - "Final reading right before vote"
 	ThirdReadingVote

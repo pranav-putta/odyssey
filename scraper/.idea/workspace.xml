@@ -20,9 +20,42 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="fa24d2c0-492c-4fa1-b7d6-ab13f4d87ac9" name="Default Changelist" comment="database updates done">
-      <change beforePath="$PROJECT_DIR$/../app/ios/app/LaunchScreen.storyboard" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/app/LaunchScreen.storyboard" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/ios/Odyssey.entitlements" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/Odyssey.entitlements" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/ios/Odyssey.xcodeproj/project.pbxproj" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/Odyssey.xcodeproj/project.pbxproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/ios/Odyssey.xcodeproj/xcshareddata/xcschemes/Odyssey.xcscheme" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/Odyssey.xcodeproj/xcshareddata/xcschemes/Odyssey.xcscheme" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/ios/Podfile.lock" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/Podfile.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/ios/app/Info.plist" beforeDir="false" afterPath="$PROJECT_DIR$/../app/ios/app/Info.plist" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/../app/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../app/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/App.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/App.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/assets/colors.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/assets/colors.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/components/TabBar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/components/TabBar.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/components/TabBarItem.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/components/TabBarItem.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/models/Topic.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/models/Topic.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/models/User.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/models/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/models/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/routes/routes.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/screens/home/HomeScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/screens/home/HomeScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/screens/home/bill/BillCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/screens/home/bill/BillCard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/screens/home/bill/BillCommentFullScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/screens/home/bill/BillCommentFullScreen.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../app/src/screens/home/bill/BillDiscoverScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/screens/home/bill/BillDiscoverScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/screens/home/bill/BillInfoScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/screens/home/bill/BillInfoScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/screens/home/bill/BillVotingScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/screens/home/bill/BillVotingScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/screens/home/bill/ComposeCommentScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/screens/home/bill/ComposeCommentScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/screens/home/profile/EditScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/screens/home/profile/EditScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/screens/home/profile/ProfileScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/screens/home/profile/ProfileScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/screens/home/search/SearchBillCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/screens/home/search/SearchBillCard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/screens/login/LoginScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/screens/login/LoginScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/screens/login/components/GridList.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/util/LocalStorage.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/util/LocalStorage.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app/src/util/NetworkHandler.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../app/src/util/NetworkHandler.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../backend/dist/firebase.js" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/dist/firebase.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../backend/dist/handler.js" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/dist/handler.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../backend/src/handler.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/src/handler.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/controllers/bill-controller.go" beforeDir="false" afterPath="$PROJECT_DIR$/controllers/bill-controller.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/bill-model.go" beforeDir="false" afterPath="$PROJECT_DIR$/models/bill-model.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scraper.test.go" beforeDir="false" afterPath="$PROJECT_DIR$/scraper.test.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -89,8 +122,8 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Go Build.go build pranavputta.me/scraper/oddysey" />
       <item itemvalue="Go Build.go build scraper" />
+      <item itemvalue="Go Build.go build pranavputta.me/scraper/oddysey" />
     </list>
     <recent_temporary>
       <list>
@@ -130,8 +163,8 @@
       <screen x="0" y="23" width="1920" height="995" />
     </state>
     <state x="723" y="231" key="#xdebugger.evaluate/-1440.111.1440.877/0.23.1920.995@0.23.1920.995" timestamp="1602760440391" />
-    <state width="1398" height="336" key="GridCell.Tab.0.bottom" timestamp="1603739490388">
-      <screen x="0" y="23" width="1440" height="834" />
+    <state width="678" height="334" key="GridCell.Tab.0.bottom" timestamp="1609541398565">
+      <screen x="0" y="25" width="1440" height="821" />
     </state>
     <state width="1878" height="336" key="GridCell.Tab.0.bottom/-1440.111.1440.877/0.23.1920.1001@0.23.1920.1001" timestamp="1603692702635" />
     <state width="918" height="266" key="GridCell.Tab.0.bottom/-1440.111.1440.877/0.23.1920.986@0.23.1920.986" timestamp="1601979869553" />
@@ -145,8 +178,10 @@
     <state width="918" height="331" key="GridCell.Tab.0.bottom/0.23.1440.827@0.23.1440.827" timestamp="1602889772385" />
     <state width="1398" height="336" key="GridCell.Tab.0.bottom/0.23.1440.832@0.23.1440.832" timestamp="1603737302888" />
     <state width="1398" height="336" key="GridCell.Tab.0.bottom/0.23.1440.834@0.23.1440.834" timestamp="1603739490388" />
-    <state width="1398" height="336" key="GridCell.Tab.0.center" timestamp="1603739490388">
-      <screen x="0" y="23" width="1440" height="834" />
+    <state width="678" height="334" key="GridCell.Tab.0.bottom/0.25.1440.821@0.25.1440.821" timestamp="1609541398565" />
+    <state width="678" height="334" key="GridCell.Tab.0.bottom/0.25.1440.822@0.25.1440.822" timestamp="1609276907710" />
+    <state width="678" height="334" key="GridCell.Tab.0.center" timestamp="1609541398564">
+      <screen x="0" y="25" width="1440" height="821" />
     </state>
     <state width="1878" height="336" key="GridCell.Tab.0.center/-1440.111.1440.877/0.23.1920.1001@0.23.1920.1001" timestamp="1603692702633" />
     <state width="918" height="266" key="GridCell.Tab.0.center/-1440.111.1440.877/0.23.1920.986@0.23.1920.986" timestamp="1601979869553" />
@@ -160,8 +195,10 @@
     <state width="918" height="331" key="GridCell.Tab.0.center/0.23.1440.827@0.23.1440.827" timestamp="1602889772383" />
     <state width="1398" height="336" key="GridCell.Tab.0.center/0.23.1440.832@0.23.1440.832" timestamp="1603737302883" />
     <state width="1398" height="336" key="GridCell.Tab.0.center/0.23.1440.834@0.23.1440.834" timestamp="1603739490388" />
-    <state width="1398" height="336" key="GridCell.Tab.0.left" timestamp="1603739490387">
-      <screen x="0" y="23" width="1440" height="834" />
+    <state width="678" height="334" key="GridCell.Tab.0.center/0.25.1440.821@0.25.1440.821" timestamp="1609541398564" />
+    <state width="678" height="334" key="GridCell.Tab.0.center/0.25.1440.822@0.25.1440.822" timestamp="1609276907709" />
+    <state width="678" height="334" key="GridCell.Tab.0.left" timestamp="1609541398563">
+      <screen x="0" y="25" width="1440" height="821" />
     </state>
     <state width="1878" height="336" key="GridCell.Tab.0.left/-1440.111.1440.877/0.23.1920.1001@0.23.1920.1001" timestamp="1603692702633" />
     <state width="918" height="266" key="GridCell.Tab.0.left/-1440.111.1440.877/0.23.1920.986@0.23.1920.986" timestamp="1601979869552" />
@@ -175,8 +212,10 @@
     <state width="918" height="331" key="GridCell.Tab.0.left/0.23.1440.827@0.23.1440.827" timestamp="1602889772382" />
     <state width="1398" height="336" key="GridCell.Tab.0.left/0.23.1440.832@0.23.1440.832" timestamp="1603737302880" />
     <state width="1398" height="336" key="GridCell.Tab.0.left/0.23.1440.834@0.23.1440.834" timestamp="1603739490387" />
-    <state width="1398" height="336" key="GridCell.Tab.0.right" timestamp="1603739490388">
-      <screen x="0" y="23" width="1440" height="834" />
+    <state width="678" height="334" key="GridCell.Tab.0.left/0.25.1440.821@0.25.1440.821" timestamp="1609541398563" />
+    <state width="678" height="334" key="GridCell.Tab.0.left/0.25.1440.822@0.25.1440.822" timestamp="1609276907708" />
+    <state width="678" height="334" key="GridCell.Tab.0.right" timestamp="1609541398564">
+      <screen x="0" y="25" width="1440" height="821" />
     </state>
     <state width="1878" height="336" key="GridCell.Tab.0.right/-1440.111.1440.877/0.23.1920.1001@0.23.1920.1001" timestamp="1603692702635" />
     <state width="918" height="266" key="GridCell.Tab.0.right/-1440.111.1440.877/0.23.1920.986@0.23.1920.986" timestamp="1601979869553" />
@@ -190,6 +229,8 @@
     <state width="918" height="331" key="GridCell.Tab.0.right/0.23.1440.827@0.23.1440.827" timestamp="1602889772384" />
     <state width="1398" height="336" key="GridCell.Tab.0.right/0.23.1440.832@0.23.1440.832" timestamp="1603737302884" />
     <state width="1398" height="336" key="GridCell.Tab.0.right/0.23.1440.834@0.23.1440.834" timestamp="1603739490388" />
+    <state width="678" height="334" key="GridCell.Tab.0.right/0.25.1440.821@0.25.1440.821" timestamp="1609541398564" />
+    <state width="678" height="334" key="GridCell.Tab.0.right/0.25.1440.822@0.25.1440.822" timestamp="1609276907709" />
     <state width="918" height="331" key="GridCell.Tab.1.bottom" timestamp="1602889772386">
       <screen x="0" y="23" width="1440" height="827" />
     </state>

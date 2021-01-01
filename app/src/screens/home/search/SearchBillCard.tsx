@@ -4,7 +4,6 @@ import { Bill } from '../../../models/Bill';
 import FastImage from 'react-native-fast-image';
 import * as Animatable from 'react-native-animatable';
 import { Config } from '../../../util/Config';
-import { DefaultTopic } from '../../../models/Topic';
 
 type Props = {
   bill: Bill;
@@ -18,7 +17,6 @@ export default class SearchBillCard extends React.PureComponent<Props, State> {
     let topic = Config.getSmallTopics()[this.props.bill.category];
     if (!topic) {
       console.log("search screen")
-      topic = DefaultTopic;
       Config.alertUpdateConfig().then(() => {
         this.forceUpdate();
       });

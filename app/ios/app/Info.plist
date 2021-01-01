@@ -53,6 +53,8 @@
 			</dict>
 		</dict>
 	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>Used to select a profile picture</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Used to determine your state representative and senator</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>

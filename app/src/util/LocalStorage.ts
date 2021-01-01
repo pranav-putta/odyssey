@@ -1,10 +1,11 @@
 import AsyncStorage from '@react-native-community/async-storage';
-import { User } from '../models';
 import { Bill } from '../models/Bill';
 import { Notification } from '../models/Notification';
 import { Representative } from '../models/Representative';
+import { User } from '../redux/models/user';
 
 const keyUser = 'kOdysseyUser';
+const keyUserLoggedIn = 'kUserLoggedIn';
 const keyRepresentatives = 'kOdysseyRepresentatives';
 const keyDataVersion = 'kOdysseyDataVersion';
 const keyCategories = 'kOdysseyCategories';
@@ -21,6 +22,10 @@ export async function incrementAppLaunch() {
   }
 }
 
+export async function setUserLoggedIn(loggedIn: boolean) {
+  await AsyncStorage.setItem(keyUserLoggedIn, loggedIn ? 'true' : 'false');
+}
+
 export async function getAppLaunchCount(): Promise<number> {
   let out = await AsyncStorage.getItem(keyAppLaunch);
   return Number.parseFloat(out || '0');
@@ -35,12 +40,13 @@ export async function storeUser(user: User) {
 }
 
 export async function storeBillLike(bill: Bill, liked: boolean) {
-  let user = await fetchUser();
+  /*let user = await fetchUser();
   if (!user.liked) {
     user.liked = {};
   }
   user.liked[bill.number] = liked;
-  await storeUser(user);
+  await storeUser(user);*/
+  // TODO: DO IT
 }
 
 export async function storeRepresentative(reps: Representative[]) {
@@ -91,10 +97,6 @@ export async function removeNotification() {
   }
 }
 
-export async function fetchUser(): Promise<User> {
-  let out = await AsyncStorage.getItem(keyUser);
-  return JSON.parse(out || '{}');
-}
 
 export async function fetchRepresentatives(): Promise<Representative[]> {
   let out = await AsyncStorage.getItem(keyRepresentatives);

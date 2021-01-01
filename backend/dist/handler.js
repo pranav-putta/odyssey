@@ -25,7 +25,7 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 var __importStar = (this && this.__importStar) || function (mod) {
     if (mod && mod.__esModule) return mod;
     var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
     __setModuleDefault(result, mod);
     return result;
 };
@@ -69,7 +69,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.email_rep = exports.delete_user = exports.update_profile = exports.upload_pfp = exports.delete_comment = exports.like_comment = exports.get_bill_data = exports.add_comment = exports.vote = exports.like = exports.search = exports.refresh = exports.liked_bills = exports.load_bill_feed = exports.new_user = exports.user_exists = void 0;
+exports.email_rep = exports.delete_user = exports.update_profile = exports.upload_pfp = exports.delete_comment = exports.like_comment = exports.get_bill_data = exports.add_comment = exports.vote = exports.like = exports.search = exports.refresh = exports.liked_bills = exports.load_bill_feed = exports.new_user = exports.get_user = exports.user_exists = void 0;
 var axios_1 = __importDefault(require("axios"));
 var pg_1 = __importDefault(require("pg"));
 var querystring_1 = __importDefault(require("querystring"));
@@ -149,6 +149,12 @@ exports.user_exists = function (event) {
         });
     });
 };
+exports.get_user = function (event) {
+    if (event === void 0) { event = {}; }
+    return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
+        return [2 /*return*/];
+    }); });
+};
 /**
  * creates a new entry in users table with the supplied info
  * @param event user information
@@ -156,10 +162,11 @@ exports.user_exists = function (event) {
 exports.new_user = function (event) {
     if (event === void 0) { event = {}; }
     return __awaiter(void 0, void 0, void 0, function () {
-        var data, client, image, s3Data, params, response;
+        var data, client, photoURL, image, s3Data, params, response;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
+                    console.log("HERE");
                     data = JSON.parse(event.body);
                     if (!data) {
                         return [2 /*return*/, createError("post data could not be parsed")];
@@ -182,7 +189,11 @@ exports.new_user = function (event) {
                     // set up dynamodb client
                     aws.config.update(aws_config_1.default.aws_remote_config);
                     client = new aws.DynamoDB.DocumentClient();
-                    return [4 /*yield*/, axios_1.default.get("https://cdn.business2community.com/wp-content/uploads/2017/08/blank-profile-picture-973460_640.png", { responseType: "arraybuffer" })];
+                    photoURL = data.user.pfp_url != ""
+                        ? data.user.pfp_url
+                        : "https://cdn.business2community.com/wp-content/uploads/2017/08/blank-profile-picture-973460_640.png";
+                    console.log("User: " + data.user);
+                    return [4 /*yield*/, axios_1.default.get(photoURL, { responseType: "arraybuffer" })];
                 case 2:
                     image = _a.sent();
                     return [4 /*yield*/, new aws.S3.ManagedUpload({

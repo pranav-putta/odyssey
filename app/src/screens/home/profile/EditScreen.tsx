@@ -14,11 +14,12 @@ import { FlatList, TextInput } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, storage } from '../../../assets';
 import ProgressHUD from '../../../components/ProgressHUD';
-import { fetchUser, storeUser, User } from '../../../models';
-import { Network } from '../../../util';
+import { Network, storeUser } from '../../../util';
 import { ProfileEditScreenProps } from './ProfileTab';
 import auth from '@react-native-firebase/auth';
 import { Browser } from '../../../util/Browser';
+import { User } from '../../../redux/models/user';
+import { PersistentStorage } from '../../../util/PersistentStorage';
 
 type Props = {
   navigation: ProfileEditScreenProps;
@@ -81,7 +82,7 @@ export default class EditScreen extends React.Component<Props, State> {
   }
 
   componentDidMount() {
-    fetchUser().then((user) => {
+    PersistentStorage.getUser().then((user) => {
       this.setState({ user: user });
     });
   }

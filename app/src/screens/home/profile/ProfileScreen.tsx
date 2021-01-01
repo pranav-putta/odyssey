@@ -9,16 +9,18 @@ import {
 } from 'react-native';
 import { colors, storage } from '../../../assets';
 import auth from '@react-native-firebase/auth';
-import AsyncStorage from '@react-native-community/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { fetchUser, Network } from '../../../util';
-import { User } from '../../../models';
+import { Network } from '../../../util';
 import { Icon } from 'react-native-elements';
 import { ProfileScreenParams, ProfileScreenProps } from './ProfileTab';
 import ImagePicker from 'react-native-image-picker';
 import ImageResizer from 'react-native-image-resizer';
 import FastImage from 'react-native-fast-image';
 import { Browser } from '../../../util/Browser';
+import store from '../../../redux/store';
+import { AuthService } from '../../../redux/auth/auth';
+import { User } from '../../../redux/models/user';
+import { PersistentStorage } from '../../../util/PersistentStorage';
 
 type Props = {
   navigation: ProfileScreenProps;
@@ -39,8 +41,10 @@ class ProfileScreen extends React.Component<Props, State> {
   }
 
   componentDidMount() {
-    fetchUser().then((user) => {
-      this.setState({ user: user });
+    PersistentStorage.getUser().then((user) => {
+      if (user && !user.anonymous) {
+        this.setState({ user: user });
+      }
     });
   }
 
@@ -215,15 +219,6 @@ class ProfileScreen extends React.Component<Props, State> {
               item={user.address}
               index={0}
             />
-            <this.Item
-              icon={{
-                name: 'phone',
-                type: 'feather',
-              }}
-              name="Phone"
-              item={this.formatPhoneNumber(user.phoneNumber)}
-              index={1}
-            />
           </View>
           <View style={{ marginHorizontal: '10%', marginTop: '5%' }}>
             <TouchableOpacity
@@ -233,9 +228,8 @@ class ProfileScreen extends React.Component<Props, State> {
                 padding: 15,
                 borderRadius: 5,
               }}
-              onPress={() => {
-                auth().signOut();
-                AsyncStorage.setItem(storage.userSignedIn, 'false');
+              onPress={async () => {
+                store.dispatch(AuthService.logout());
               }}
             >
               <Text
@@ -297,7 +291,38 @@ class ProfileScreen extends React.Component<Props, State> {
         </SafeAreaView>
       );
     } else {
-      return <View style={styles.container}></View>;
+      return (
+        <View
+          style={[
+            styles.container,
+            { justifyContent: 'center', alignItems: 'center' },
+          ]}
+        >
+          <Text>Create an account budy</Text>
+          <TouchableOpacity
+            style={{
+              justifyContent: 'center',
+              alignItems: 'center',
+              padding: 15,
+              borderRadius: 5,
+            }}
+            onPress={async () => {
+              store.dispatch(AuthService.logout());
+            }}
+          >
+            <Text
+              style={{
+                color: '#ff5252',
+                fontFamily: 'Futura',
+                fontWeight: '500',
+                fontSize: 16,
+              }}
+            >
+              Log Out
+            </Text>
+          </TouchableOpacity>
+        </View>
+      );
     }
   }
 }
@@ -307,6 +332,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'white',
   },
+
   button: {
     padding: 20,
     backgroundColor: colors.continueButtonColor,

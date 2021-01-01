@@ -15,14 +15,15 @@ import { colors } from '../../../assets';
 import dateformat from 'dateformat';
 import ProgressHUD from '../../../components/ProgressHUD';
 import { BillData, Comment } from '../../../models/BillData';
-import { fetchUser, Network } from '../../../util';
+import { Network } from '../../../util';
 import {
   BillDetailsVoteScreenProps,
   BillDetailVoteScreenRouteProps,
 } from './BillDetailsStack';
-import { User } from '../../../models';
 import Clipboard from '@react-native-community/clipboard';
 import { Analytics } from '../../../util/AnalyticsHandler';
+import { User } from '../../../redux/models/user';
+import { PersistentStorage } from '../../../util/PersistentStorage';
 
 enum Vote {
   None = -1,
@@ -232,9 +233,9 @@ export default class VoteScreen extends React.Component<Props, State> {
     Network.getBillData(this.props.route.params.bill).then(async (val) => {
       this.setState({ billData: val, progress: false });
 
-      let user = await fetchUser();
+      let user = await PersistentStorage.getUser();
       this.setState({ user: user });
-      if (Object.keys(val.votes).includes(user.uid)) {
+      if (user && Object.keys(val.votes).includes(user.uid)) {
         this.setState({ vote: val.votes[user.uid] });
       }
     });

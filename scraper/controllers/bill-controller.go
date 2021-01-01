@@ -394,7 +394,7 @@ func tagAction(action string) models.Tag {
 		return models.FiscalRequest
 	} else if strings.Contains(action, "Passed Both Houses") {
 		return models.DualPassed
-	} else if strings.Contains(action, "Sent to Governor") {
+	} else if strings.Contains(action, "Sent") && strings.Contains(action, "Governor") {
 		return models.SentToGovernor
 	} else if strings.Contains(action, "Governor Approved") {
 		return models.GovernorApproved
@@ -408,6 +408,10 @@ func tagAction(action string) models.Tag {
 		}
 	} else if strings.Contains(action, "Amendment") && strings.Contains(action, "Adopted") {
 		return models.Amended
+	} else if strings.Contains(action, "First Reading") {
+		return models.FirstReading
+	} else if strings.Contains(action, "Second Reading") {
+		return models.SecondReading
 	}
 	return models.Other
 }

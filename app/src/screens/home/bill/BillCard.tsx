@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Dimensions,
-  Animated,
-} from 'react-native';
+import { View, Text, StyleSheet, Dimensions, Animated } from 'react-native';
 import { colors } from '../../../assets';
 import FastImage from 'react-native-fast-image';
 import { Bill, formatBillNumber } from '../../../models/Bill';
@@ -13,6 +7,7 @@ import { Category, DefaultCategory } from '../../../models/Category';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { SharedElement } from 'react-navigation-shared-element';
 import { Config } from '../../../util/Config';
+import BillProgressBar from '../../../components/BillProgressBar';
 
 type State = {};
 
@@ -33,8 +28,8 @@ const screenWidth = Dimensions.get('screen').width;
 export const BillCardSpecs = {
   width: screenWidth * 0.8,
   height: '100%',
-  externalRadius: 35,
-  internalRadius: 25,
+  externalRadius: 20,
+  internalRadius: 10,
   spacing: 10,
 };
 
@@ -171,8 +166,8 @@ const styles = StyleSheet.create({
     height: '100%',
     resizeMode: 'cover',
     flex: 1,
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
+    borderTopLeftRadius: BillCardSpecs.externalRadius,
+    borderTopRightRadius: BillCardSpecs.externalRadius,
   },
   content: {
     margin: '5%',
