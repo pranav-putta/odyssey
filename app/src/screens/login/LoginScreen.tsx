@@ -94,7 +94,7 @@ class TopBar extends React.PureComponent<TopBarProps, TopBarState> {
         <Animatable.View
           style={styles.topBarContainer}
           duration={500}
-          delay={2250}
+          delay={1500}
           animation="fadeIn"
         >
           <TouchableOpacity onPress={this.onInfoButtonPress}>
@@ -114,7 +114,7 @@ class TopBar extends React.PureComponent<TopBarProps, TopBarState> {
   }
 
   onInfoButtonPress() {
-    Browser.openURL('https://www.odysseyapp.us/about-us.html', true, false);
+    Browser.openURL('https://www.odysseyapp.us/about-us/index.html', true, false);
   }
 }
 class Headline extends React.PureComponent {
@@ -144,7 +144,7 @@ class Headline extends React.PureComponent {
           numberOfLines={2}
           adjustsFontSizeToFit={true}
         >
-          A new generation of democracy
+          Journey to a new generation of democracy
         </Animatable.Text>
       </View>
     );
@@ -171,7 +171,7 @@ class LoginOptions extends React.Component<
       <Animatable.View
         style={styles.loginOptionsContainer}
         duration={1500}
-        delay={1500}
+        delay={1000}
         animation="slideInUp"
       >
         <Text style={styles.loginText}>Let's get started</Text>
@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
     fontSize: 50,
   },
   captionText: {
-    fontSize: 28,
+    fontSize: 26,
     fontFamily: 'Roboto',
     fontWeight: '600',
     color: 'white',

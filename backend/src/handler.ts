@@ -6,6 +6,7 @@ import * as aws from "aws-sdk";
 import awsconfig from "./aws.config";
 import { DocumentClient } from "aws-sdk/clients/dynamodb";
 import busboy from "busboy";
+import { send_notifications } from "./notifications";
 
 const current_version = 1;
 

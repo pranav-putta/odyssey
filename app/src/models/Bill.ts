@@ -81,6 +81,8 @@ export function classifyBillProgress(item: Bill) {
   [i, progress.waitingForGovernor] = search(i, BillActionTag.sent_to_governor);
   [i, progress.billPassed] = search(i, BillActionTag.public_act);
 
+  console.log(JSON.stringify(actions));
+
   let acts = [];
   if (progress.chamber1Passed) {
     acts.push('Passed in ' + progress.chamber1Passed.Chamber);
@@ -90,7 +92,7 @@ export function classifyBillProgress(item: Bill) {
 
       if (progress.billPassed) {
         acts.push('Bill Passed');
-      } else {
+      } else if (progress.waitingForGovernor) {
         acts.push('Sent to Governor');
       }
     } else if (progress.chamber2Debating) {

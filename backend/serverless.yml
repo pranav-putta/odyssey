@@ -129,6 +129,13 @@ functions:
           path: email-rep
           method: post
           cors: true
+  sendNotification:
+    handler: dist/notifications.send_notification
+    events:
+      - http:
+          path: send-notification
+          method: post
+          cors: true
 
 plugins:
   - serverless-offline

@@ -152,11 +152,9 @@ export default class BillInfoScreen extends React.PureComponent<Props, State> {
 
   render() {
     let { bill, category } = this.props.route.params;
-    console.log(bill);
     category = Config.getTopics()[bill.category];
     if (!category) {
       category = DefaultCategory;
-      console.log('info screen');
 
       Config.alertUpdateConfig().then(() => {
         this.forceUpdate();

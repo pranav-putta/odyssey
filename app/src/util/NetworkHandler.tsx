@@ -13,6 +13,9 @@ import { BillData, Comment, Vote } from '../models/BillData';
 import perf from '@react-native-firebase/perf';
 import { User } from '../redux/models/user';
 import { PersistentStorage } from './PersistentStorage';
+import messaging, {
+  FirebaseMessagingTypes,
+} from '@react-native-firebase/messaging';
 
 export module Network {
   export async function isNetworkAvailable() {
@@ -242,6 +245,12 @@ export module Network {
     }
     let user = await PersistentStorage.getUser();
     let uid = user?.uid;
+    let id = bill.assembly + bill.chamber + bill.number;
+    if (liked) {
+      await messaging().subscribeToTopic(id);
+    } else {
+      await messaging().unsubscribeFromTopic(id);
+    }
     return Axios.post(awsURLs.like, {
       bill_id: bill.number,
       uid: uid,

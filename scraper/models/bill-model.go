@@ -6,6 +6,20 @@ import (
 	"errors"
 )
 
+// TimelineEvent
+type TimelineEvent int
+
+const (
+	ArrivedChamber1 TimelineEvent = iota
+	DebatingChamber1
+	PassedChamber1
+	ArrivedChamber2
+	DebatingChamber2
+	PassedChamber2
+	Governor
+	Passed
+)
+
 // Action tag type enum
 type Tag int
 
@@ -66,6 +80,12 @@ type Bill struct {
 	ActionsHash          string
 	BillText             BillFullText
 	VoteEvents           []BillVoteEvent
+}
+
+// Notification stores the data to send for bill updates
+type Notification struct {
+	BillInfo BillMetadata
+	Text     string
 }
 
 // BillMetadata stores bill number, general assembly number, and chamber

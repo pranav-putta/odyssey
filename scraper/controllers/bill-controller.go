@@ -12,6 +12,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
@@ -21,9 +22,14 @@ import (
 	"pranavputta.me/oddysey/scraper/models"
 )
 
-var x int
-var bills []models.Bill
 var _categoriesJson map[string]string
+
+type ScrapeHandler struct {
+	mu            sync.Mutex
+	count         int
+	bills         []models.Bill
+	notifications []models.Notification
+}
 
 // getCategoriesJson converts the human readable map and inverses key
 // 					 value pairs for the map to be legible by the computer
@@ -59,18 +65,47 @@ func getCategoriesJson() map[string]string {
 }
 
 // BillCallback is a function to be called when bill information is retrieved
-type BillCallback func(models.Bill, error)
+type BillCallback func(models.Bill, models.Notification, bool, error)
 
 // RefreshBills
 func RefreshBills(url string, ga string) {
-	err := ScrapeBills(url, ga, func(b models.Bill, err error) {
-		bills = append(bills, b)
-		x++
-		fmt.Printf("Done: Bill #%d, (%d)\n", b.Metadata.Number, x)
+	// initialize systems
+	db.Initialize()
+	getCategoriesJson()
+
+	// initialize synchronized mutex
+	handler := new(ScrapeHandler)
+
+	err := ScrapeBills(url, ga, func(b models.Bill, n models.Notification, shouldNotify bool, err error) {
+		handler.mu.Lock()
+		defer handler.mu.Unlock()
+
+		// update items
+		handler.count++
+		handler.bills = append(handler.bills, b)
+
+		// check if notification needs to be sent
+		if shouldNotify {
+			handler.notifications = append(handler.notifications, n)
+		}
+
+		fmt.Printf("Done: Bill #%d, (%d)\n", b.Metadata.Number, handler.count)
 	})
 	if err != nil {
 		panic(err)
 	}
+
+	for _, b := range handler.bills {
+		db.InsertBill(b)
+
+	}
+	fmt.Println("starting upload to database...")
+	db.Finish()
+
+	fmt.Println("sending notifications...")
+
+
+	fmt.Println("done!")
 }
 
 // ScrapeBills retrieves all bill data given the url of a list of bills from http://ilga.gov/
@@ -121,12 +156,6 @@ func ScrapeBills(url string, ga string, callback BillCallback) error {
 	q.Run(billCollector)
 	billCollector.Wait()
 
-	for _, b := range bills {
-		db.InsertBill(b)
-	}
-
-	db.Finish()
-	fmt.Println("done!")
 	return nil
 }
 
@@ -134,6 +163,8 @@ func ScrapeBills(url string, ga string, callback BillCallback) error {
 func onBillDetailsResponse(e *colly.HTMLElement, callback BillCallback) {
 	doc := e.DOM
 	shouldUpdateActions, shouldUpdateAll := false, false
+	var notification models.Notification
+	var shouldNotify = false
 
 	// get metadata to retrieve from database
 	md, err := buildBillMetadata(e)
@@ -173,6 +204,7 @@ func onBillDetailsResponse(e *colly.HTMLElement, callback BillCallback) {
 		// bill actions
 		actionsTemp, category, committee := buildActions(doc)
 		updateText, updateVotes := checkActionsForUpdates(actionsTemp, bill.Actions)
+		notification, shouldNotify = checkNotification(actionsTemp, bill.Actions, bill.Metadata)
 
 		// update actions into bill doc
 		bill.Actions = actionsTemp
@@ -199,7 +231,7 @@ func onBillDetailsResponse(e *colly.HTMLElement, callback BillCallback) {
 			// scoop voting data
 		}
 	}
-	callback(bill, nil)
+	callback(bill, notification, shouldNotify, nil)
 }
 
 // hash the actions table for comparison
@@ -453,6 +485,78 @@ func checkActionsForUpdates(old []models.BillAction, new []models.BillAction) (u
 	}
 
 	return updateText, updateVotes
+}
+
+// checks for notification
+func checkNotification(old []models.BillAction, new []models.BillAction, bill models.BillMetadata) (notification models.Notification, shouldNotify bool) {
+	// search actions list for particular tag
+	search := func(i int, tag models.Tag, actions []models.BillAction) (int, models.BillAction, error) {
+		var action models.BillAction
+		for ; i < len(actions); i++ {
+			if actions[i].Tag == tag {
+				return i, actions[i], nil
+			}
+		}
+		return i, action, errors.New("end of list")
+	}
+
+	// find the latest tag
+	latest := func(actions []models.BillAction) (models.Tag, models.BillAction, error) {
+		i := 0
+		var latestAction models.BillAction
+		var latestTag models.Tag
+		var err error
+		tags := [8]models.Tag{models.FirstReading, models.SecondReading, models.BillVotePass, models.FirstReading, models.SecondReading, models.BillVotePass, models.SentToGovernor, models.PublicAct}
+		for j, tag := range tags {
+			var tmp models.BillAction
+			i, tmp, err = search(i, tag, actions)
+			if err != nil {
+				latestTag = tag
+				if j == 0 {
+					return latestTag, latestAction, errors.New("no latest action")
+				}
+				break
+			}
+			latestAction = tmp
+		}
+		return latestTag, latestAction, nil
+	}
+
+	loTag, loAction, loErr := latest(old)
+	lnTag, lnAction, lnErr := latest(new)
+
+	var notif models.Notification
+
+	if (loErr != nil && lnErr == nil) || (loErr == nil && lnErr == nil && (loTag != lnTag || loAction.Chamber != lnAction.Chamber)) {
+		// map action to string
+		var sb strings.Builder
+		chamber := "SB"
+		if lnAction.Chamber != "Senate" {
+			chamber = "HB"
+		}
+		sb.WriteString("Bill ")
+		sb.WriteString(chamber)
+		sb.WriteString(" update: ")
+		if lnTag == models.FirstReading {
+			sb.WriteString(fmt.Sprintf("Arrived in %s", lnAction.Chamber))
+		} else if lnTag == models.SecondReading {
+			sb.WriteString(fmt.Sprintf("Debating in %s", lnAction.Chamber))
+		} else if lnTag == models.BillVotePass {
+			sb.WriteString(fmt.Sprintf("Passed in %s", lnAction.Chamber))
+		} else if lnTag == models.SentToGovernor {
+			sb.WriteString(fmt.Sprintf("Passed both chambers and waiting for governor"))
+		} else if lnTag == models.PublicAct {
+			sb.WriteString(fmt.Sprintf("Bill passed into law!"))
+		}
+
+		// timeline is different, create a notification
+		notif = models.Notification{
+			BillInfo: bill,
+			Text:     sb.String(),
+		}
+		return notif, true
+	}
+	return notif, false
 }
 
 // takes url and prepends root url

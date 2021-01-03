@@ -14,7 +14,7 @@ export module PersistentStorage {
   export async function getUser(): Promise<User | undefined> {
     let raw = await AsyncStorage.getItem(keyUser);
     if (raw) {
-      return JSON.parse(raw);
+      return JSON.parse(raw)[0];
     }
     return undefined;
   }

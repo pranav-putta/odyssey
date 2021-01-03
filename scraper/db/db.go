@@ -18,6 +18,10 @@ var _db *pgx.ConnPool
 var _tx *pgx.Tx
 var _batch *pgx.Batch
 
+func Initialize() {
+	postgreSQLClient()
+}
+
 // retrieves the context instance
 func ctx() context.Context {
 	if _ctx == nil {

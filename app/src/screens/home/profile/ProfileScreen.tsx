@@ -215,8 +215,8 @@ class ProfileScreen extends React.Component<Props, State> {
                 name: 'home',
                 type: 'feather',
               }}
-              name="Address"
-              item={user.address}
+              name="Email"
+              item={user.email}
               index={0}
             />
           </View>
