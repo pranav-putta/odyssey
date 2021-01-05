@@ -940,7 +940,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1.24;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = AZ5PZM4HCM;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = app/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
@@ -971,7 +971,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1.24;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = AZ5PZM4HCM;
 				INFOPLIST_FILE = app/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";

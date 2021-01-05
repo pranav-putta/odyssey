@@ -1,6 +1,6 @@
 import appleAuth from '@invertase/react-native-apple-authentication';
 import { GoogleSignin } from '@react-native-community/google-signin';
-import { Platform } from 'react-native';
+import { Alert, Platform } from 'react-native';
 import auth from '@react-native-firebase/auth';
 import { PartialUser } from '../redux/models/user';
 
@@ -21,7 +21,7 @@ export module LoginHandler {
   async function loginWithAppleIOS(): Promise<PartialUser> {
     const appleAuthReqResponse = await appleAuth.performRequest({
       requestedOperation: appleAuth.Operation.LOGIN,
-      requestedScopes: [appleAuth.Scope.EMAIL, appleAuth.Scope.FULL_NAME],
+      requestedScopes: [appleAuth.Scope.FULL_NAME, appleAuth.Scope.EMAIL],
     });
 
     if (!appleAuthReqResponse.identityToken) {

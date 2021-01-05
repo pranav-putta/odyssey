@@ -17,7 +17,7 @@ export interface Comment {
 }
 
 export interface BillData {
-  bill_id: number;
+  bill_id: string;
   votes: BillVotes;
   comments: Comment[];
 }

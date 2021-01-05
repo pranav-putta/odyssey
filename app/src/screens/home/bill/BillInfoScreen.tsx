@@ -125,7 +125,9 @@ export default class BillInfoScreen extends React.PureComponent<Props, State> {
     };
 
     PersistentStorage.getUser().then((user) => {
-      if (user && user.liked[props.route.params.bill.number]) {
+      let bill = props.route.params.bill;
+      let id = bill.assembly + bill.chamber + bill.number
+      if (user && user.liked[id]) {
         this.setState({ liked: true });
       }
     });

@@ -80,20 +80,22 @@ type Bill struct {
 	ActionsHash          string
 	BillText             BillFullText
 	VoteEvents           []BillVoteEvent
+	Viewable             bool
+	Created              int64
 }
 
 // Notification stores the data to send for bill updates
 type Notification struct {
-	BillInfo BillMetadata
-	Text     string
+	BillInfo BillMetadata `jsonb:"info,omitempty"`
+	Text     string       `jsonb:"number,omitempty"`
 }
 
 // BillMetadata stores bill number, general assembly number, and chamber
 type BillMetadata struct {
-	Number   int64
-	Assembly int64
-	Chamber  string
-	URL      string
+	Number   int64  `jsonb:"Number,omitempty"`
+	Assembly int64  `jsonb:"Assembly,omitempty"`
+	Chamber  string `jsonb:"Chamber,omitempty"`
+	URL      string `jsonb:"URL,omitempty"`
 }
 
 // BillFullText stores the data from the full text html data
@@ -136,6 +138,8 @@ const (
 
 // BillVoteEvent stores the voting outcome of a pdf
 type BillVoteEvent struct {
+	Chamber string            `jsonb:"chamber,omitempty"`
+	Votes   map[string]string `jsonb:"votes,omitempty"`
 }
 
 // Value is an implemented method from database/sql/driver which converts Contact into jsonb
@@ -146,6 +150,11 @@ func (ba BillAction) Value() (driver.Value, error) {
 // Value converts BillFullText into a json format
 func (bft BillFullText) Value() (driver.Value, error) {
 	return json.Marshal(bft)
+}
+
+// Value converts BillFullText into a json format
+func (bve BillVoteEvent) Value() (driver.Value, error) {
+	return json.Marshal(bve)
 }
 
 // Scan converts BillFullText from json into a struct
@@ -166,4 +175,14 @@ func (ba *BillAction) Scan(value interface{}) error {
 	}
 
 	return json.Unmarshal(b, &ba)
+}
+
+// Scan is an implemented method from database/sql/driver which converts jsonb into Contact
+func (bve *BillVoteEvent) Scan(value interface{}) error {
+	b, ok := value.([]byte)
+	if !ok {
+		return errors.New("type assertion to []byte failed")
+	}
+
+	return json.Unmarshal(b, &bve)
 }

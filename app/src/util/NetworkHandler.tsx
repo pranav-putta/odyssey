@@ -181,8 +181,9 @@ export module Network {
       return [];
     }
     let user = await PersistentStorage.getUser();
-    return Axios.post(awsURLs.billFeed, { uid: user?.uid })
+    return Axios.post(awsURLs.billFeed, { topics: user?.interestedTopics })
       .then((response) => {
+        console.log(response);
         if (response.status == 200) {
           return response.data.bills;
         } else {
@@ -246,13 +247,17 @@ export module Network {
     let user = await PersistentStorage.getUser();
     let uid = user?.uid;
     let id = bill.assembly + bill.chamber + bill.number;
+    if (user) {
+      user.liked[id] = liked;
+      await PersistentStorage.storeUser(user);
+    }
     if (liked) {
       await messaging().subscribeToTopic(id);
     } else {
       await messaging().unsubscribeFromTopic(id);
     }
     return Axios.post(awsURLs.like, {
-      bill_id: bill.number,
+      bill_id: id,
       uid: uid,
       liked: liked,
     })
@@ -270,22 +275,23 @@ export module Network {
   }
 
   export async function getBillData(bill: Bill): Promise<BillData> {
+    let id = bill.assembly + bill.chamber + bill.number;
     if (!isNetworkAvailable()) {
       return {
-        bill_id: bill.number,
+        bill_id: id,
         comments: [],
         votes: {},
       };
     }
     return Axios.post(awsURLs.billData, {
-      bill_id: bill.number,
+      bill_id: id,
     })
       .then((response) => {
         if (response.status == 200) {
           return response.data.bill;
         } else {
           return {
-            bill_id: bill.number,
+            bill_id: id,
             comments: [],
             votes: {},
           };
@@ -298,13 +304,14 @@ export module Network {
   }
 
   export async function setBillVote(bill: Bill, vote: Vote): Promise<any> {
+    let id = bill.assembly + bill.chamber + bill.number;
     if (!isNetworkAvailable()) {
       return false;
     }
     let user = await PersistentStorage.getUser();
     let uid = user?.uid;
     return Axios.post(awsURLs.vote, {
-      bill_id: bill.number,
+      bill_id: id,
       uid: uid,
       vote: vote,
     })
@@ -329,10 +336,11 @@ export module Network {
     if (!isNetworkAvailable()) {
       return false;
     }
+    let id = bill.assembly + bill.chamber + bill.number;
     let user = await PersistentStorage.getUser();
     let uid = user?.uid;
     return Axios.post(awsURLs.addComment, {
-      bill_id: bill.number,
+      bill_id: id,
       uid: uid,
       comment: comment,
       shouldSendReps: shouldSendReps,
@@ -358,10 +366,11 @@ export module Network {
     if (!isNetworkAvailable()) {
       return false;
     }
+    let id = bill.assembly + bill.chamber + bill.number;
     let user = await PersistentStorage.getUser();
     let uid = user?.uid;
     return Axios.post(awsURLs.likeComment, {
-      bill_id: bill.number,
+      bill_id: id,
       uid: uid,
       comment_index: index,
       liked: value,
@@ -413,9 +422,11 @@ export module Network {
     if (!isNetworkAvailable()) {
       return false;
     }
+    let id = bill.assembly + bill.chamber + bill.number;
+
     return Axios.post(awsURLs.deleteComment, {
       comment_index: commentIndex,
-      bill_id: bill.number,
+      bill_id: id,
     })
       .then((response) => {
         if (response.status == 200) {

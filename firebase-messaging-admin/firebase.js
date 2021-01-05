@@ -11,8 +11,7 @@ const feedback = () => {
   admin
     .messaging()
     .send({
-      
-      topic: "alerts",
+      topic: "general_alerts",
       data: {
         messageType: "card",
         content: JSON.stringify({
@@ -99,4 +98,14 @@ const edgar = () => {
     });
 };
 
-feedback();
+const test = async () => {
+  await admin.messaging().sendToTopic("101SB1", {
+    notification: {
+      title: "BILL UPDATE BUDDY",
+      body: "THERE IS A MESSAGE FOR U JIIII",
+      sound: "default",
+    },
+  });
+};
+
+test();

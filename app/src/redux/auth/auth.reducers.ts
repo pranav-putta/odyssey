@@ -37,7 +37,6 @@ export const loginUser: AuthReducer<AuthState> = (state, action) => {
 };
 
 export const logoutUser: AuthReducer<void> = (state, action) => {
-  console.log('here');
   state.user = {};
   state.status = AuthStatus.unauthenticated;
 };

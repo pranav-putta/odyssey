@@ -130,10 +130,10 @@ functions:
           method: post
           cors: true
   sendNotification:
-    handler: dist/notifications.send_notification
+    handler: dist/handler.send_notifications
     events:
       - http:
-          path: send-notification
+          path: send-notifications
           method: post
           cors: true
 

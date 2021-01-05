@@ -1,12 +1,7 @@
 import { authActions } from './auth.slice';
 import store, { AppThunk } from '../store';
 import { AuthLoginType, AuthStatus } from './auth.types';
-import appleAuth from '@invertase/react-native-apple-authentication';
-import {
-  GoogleSignin,
-  statusCodes,
-} from '@react-native-community/google-signin';
-import { Platform } from 'react-native';
+import messaging from '@react-native-firebase/messaging';
 import auth from '@react-native-firebase/auth';
 import { uiActions } from '../ui/ui.slice';
 import { Network } from '../../util';
@@ -67,7 +62,7 @@ module AuthenticationService {
         let user = await Network.refresh();
         if (user) {
           // user successfully refreshed
-          dispatch(loginUser(user, AuthStatus.authenticated));
+          dispatch(loginUser(user[0], AuthStatus.authenticated));
         } else {
           dispatch(
             UIService.setError("Couldn't fetch user information from server.")
@@ -139,16 +134,19 @@ module AuthenticationService {
     dispatch(uiActions.completed());
   };
 
-  export const createUser = (user: User): AppThunk => async (dispatch) => {
+  export const createUser = (): AppThunk => async (dispatch) => {
     dispatch(uiActions.progressChanged({ visible: true }));
-    let status = await Network.createUser(userFromPartial(user));
+    let user = getUser();
+    let status = await Network.createUser(user);
+    let x = await Network.refresh();
+    if (x) {
+      await PersistentStorage.storeUser(x[0]);
+    }
     dispatch(uiActions.progressChanged({ visible: false }));
 
     if (status) {
       // if creation was successful, show home page
-      dispatch(
-        authActions.loginUser({ user: user, status: AuthStatus.authenticated })
-      );
+      dispatch(loginUser(user, AuthStatus.authenticated));
     } else {
       dispatch(
         uiActions.error({

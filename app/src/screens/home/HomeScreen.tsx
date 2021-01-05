@@ -10,6 +10,7 @@ import { RouteProp } from '@react-navigation/native';
 import { HomeNavigation, HomeParams } from '../../App';
 import {
   getNotification,
+  Network,
   NotificationHandler,
   removeNotification,
   storeNotification,
@@ -18,6 +19,8 @@ import inAppMessaging from '@react-native-firebase/in-app-messaging';
 import NotificationCard from '../../components/NotificationCard';
 import { Notification } from '../../models/Notification';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import LikedScreen from './liked/LikedScreen';
+import auth from '@react-native-firebase/auth';
 
 type State = {
   showTabs: boolean;
@@ -31,20 +34,29 @@ type Props = {
 
 const tabs: TabModel[] = [
   {
-    icon: { name: 'vote-yea', type: 'font-awesome-5' },
-    label: 'Bills',
+    icon: { name: 'home', type: 'font-awesome-5' },
+    label: 'Home',
     tkey: TabKey.bills,
     width: 40,
   },
   {
     icon: { name: 'search', type: 'feather' },
     label: 'Search',
+    color: '#9c27b0',
     tkey: TabKey.search,
     width: 70,
   },
   {
+    icon: { name: 'heart', type: 'feather' },
+    label: 'Liked',
+    tkey: TabKey.liked,
+    color: '#ff5252',
+    width: 50,
+  },
+  {
     icon: { name: 'user', type: 'feather' },
     label: 'Me',
+    color: 'black',
     tkey: TabKey.profile,
     width: 50,
   },
@@ -53,6 +65,7 @@ const tabs: TabModel[] = [
 type HomeScreenTabParams = {
   Bills: undefined;
   Search: undefined;
+  Liked: undefined;
   Profile: undefined;
 };
 
@@ -84,6 +97,7 @@ class HomeScreen extends React.PureComponent<Props, State> {
 
     let response = await NotificationHandler.requestUserPermission();
     if (response) {
+      await NotificationHandler.subscribeToAlerts();
       await NotificationHandler.createForegroundListener();
     }
   }
@@ -124,7 +138,7 @@ class HomeScreen extends React.PureComponent<Props, State> {
               />
             )}
           </Tab.Screen>
-
+          <Tab.Screen name="Liked">{(props) => <LikedScreen />}</Tab.Screen>
           <Tab.Screen name="Profile">
             {(props) => (
               <ProfileTab

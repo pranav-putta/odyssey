@@ -98,7 +98,7 @@ class TabBarItem extends React.Component<TabItemProps, TabItemState> {
     // destructure for convenience
     const { textColor, icon, label, tkey, active, onPress } = this.props;
     let color = active
-      ? colors.votingBackgroundColor
+      ? this.props.color ?? colors.votingBackgroundColor
       : colors.textInputPlaceholderColor;
     return (
       <TouchableOpacity

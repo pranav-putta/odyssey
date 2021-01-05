@@ -21,7 +21,9 @@ CREATE TABLE public.bills
     last_updated bigint,
     bill_text jsonb,
     category text COLLATE pg_catalog."default",
-	committee text COLLATE pg_catalog."default",
+    committee text COLLATE pg_catalog."default",
+    viewable boolean,
+    created bigint,
     CONSTRAINT bills_pkey PRIMARY KEY (assembly, chamber, "number")
 )
 
@@ -29,4 +31,3 @@ TABLESPACE pg_default;
 
 ALTER TABLE public.bills
     OWNER to postgres;
-

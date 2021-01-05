@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 export enum TabKey {
   bills = 'Bills',
   search = 'Search',
+  liked = 'Liked',
   profile = 'Profile',
 }
 
@@ -41,6 +42,8 @@ class TabBar extends React.Component<Props, State> {
   bottomVal: Animated.AnimatedInterpolation;
   animation: Animated.Value;
   tickerAnimation: Animated.Value;
+  tickerLocation: Animated.AnimatedInterpolation;
+  tickerColor: Animated.AnimatedInterpolation;
 
   constructor(props: Props) {
     super(props);
@@ -52,6 +55,19 @@ class TabBar extends React.Component<Props, State> {
 
     this.animation = new Animated.Value(0);
     this.tickerAnimation = new Animated.Value(0);
+    this.tickerLocation = this.tickerAnimation.interpolate({
+      inputRange: [0, 3],
+      outputRange: [0, (3 / 4) * screenWidth],
+    });
+    this.tickerColor = this.tickerAnimation.interpolate({
+      inputRange: [0, 1, 2, 3],
+      outputRange: [
+        colors.votingBackgroundColor,
+        '#9c27b0',
+        '#ff5252',
+        'black',
+      ],
+    });
     this.bottomVal = this.animation.interpolate({
       inputRange: [0, 1],
       outputRange: ['0%', '-20%'],
@@ -103,7 +119,10 @@ class TabBar extends React.Component<Props, State> {
         <Animated.View
           style={[
             styles.ticker,
-            { transform: [{ translateX: this.tickerAnimation }] },
+            {
+              transform: [{ translateX: this.tickerLocation }],
+              backgroundColor: this.tickerColor,
+            },
           ]}
         />
         <SafeAreaView style={{ flexDirection: 'row' }} edges={['bottom']}>
@@ -128,17 +147,20 @@ class TabBar extends React.Component<Props, State> {
                     case TabKey.search:
                       multiplier = 1;
                       break;
-                    case TabKey.profile:
+                    case TabKey.liked:
                       multiplier = 2;
+                      break;
+                    case TabKey.profile:
+                      multiplier = 3;
                       break;
                   }
                   Animated.spring(this.tickerAnimation, {
-                    toValue: multiplier * (screenWidth / 3),
-                    useNativeDriver: true,
+                    toValue: multiplier,
+                    useNativeDriver: false,
                   }).start();
                 }}
                 width={width}
-                color={color || colors.tabs.bills.color}
+                color={color || colors.votingBackgroundColor}
                 textColor={textColor || colors.tabs.bills.text}
                 label={label}
               />
@@ -167,12 +189,11 @@ const styles = StyleSheet.create({
   ticker: {
     height: 4,
     width: '10%',
-    backgroundColor: colors.votingBackgroundColor,
     position: 'absolute',
     top: 0,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
-    left: (7 * screenWidth) / 60,
+    left: '7.5%',
   },
 });
 

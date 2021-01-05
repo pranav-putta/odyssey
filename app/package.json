@@ -37,7 +37,7 @@
     "@types/dateformat": "^3.0.1",
     "@types/react-native-snap-carousel": "^3.8.1",
     "@types/tinycolor2": "^1.4.2",
-    "axios": "^0.20.0",
+    "axios": "^0.21.1",
     "dateformat": "^3.0.3",
     "querystring": "^0.2.0",
     "react": "16.13.1",

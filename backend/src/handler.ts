@@ -6,7 +6,7 @@ import * as aws from "aws-sdk";
 import awsconfig from "./aws.config";
 import { DocumentClient } from "aws-sdk/clients/dynamodb";
 import busboy from "busboy";
-import { send_notifications } from "./notifications";
+import admin from "firebase-admin";
 
 const current_version = 1;
 
@@ -218,10 +218,29 @@ const get_reps = async (address: string) => {
  * @param event
  */
 export const load_bill_feed = async (event: any = {}): Promise<any> => {
-  //let uuid = event["queryStringParameters"].uuid;
+  let data = JSON.parse(event.body);
+
+  let topics: string[] = [];
+  if (data.topics) {
+    topics = Object.keys(data.topics).filter((key) => data.topics[key]);
+  }
+
+  let query = "(";
+  topics.forEach((topic, i) => {
+    query += `'${topic}'`;
+    if (i != topics.length - 1) {
+      query += ", ";
+    }
+  });
+  query += ")";
+
   let pgPool = new pg.Pool(pgConfig);
   let bills = await pgPool.query(
-    "select * from public.bills where category != 'Other' and category != 'DNE' order by random() limit 20"
+    `select * from
+    ((select * from public.bills where category in ${query} and viewable=true order by random() limit 20)
+    union all
+    (select * from public.bills  where category not in ${query} and viewable=true order by created desc limit 0))a
+    order by random()`
   );
   await pgPool.end();
 
@@ -724,3 +743,43 @@ export const update_profile = async (event: any = {}): Promise<any> => {
 };
 export const delete_user = async (event: any = {}): Promise<any> => {};
 export const email_rep = async (event: any = {}): Promise<any> => {};
+
+interface Notification {
+  BillInfo: {
+    Number: number;
+    Assembly: number;
+    Chamber: string;
+    URL: string;
+  };
+  Text: String;
+}
+
+export const send_notifications = async (event: any = {}): Promise<any> => {
+  let data = JSON.parse(event.body);
+  let notifications: Notification[] = data.notifications;
+
+  for (let i = 0; i < notifications.length; i++) {
+    let notification = notifications[i];
+
+    let bill = notification.BillInfo;
+    let id = bill.Assembly + bill.Chamber + bill.Number;
+    console.log("Sending: " + JSON.stringify(notification));
+    await admin
+      .messaging()
+      .sendToTopic(id, {
+        notification: {
+          title: "Bill Update",
+          body: notification.Text.toString(),
+          sound: "default",
+        },
+      })
+      .then((response) => {
+        console.log(response.messageId);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+
+  return { statusCode: 200, body: JSON.stringify({}) };
+};

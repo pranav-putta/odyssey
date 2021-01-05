@@ -1,5 +1,5 @@
 export type InterestedTopics = { [key: string]: boolean };
-export type LikedBills = { [key: number]: boolean };
+export type LikedBills = { [key: string]: boolean };
 export interface User {
   address: string;
   age: number;

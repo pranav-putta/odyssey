@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Dimensions,
   Animated,
+  StatusBar,
 } from 'react-native';
 import Carousel from 'react-native-snap-carousel';
 import { Icon } from 'react-native-elements';
@@ -96,7 +97,7 @@ const BillCarousel = (props: {
           />
         );
       }}
-      containerCustomStyle={{ maxHeight: height * 0.625 }}
+      containerCustomStyle={{ maxHeight: height * 0.60 }}
       sliderWidth={width}
       itemWidth={width * 0.8}
       itemHeight={height}
@@ -147,6 +148,7 @@ class BillDiscoverScreen extends React.Component<Props, State> {
     let loading = this.props.status === FeedStatus.refreshing;
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
+        <StatusBar barStyle={'dark-content'} />
         <NotificationCard
           notification={this.state.notification}
           dismiss={() => {
@@ -188,14 +190,13 @@ class BillDiscoverScreen extends React.Component<Props, State> {
                     rep={rep}
                   />
                   {i !== this.props.representatives.length ? (
-                    <Space height={'1.5%'} />
+                    <Space height={10} />
                   ) : null}
                 </>
               ))}
             </View>
           </Skeleton>
           <ProgressHUD visible={loading} />
-          <Space height={'2.5%'} />
           <Space height={'1.5%'} />
           <BillCarousel
             bills={this.props.feed}
@@ -204,7 +205,7 @@ class BillDiscoverScreen extends React.Component<Props, State> {
             }}
           />
         </ScrollView>
-        <Space height={'11%'} />
+        <Space height={'10%'} />
       </SafeAreaView>
     );
   }

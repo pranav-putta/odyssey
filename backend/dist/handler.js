@@ -69,7 +69,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.email_rep = exports.delete_user = exports.update_profile = exports.upload_pfp = exports.delete_comment = exports.like_comment = exports.get_bill_data = exports.add_comment = exports.vote = exports.like = exports.search = exports.refresh = exports.liked_bills = exports.load_bill_feed = exports.new_user = exports.get_user = exports.user_exists = void 0;
+exports.send_notifications = exports.email_rep = exports.delete_user = exports.update_profile = exports.upload_pfp = exports.delete_comment = exports.like_comment = exports.get_bill_data = exports.add_comment = exports.vote = exports.like = exports.search = exports.refresh = exports.liked_bills = exports.load_bill_feed = exports.new_user = exports.get_user = exports.user_exists = void 0;
 var axios_1 = __importDefault(require("axios"));
 var pg_1 = __importDefault(require("pg"));
 var querystring_1 = __importDefault(require("querystring"));
@@ -77,6 +77,7 @@ var fb = __importStar(require("./firebase"));
 var aws = __importStar(require("aws-sdk"));
 var aws_config_1 = __importDefault(require("./aws.config"));
 var busboy_1 = __importDefault(require("busboy"));
+var firebase_admin_1 = __importDefault(require("firebase-admin"));
 var current_version = 1;
 var pgConfig = {
     host: "odyssey.cnp1wrwnpclp.us-east-2.rds.amazonaws.com",
@@ -300,12 +301,25 @@ var get_reps = function (address) { return __awaiter(void 0, void 0, void 0, fun
 exports.load_bill_feed = function (event) {
     if (event === void 0) { event = {}; }
     return __awaiter(void 0, void 0, void 0, function () {
-        var pgPool, bills, response;
+        var data, topics, query, pgPool, bills, response;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
+                    data = JSON.parse(event.body);
+                    topics = [];
+                    if (data.topics) {
+                        topics = Object.keys(data.topics).filter(function (key) { return data.topics[key]; });
+                    }
+                    query = "(";
+                    topics.forEach(function (topic, i) {
+                        query += "'" + topic + "'";
+                        if (i != topics.length - 1) {
+                            query += ", ";
+                        }
+                    });
+                    query += ")";
                     pgPool = new pg_1.default.Pool(pgConfig);
-                    return [4 /*yield*/, pgPool.query("select * from public.bills where category != 'Other' and category != 'DNE' order by random() limit 20")];
+                    return [4 /*yield*/, pgPool.query("select * from\n    ((select * from public.bills where category in " + query + " and viewable=true order by random() limit 20)\n    union all\n    (select * from public.bills  where category not in " + query + " and viewable=true order by created desc limit 0))a\n    order by random()")];
                 case 1:
                     bills = _a.sent();
                     return [4 /*yield*/, pgPool.end()];
@@ -912,4 +926,47 @@ exports.email_rep = function (event) {
     return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
         return [2 /*return*/];
     }); });
+};
+exports.send_notifications = function (event) {
+    if (event === void 0) { event = {}; }
+    return __awaiter(void 0, void 0, void 0, function () {
+        var data, notifications, i, notification, bill, id;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    data = JSON.parse(event.body);
+                    notifications = data.notifications;
+                    i = 0;
+                    _a.label = 1;
+                case 1:
+                    if (!(i < notifications.length)) return [3 /*break*/, 4];
+                    notification = notifications[i];
+                    bill = notification.BillInfo;
+                    id = bill.Assembly + bill.Chamber + bill.Number;
+                    console.log("Sending: " + JSON.stringify(notification));
+                    return [4 /*yield*/, firebase_admin_1.default
+                            .messaging()
+                            .sendToTopic(id, {
+                            notification: {
+                                title: "Bill Update",
+                                body: notification.Text.toString(),
+                                sound: "default",
+                            },
+                        })
+                            .then(function (response) {
+                            console.log(response.messageId);
+                        })
+                            .catch(function (err) {
+                            console.log(err);
+                        })];
+                case 2:
+                    _a.sent();
+                    _a.label = 3;
+                case 3:
+                    i++;
+                    return [3 /*break*/, 1];
+                case 4: return [2 /*return*/, { statusCode: 200, body: JSON.stringify({}) }];
+            }
+        });
+    });
 };

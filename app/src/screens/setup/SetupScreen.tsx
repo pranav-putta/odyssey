@@ -46,6 +46,7 @@ interface State {
 
 function mapStateToSetup(state: AppState) {
   const { ui } = state;
+  console.log(ui.status);
   return {
     progressVisible: ui.status == UIStatus.loading,
   };
@@ -133,7 +134,7 @@ class SetupScreen extends React.Component<Props, State> {
   next() {
     if (this.state.page == 2) {
       // finish account creation
-      store.dispatch(AuthService.createUser(AuthService.getUser()));
+      store.dispatch(AuthService.createUser());
     } else {
       this.setState({ page: this.state.page + 1 }, () => {
         this.viewPager.current?.setPage(this.state.page);

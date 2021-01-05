@@ -2,12 +2,18 @@
 package controllers
 
 import (
+	"bytes"
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/ledongthuc/pdf"
+	"unicode"
+
+	//pdf "github.com/ledongthuc/pdf"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"regexp"
 	"strconv"
@@ -75,6 +81,8 @@ func RefreshBills(url string, ga string) {
 
 	// initialize synchronized mutex
 	handler := new(ScrapeHandler)
+	handler.bills = make([]models.Bill, 0)
+	handler.notifications = make([]models.Notification, 0)
 
 	err := ScrapeBills(url, ga, func(b models.Bill, n models.Notification, shouldNotify bool, err error) {
 		handler.mu.Lock()
@@ -97,13 +105,23 @@ func RefreshBills(url string, ga string) {
 
 	for _, b := range handler.bills {
 		db.InsertBill(b)
-
 	}
 	fmt.Println("starting upload to database...")
 	db.Finish()
 
 	fmt.Println("sending notifications...")
+	notificationMap := map[string][]models.Notification{"notifications": handler.notifications}
+	val, _ := json.MarshalIndent(notificationMap, "", "\t")
+	fmt.Println(len(notificationMap))
+	fmt.Println(notificationMap)
 
+	resp, err := http.Post(NotificationURL, "application/json", bytes.NewBuffer(val))
+
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("sent notifications: %d\n", resp.StatusCode)
 
 	fmt.Println("done!")
 }
@@ -151,7 +169,9 @@ func ScrapeBills(url string, ga string, callback BillCallback) error {
 		if err != nil {
 			return
 		}
-		q.AddURL(link)
+		if i == 0 {
+			q.AddURL(link)
+		}
 	})
 	q.Run(billCollector)
 	billCollector.Wait()
@@ -203,19 +223,24 @@ func onBillDetailsResponse(e *colly.HTMLElement, callback BillCallback) {
 	if shouldUpdateActions || shouldUpdateAll {
 		// bill actions
 		actionsTemp, category, committee := buildActions(doc)
-		updateText, updateVotes := checkActionsForUpdates(actionsTemp, bill.Actions)
-		notification, shouldNotify = checkNotification(actionsTemp, bill.Actions, bill.Metadata)
+		updateText, updateVotes := checkActionsForUpdates(bill.Actions, actionsTemp)
+		notification, shouldNotify, bill.Viewable = checkNotification(bill.Actions, actionsTemp, bill.Metadata)
 
 		// update actions into bill doc
 		bill.Actions = actionsTemp
 		bill.Category = category
 		bill.ActionsHash = hash
 		bill.CommitteeID = committee
+		if len(bill.Actions) > 0 {
+			bill.Created = bill.Actions[0].Date
+		} else {
+			bill.Created = 0
+		}
 
 		if updateText || shouldUpdateAll {
 			// create the url for full text
-			fullTextURL := fmt.Sprintf("http://www.ilga.gov/legislation/101/%s/10100%s%04d.htm",
-				bill.Metadata.Chamber, bill.Metadata.Chamber, bill.Metadata.Number)
+			fullTextURL := fmt.Sprintf("http://www.ilga.gov/legislation/%d/%s/10100%s%04d.htm",
+				bill.Metadata.Assembly, bill.Metadata.Chamber, bill.Metadata.Chamber, bill.Metadata.Number)
 
 			newDoc, err := goquery.NewDocument(fullTextURL)
 			fullText := ""
@@ -228,7 +253,7 @@ func onBillDetailsResponse(e *colly.HTMLElement, callback BillCallback) {
 		}
 
 		if updateVotes || shouldUpdateAll {
-			// scoop voting data
+			bill.VoteEvents = buildVotes(doc)
 		}
 	}
 	callback(bill, notification, shouldNotify, nil)
@@ -402,6 +427,104 @@ func buildFullText(doc *goquery.Selection) string {
 	return fullText
 }
 
+func buildVotes(doc *goquery.Selection) (votes []models.BillVoteEvent) {
+	// 1. get table of links for voting
+	voteLink, exists := doc.Find(`a.legislinks:contains("Votes")`).Attr("href")
+	if !exists {
+		return votes
+	}
+	voteLink = fmt.Sprintf("%s/legislation/%s", RootURL, voteLink)
+
+	voteDoc, err := goquery.NewDocument(voteLink)
+	if err != nil {
+		return votes
+	}
+
+	html := voteDoc.Find("html")
+	td := html.Find(`td.whiteheading:contains("Voting Record")`).Last()
+	trs := td.Parent().Siblings()
+
+	for r := 0; r < trs.Size(); r++ {
+		link, exists := trs.Eq(r).Find("a").Attr("href")
+		link = fmt.Sprintf("%s%s", RootURL, link)
+		if exists {
+			chamber := trs.Eq(r).Find("td").Eq(1).Text()
+			event, err := buildVotingEvent(link, chamber)
+			if err == nil {
+				votes = append(votes, event)
+			}
+		}
+	}
+	return votes
+}
+
+func buildVotingEvent(votingURL string, chamber string) (models.BillVoteEvent, error) {
+	var event models.BillVoteEvent
+	// retrieve voting pdf
+	resp, err := http.Get(votingURL)
+	if err != nil {
+		return event, err
+	}
+
+	defer resp.Body.Close()
+
+	// read into buffer stream
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return event, nil
+	}
+	reader := bytes.NewReader(body)
+
+	// convert into pdf parser
+	parser, err := pdf.NewReader(reader, reader.Size())
+	if err != nil {
+		panic(err)
+	}
+
+	// pull pdf parser into text stream
+	b, err := parser.GetPlainText()
+	var buf bytes.Buffer
+	buf.ReadFrom(b)
+	//text := buf.String()
+
+	// convert into bill vote event
+
+	votes := make(map[string]string)
+
+	for page := 1; page <= parser.NumPage(); page++ {
+		rows, err := parser.Page(page).GetTextByRow()
+		if err != nil {
+			panic(err)
+		}
+
+		var evts = map[string]int{
+			"Y":  0,
+			"N":  1,
+			"E":  2,
+			"NV": 3,
+			"P":  4,
+		}
+		for _, row := range rows {
+			for _, word := range row.Content {
+				fields := strings.Fields(word.S)
+
+				for i := 0; i < len(fields); i += 2 {
+					v := strings.Trim(fields[i], " ")
+					if _, ok := evts[v]; ok {
+						//do something here
+						name := strings.Trim(fields[i+1], " ")
+
+						if unicode.IsLetter(rune(name[0])) {
+							votes[name] = v
+						}
+					}
+				}
+			}
+		}
+	}
+	return models.BillVoteEvent{Votes: votes, Chamber: strings.ToLower(chamber)}, nil
+}
+
 // returns tag associated with action description
 func tagAction(action string) models.Tag {
 	if strings.Contains(action, "Assigned to") {
@@ -488,7 +611,7 @@ func checkActionsForUpdates(old []models.BillAction, new []models.BillAction) (u
 }
 
 // checks for notification
-func checkNotification(old []models.BillAction, new []models.BillAction, bill models.BillMetadata) (notification models.Notification, shouldNotify bool) {
+func checkNotification(old []models.BillAction, new []models.BillAction, bill models.BillMetadata) (notification models.Notification, shouldNotify bool, viewable bool) {
 	// search actions list for particular tag
 	search := func(i int, tag models.Tag, actions []models.BillAction) (int, models.BillAction, error) {
 		var action models.BillAction
@@ -501,33 +624,35 @@ func checkNotification(old []models.BillAction, new []models.BillAction, bill mo
 	}
 
 	// find the latest tag
-	latest := func(actions []models.BillAction) (models.Tag, models.BillAction, error) {
+	latest := func(actions []models.BillAction) (models.BillAction, bool, error) {
 		i := 0
 		var latestAction models.BillAction
-		var latestTag models.Tag
 		var err error
 		tags := [8]models.Tag{models.FirstReading, models.SecondReading, models.BillVotePass, models.FirstReading, models.SecondReading, models.BillVotePass, models.SentToGovernor, models.PublicAct}
+		var ct = 0
 		for j, tag := range tags {
+			ct = j
 			var tmp models.BillAction
 			i, tmp, err = search(i, tag, actions)
+
 			if err != nil {
-				latestTag = tag
 				if j == 0 {
-					return latestTag, latestAction, errors.New("no latest action")
+					return latestAction, false, errors.New("no latest action")
 				}
 				break
 			}
 			latestAction = tmp
 		}
-		return latestTag, latestAction, nil
+
+		return latestAction, ct >= 2, nil
 	}
 
-	loTag, loAction, loErr := latest(old)
-	lnTag, lnAction, lnErr := latest(new)
+	loAction, _, loErr := latest(old)
+	lnAction, viewable, lnErr := latest(new)
 
 	var notif models.Notification
 
-	if (loErr != nil && lnErr == nil) || (loErr == nil && lnErr == nil && (loTag != lnTag || loAction.Chamber != lnAction.Chamber)) {
+	if (loErr != nil && lnErr == nil) || (loErr == nil && lnErr == nil && (loAction.Tag != lnAction.Tag || loAction.Chamber != lnAction.Chamber)) {
 		// map action to string
 		var sb strings.Builder
 		chamber := "SB"
@@ -536,16 +661,18 @@ func checkNotification(old []models.BillAction, new []models.BillAction, bill mo
 		}
 		sb.WriteString("Bill ")
 		sb.WriteString(chamber)
+		sb.WriteString(fmt.Sprintf("%d", bill.Number))
 		sb.WriteString(" update: ")
-		if lnTag == models.FirstReading {
+		tag := lnAction.Tag
+		if tag == models.FirstReading {
 			sb.WriteString(fmt.Sprintf("Arrived in %s", lnAction.Chamber))
-		} else if lnTag == models.SecondReading {
+		} else if tag == models.SecondReading {
 			sb.WriteString(fmt.Sprintf("Debating in %s", lnAction.Chamber))
-		} else if lnTag == models.BillVotePass {
+		} else if tag == models.BillVotePass {
 			sb.WriteString(fmt.Sprintf("Passed in %s", lnAction.Chamber))
-		} else if lnTag == models.SentToGovernor {
+		} else if tag == models.SentToGovernor {
 			sb.WriteString(fmt.Sprintf("Passed both chambers and waiting for governor"))
-		} else if lnTag == models.PublicAct {
+		} else if tag == models.PublicAct {
 			sb.WriteString(fmt.Sprintf("Bill passed into law!"))
 		}
 
@@ -554,9 +681,9 @@ func checkNotification(old []models.BillAction, new []models.BillAction, bill mo
 			BillInfo: bill,
 			Text:     sb.String(),
 		}
-		return notif, true
+		return notif, true, viewable
 	}
-	return notif, false
+	return notif, false, false
 }
 
 // takes url and prepends root url

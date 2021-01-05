@@ -48,6 +48,7 @@ exports.send_notifications = function (event) {
         return __generator(this, function (_a) {
             data = JSON.parse(event.body);
             notifications = data.notifications;
+            console.log(data);
             notifications.forEach(function (notification) {
                 var bill = notification.BillInfo;
                 var id = bill.Assembly + bill.Chamber + bill.Number;

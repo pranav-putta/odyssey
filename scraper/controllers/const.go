@@ -20,4 +20,8 @@ const (
 
 	// RootURL is the base url of illinois general assembly website
 	RootURL string = "http://ilga.gov"
+
+	// NotificationURL is used to communicate new notifications
+	NotificationURL    string = "https://tde26c6cp5.execute-api.us-east-2.amazonaws.com/prod/send-notifications"
+	DevNotificationURL string = "http://localhost:3000/prod/send-notifications"
 )

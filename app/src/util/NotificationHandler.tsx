@@ -1,10 +1,7 @@
 import messaging, {
   FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging';
-import inappmessaging from '@react-native-firebase/in-app-messaging';
-import { Alert } from 'react-native';
 import { storeNotification } from '../models';
-import { Notification } from '../models/Notification';
 
 export module NotificationHandler {
   export async function requestUserPermission() {
@@ -31,7 +28,7 @@ export module NotificationHandler {
   }
 
   export async function subscribeToAlerts() {
-    messaging().subscribeToTopic('alerts');
+    messaging().subscribeToTopic('general_alerts');
   }
 
   export async function createForegroundListener() {
