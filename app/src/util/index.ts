@@ -1,3 +1,2 @@
-export * from './NetworkHandler';
-export * from './LocalStorage';
-export * from './NotificationHandler';
+export * from './services/NetworkHandler';
+export * from './services/NotificationHandler';

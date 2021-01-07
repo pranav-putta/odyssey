@@ -6,9 +6,9 @@ import {
   UIStatus,
 } from './ui.types';
 
-type AuthReducer<T> = CaseReducer<UIState, PayloadAction<T>>;
+type UIReducer<T> = CaseReducer<UIState, PayloadAction<T>>;
 
-export const progressChanged: AuthReducer<UIProgressChangedPayload> = (
+export const progressChanged: UIReducer<UIProgressChangedPayload> = (
   state,
   action
 ) => {
@@ -20,15 +20,19 @@ export const progressChanged: AuthReducer<UIProgressChangedPayload> = (
   }
 };
 
-export const error: AuthReducer<UIErrorPayload> = (state, action) => {
+export const error: UIReducer<UIErrorPayload> = (state, action) => {
   state.status = UIStatus.error;
   state.message = action.payload.error;
 };
 
-export const completed: AuthReducer<void> = (state, action) => {
+export const completed: UIReducer<void> = (state, action) => {
   state.status = UIStatus.completed;
 };
 
-export const stable: AuthReducer<void> = (state, action) => {
+export const stable: UIReducer<void> = (state, action) => {
   state.status = UIStatus.stable;
+};
+
+export const servicesLoaded: UIReducer<void> = (state, action) => {
+  state.servicesLoaded = true;
 };

@@ -8,7 +8,6 @@ import {
   Image,
 } from 'react-native';
 import { colors, storage } from '../../../assets';
-import auth from '@react-native-firebase/auth';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Network } from '../../../util';
 import { Icon } from 'react-native-elements';
@@ -18,9 +17,9 @@ import ImageResizer from 'react-native-image-resizer';
 import FastImage from 'react-native-fast-image';
 import { Browser } from '../../../util/Browser';
 import store from '../../../redux/store';
-import { AuthService } from '../../../redux/auth/auth';
+import { AuthService } from '../../../redux/auth';
 import { User } from '../../../redux/models/user';
-import { PersistentStorage } from '../../../util/PersistentStorage';
+import { StorageService } from '../../../redux/storage';
 
 type Props = {
   navigation: ProfileScreenProps;
@@ -41,11 +40,10 @@ class ProfileScreen extends React.Component<Props, State> {
   }
 
   componentDidMount() {
-    PersistentStorage.getUser().then((user) => {
-      if (user && !user.anonymous) {
-        this.setState({ user: user });
-      }
-    });
+    let user = StorageService.user();
+    if (!user.anonymous) {
+      this.setState({ user });
+    }
   }
 
   Item = (props: {

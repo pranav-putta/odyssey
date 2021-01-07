@@ -21,9 +21,10 @@ import {
   BillDetailVoteScreenRouteProps,
 } from './BillDetailsStack';
 import Clipboard from '@react-native-community/clipboard';
-import { Analytics } from '../../../util/AnalyticsHandler';
+import { Analytics } from '../../../util/services/AnalyticsHandler';
 import { User } from '../../../redux/models/user';
-import { PersistentStorage } from '../../../util/PersistentStorage';
+import { BillHandler } from '../../../models/Bill';
+import { StorageService } from '../../../redux/storage';
 
 enum Vote {
   None = -1,
@@ -214,7 +215,7 @@ export default class VoteScreen extends React.Component<Props, State> {
     this.state = {
       vote: Vote.None,
       billData: {
-        bill_id: props.route.params.bill.number,
+        bill_id: BillHandler.id(props.route.params.bill),
         comments: [],
         votes: {},
       },
@@ -233,7 +234,7 @@ export default class VoteScreen extends React.Component<Props, State> {
     Network.getBillData(this.props.route.params.bill).then(async (val) => {
       this.setState({ billData: val, progress: false });
 
-      let user = await PersistentStorage.getUser();
+      let user = StorageService.user();
       this.setState({ user: user });
       if (user && Object.keys(val.votes).includes(user.uid)) {
         this.setState({ vote: val.votes[user.uid] });

@@ -1,5 +1,5 @@
 import { CaseReducer, PayloadAction } from '@reduxjs/toolkit';
-import Age from '../models/age';
+import Age from '../models/setup/age';
 import {
   AuthAddressSubmittedPayload,
   AuthAgeSubmittedPayload,

@@ -1,8 +1,4 @@
-import {
-  NavigationContainer,
-  NavigationContainerRef,
-  RouteProp,
-} from '@react-navigation/native';
+import { NavigationContainer, RouteProp } from '@react-navigation/native';
 import {
   StackNavigationProp,
   createStackNavigator,
@@ -10,12 +6,13 @@ import {
 import React, { useEffect } from 'react';
 import HomeScreen from './home/HomeScreen';
 import BootSplash from 'react-native-bootsplash';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { AppState } from '../redux/reducer';
 import { AuthStatus } from '../redux/auth/auth.types';
-import { AuthService } from '../redux/auth/auth';
 import SetupScreen from './setup/SetupScreen';
 import LoginScreen from './login/LoginScreen';
+import { Services } from '../util/services/Services';
+import { StorageService } from '../redux/storage';
 
 type AppStackParams = {
   Login: undefined;
@@ -32,8 +29,10 @@ const Stack = createStackNavigator<AppStackParams>();
 type Route = 'Home' | 'Setup' | 'Login';
 
 export default function Navigator() {
+  const servicesLoaded = useSelector(
+    (state: AppState) => state.ui.servicesLoaded
+  );
   const authStatus = useSelector((state: AppState) => state.auth.status);
-  const dispatch = useDispatch();
 
   const mapAuthToRoute = () => {
     let screen: Route = 'Login';
@@ -63,14 +62,11 @@ export default function Navigator() {
     );
   };
 
-  useEffect(() => {
-    dispatch(AuthService.initialize());
-  }, []);
-
-  if (authStatus == AuthStatus.unknown) {
+  if (!servicesLoaded || authStatus === AuthStatus.unknown) {
     BootSplash.show();
     return null;
   }
+
 
   BootSplash.hide({ duration: 350 });
   // TODO: add analytics

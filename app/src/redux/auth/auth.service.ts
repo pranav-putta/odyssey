@@ -13,23 +13,23 @@ import {
 } from '../models/user';
 import { UIService } from '../ui/ui';
 import { LoginHandler } from '../../util/LoginHandler';
-import Age, { AgeResult } from '../models/age';
-import Address, { AddressResult } from '../models/address';
-import { PersistentStorage } from '../../util/PersistentStorage';
+import Age, { AgeResult } from '../models/setup/age';
+import Address, { AddressResult } from '../models/setup/address';
+import { StorageService } from '../storage';
 
 module AuthenticationService {
   /**
    * initializes current user state by getting data from persistent storage
    */
   export const initialize = (): AppThunk => async (dispatch) => {
-    const user = await PersistentStorage.getUser();
+    const user = StorageService.user();
     dispatch(authActions.initializeUser({ user }));
   };
 
   export const loginUser = (user: User, status: AuthStatus): AppThunk => async (
     dispatch
   ) => {
-    await PersistentStorage.storeUser(user);
+    dispatch(StorageService.update({ user }));
     let state = AuthSetupState.name;
     if (user.name != '') {
       state = AuthSetupState.age;
@@ -97,7 +97,7 @@ module AuthenticationService {
 
   export const logout = (): AppThunk => async (dispatch) => {
     try {
-      await PersistentStorage.logout();
+      StorageService.logout();
       await auth().signOut();
     } catch (err) {
       err;

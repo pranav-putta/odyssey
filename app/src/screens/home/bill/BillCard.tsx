@@ -143,7 +143,6 @@ const styles = StyleSheet.create({
     borderRadius: BillCardSpecs.externalRadius,
     marginHorizontal: BillCardSpecs.spacing,
     alignSelf: 'center',
-    overflow: 'hidden',
   },
   touchableContainer: {
     width: '100%',
@@ -176,7 +175,7 @@ const styles = StyleSheet.create({
     paddingVertical: '5%',
     paddingHorizontal: '7.5%',
     flex: 2,
-    shadowColor: 'black',
+    shadowColor: 'rgba(0, 0, 0, 0.5)',
     shadowRadius: 15,
     shadowOffset: { width: 0, height: 0 },
     zIndex: 100,

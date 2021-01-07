@@ -9,38 +9,28 @@ import {
   Dimensions,
   Animated,
   StatusBar,
+  Alert,
 } from 'react-native';
 import Carousel from 'react-native-snap-carousel';
 import { Icon } from 'react-native-elements';
 import { colors } from '../../../assets';
-import {
-  fetchRepresentatives,
-  getAppLaunchCount,
-  getNotification,
-  removeNotification,
-  Representative,
-} from '../../../models';
+import { Representative } from '../../../models';
 import { Bill } from '../../../models/Bill';
-import BillCard, { BillCardSpecs } from './BillCard';
+import BillCard from './BillCard';
 import FastImage from 'react-native-fast-image';
 // @ts-ignore
-import TouchableScale from 'react-native-touchable-scale';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { BillScreenStackParamList } from './BillTab';
 import { Category } from '../../../models/Category';
 import ProgressHUD from '../../../components/ProgressHUD';
-import Rate from 'react-native-rate';
 import { SharedElement } from 'react-navigation-shared-element';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { Config } from '../../../util/Config';
-import { Analytics } from '../../../util/AnalyticsHandler';
-import { Notification } from '../../../models/Notification';
-import NotificationCard from '../../../components/NotificationCard';
+import { Analytics } from '../../../util/services/AnalyticsHandler';
 import { Browser } from '../../../util/Browser';
 import Space from '../../../components/Space';
-import { FeedService } from '../../../redux/feed/feed';
+import { FeedService } from '../../../redux/feed';
 import store from '../../../redux/store';
-import { UIStatus } from '../../../redux/ui/ui.types';
 import { FeedStatus } from '../../../redux/feed/feed.types';
 import { connect } from 'react-redux';
 import { User } from '../../../redux/models/user';
@@ -62,7 +52,6 @@ interface State {
   repSelected: boolean;
   repSelectedInfo: Representative | undefined;
   likedBills: Bill[];
-  notification?: Notification;
   progress: boolean;
 }
 
@@ -71,50 +60,6 @@ enum BillTabKey {
   liked = 'liked',
 }
 
-// carousel for new tab
-const BillCarousel = (props: {
-  bills: Bill[];
-  onPress: (item: { bill: Bill; category: Category }) => void;
-}) => {
-  const scrollX = React.useRef(new Animated.Value(0)).current;
-  return (
-    <Carousel
-      enableMomentum={true}
-      lockScrollWhileSnapping={true}
-      data={props.bills}
-      renderItem={(item: { item: Bill; index: number }) => {
-        let category = Config.getTopics()[item.item.category];
-        return (
-          <BillCard
-            index={item.index}
-            bill={item.item}
-            scrollX={scrollX}
-            category={category}
-            onPress={async (image, container, content) => {
-              Analytics.billClick(item.item);
-              props.onPress({ bill: item.item, category: category });
-            }}
-          />
-        );
-      }}
-      containerCustomStyle={{ maxHeight: height * 0.60 }}
-      sliderWidth={width}
-      itemWidth={width * 0.8}
-      itemHeight={height}
-      layout={'default'}
-      inactiveSlideScale={0.9}
-      inactiveSlideOpacity={0.7}
-      centerContent={true}
-      loop={false}
-      autoplayInterval={10000}
-      onScroll={Animated.event(
-        [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-        { useNativeDriver: true }
-      )}
-    />
-  );
-};
-
 function mapStoreToProps() {
   let feed = store.getState().feed;
   return feed;
@@ -122,7 +67,7 @@ function mapStoreToProps() {
 
 class BillDiscoverScreen extends React.Component<Props, State> {
   componentDidMount() {
-    this.loadData();
+    if (this.props.status === FeedStatus.unknown) this.loadData();
   }
 
   loadData = async (): Promise<void> => {
@@ -146,15 +91,10 @@ class BillDiscoverScreen extends React.Component<Props, State> {
 
   render() {
     let loading = this.props.status === FeedStatus.refreshing;
+
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
+      <SafeAreaView style={{ flex: 1 }}>
         <StatusBar barStyle={'dark-content'} />
-        <NotificationCard
-          notification={this.state.notification}
-          dismiss={() => {
-            this.setState({ notification: undefined });
-          }}
-        />
         <ScrollView
           style={{ flex: 1 }}
           overScrollMode={'never'}
@@ -322,31 +262,47 @@ function RepCard(props: {
   );
 }
 
-function TabItem(props: { label: string; active: boolean }) {
+// carousel for new tab
+function BillCarousel(props: {
+  bills: Bill[];
+  onPress: (item: { bill: Bill; category: Category }) => void;
+}) {
+  const scrollX = React.useRef(new Animated.Value(0)).current;
   return (
-    <TouchableScale
-      style={styles.tabButton}
-      disabled={props.active}
-      onPress={() => {}}
-    >
-      <Text
-        style={[
-          styles.tabText,
-          { color: props.active ? 'black' : colors.darkGray },
-        ]}
-      >
-        {props.label}
-      </Text>
-    </TouchableScale>
-  );
-}
-function TabBar(props: { current: BillTabKey }) {
-  // generates tab bar { 'new' , 'liked' }
-  return (
-    <View style={styles.topTabs}>
-      <TabItem active={props.current == BillTabKey.new} label={'New'} />
-      <TabItem active={props.current == BillTabKey.liked} label={'Liked'} />
-    </View>
+    <Carousel
+      enableMomentum={true}
+      lockScrollWhileSnapping={true}
+      data={props.bills}
+      renderItem={(item: { item: Bill; index: number }) => {
+        let category = Config.getTopics()[item.item.category];
+        return (
+          <BillCard
+            index={item.index}
+            bill={item.item}
+            scrollX={scrollX}
+            category={category}
+            onPress={async (image, container, content) => {
+              Analytics.billClick(item.item);
+              props.onPress({ bill: item.item, category: category });
+            }}
+          />
+        );
+      }}
+      containerCustomStyle={{ maxHeight: height * 0.6 }}
+      sliderWidth={width}
+      itemWidth={width * 0.8}
+      itemHeight={height}
+      layout={'default'}
+      inactiveSlideScale={0.9}
+      inactiveSlideOpacity={0.7}
+      centerContent={true}
+      loop={false}
+      autoplayInterval={10000}
+      onScroll={Animated.event(
+        [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+        { useNativeDriver: true }
+      )}
+    />
   );
 }
 
@@ -354,7 +310,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     zIndex: 0,
-    backgroundColor: 'white',
   },
   logoImage: {
     height: '2%',

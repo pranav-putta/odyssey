@@ -81,7 +81,6 @@ export function classifyBillProgress(item: Bill) {
   [i, progress.waitingForGovernor] = search(i, BillActionTag.sent_to_governor);
   [i, progress.billPassed] = search(i, BillActionTag.public_act);
 
-
   let acts = [];
   if (progress.chamber1Passed) {
     acts.push('Passed in ' + progress.chamber1Passed.Chamber);
@@ -126,4 +125,10 @@ export interface Bill {
   bill_text: BillFullText;
   actions: BillAction[];
   voting_events: BillVotingEvent[];
+}
+
+export module BillHandler {
+  export function id(b: Bill) {
+    return b.assembly + b.chamber + b.number;
+  }
 }

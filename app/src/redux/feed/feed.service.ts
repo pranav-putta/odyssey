@@ -1,7 +1,7 @@
 import { Representative } from '../../models';
 import { Network } from '../../util';
-import { PersistentStorage } from '../../util/PersistentStorage';
-import { AuthService } from '../auth/auth';
+import { AuthService } from '../auth';
+import { User } from '../models/user';
 import store, { AppThunk } from '../store';
 import { billFeedActions } from './feed.slice';
 
@@ -15,16 +15,15 @@ module FeedService {
     dispatch(billFeedActions.feedRefreshing({}));
 
     // refresh data
-    let user = AuthService.getUser();
-    let reps: Representative[] = [];
+    let user: User | undefined = undefined;
+    let reps: Representative[] | undefined = undefined;
 
     // check if user data needs to be refreshed
-    let lastRefresh = await PersistentStorage.getLastRefreshTime();
+    let lastRefresh = store.getState().storage.lastRefresh;
     if (Date.now() - lastRefresh >= kDay) {
       let output = await Network.refresh();
       if (output) {
-        user = output[0];
-        reps = output[1];
+        [user, reps] = output;
       }
     }
 

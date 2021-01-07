@@ -1,21 +1,14 @@
-import functions, { firebase } from '@react-native-firebase/functions';
-import {
-  fetchDataVersion,
-  Representative,
-  storeDataVersion,
-  storeRepresentative,
-  storeUser,
-} from '../models';
+import { firebase } from '@react-native-firebase/functions';
+import { Representative } from '../../models';
 import NetInfo from '@react-native-community/netinfo';
 import Axios from 'axios';
-import { Bill } from '../models/Bill';
-import { BillData, Comment, Vote } from '../models/BillData';
+import { Bill } from '../../models/Bill';
+import { BillData, Comment, Vote } from '../../models/BillData';
 import perf from '@react-native-firebase/perf';
-import { User } from '../redux/models/user';
-import { PersistentStorage } from './PersistentStorage';
-import messaging, {
-  FirebaseMessagingTypes,
-} from '@react-native-firebase/messaging';
+import { User } from '../../redux/models/user';
+import messaging from '@react-native-firebase/messaging';
+import store from '../../redux/store';
+import { StorageService } from '../../redux/storage';
 
 export module Network {
   export async function isNetworkAvailable() {
@@ -180,7 +173,7 @@ export module Network {
     if (!isNetworkAvailable()) {
       return [];
     }
-    let user = await PersistentStorage.getUser();
+    let user = StorageService.user();
     return Axios.post(awsURLs.billFeed, { topics: user?.interestedTopics })
       .then((response) => {
         if (response.status == 200) {
@@ -200,7 +193,7 @@ export module Network {
       return [];
     }
     return Axios.post(awsURLs.likedBills, {
-      user: await PersistentStorage.getUser(),
+      user: StorageService.user(),
     })
       .then((response) => {
         if (response.status == 200) {
@@ -243,12 +236,12 @@ export module Network {
     if (!isNetworkAvailable()) {
       return [];
     }
-    let user = await PersistentStorage.getUser();
-    let uid = user?.uid;
+    let user = StorageService.user();
+    let uid = user.uid;
     let id = bill.assembly + bill.chamber + bill.number;
     if (user) {
       user.liked[id] = liked;
-      await PersistentStorage.storeUser(user);
+      store.dispatch(StorageService.update({ user }));
     }
     if (liked) {
       await messaging().subscribeToTopic(id);
@@ -307,7 +300,7 @@ export module Network {
     if (!isNetworkAvailable()) {
       return false;
     }
-    let user = await PersistentStorage.getUser();
+    let user = StorageService.user();
     let uid = user?.uid;
     return Axios.post(awsURLs.vote, {
       bill_id: id,
@@ -336,7 +329,7 @@ export module Network {
       return false;
     }
     let id = bill.assembly + bill.chamber + bill.number;
-    let user = await PersistentStorage.getUser();
+    let user = StorageService.user();
     let uid = user?.uid;
     return Axios.post(awsURLs.addComment, {
       bill_id: id,
@@ -366,7 +359,7 @@ export module Network {
       return false;
     }
     let id = bill.assembly + bill.chamber + bill.number;
-    let user = await PersistentStorage.getUser();
+    let user = StorageService.user();
     let uid = user?.uid;
     return Axios.post(awsURLs.likeComment, {
       bill_id: id,
@@ -467,7 +460,7 @@ export module Network {
     if (!isNetworkAvailable()) {
       return false;
     }
-    let user = await PersistentStorage.getUser();
+    let user = StorageService.user();
     return Axios.post(awsURLs.deleteUser, {
       uid: user?.uid,
     })

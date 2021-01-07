@@ -16,6 +16,10 @@ module UIService {
   export const setStableState = () => {
     return uiActions.stable();
   };
+
+  export const setServicesLoaded = () => {
+    return uiActions.servicesLoaded();
+  };
 }
 
 export default UIService;

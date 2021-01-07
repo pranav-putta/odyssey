@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StatusBar, StyleSheet, Alert, Platform } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import TabBar, { TabKey, TabModel } from '../../components/TabBar';
 import BillScreen from './bill/BillTab';
 import SearchScreen from './search/SearchTab';
@@ -8,28 +8,23 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import ProfileTab from './profile/ProfileTab';
 import { RouteProp } from '@react-navigation/native';
 import { HomeNavigation, HomeParams } from '../../App';
-import {
-  getNotification,
-  Network,
-  NotificationHandler,
-  removeNotification,
-  storeNotification,
-} from '../../util/';
+import { NotificationHandler } from '../../util/';
 import inAppMessaging from '@react-native-firebase/in-app-messaging';
-import NotificationCard from '../../components/NotificationCard';
-import { Notification } from '../../models/Notification';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import LikedScreen from './liked/LikedScreen';
-import auth from '@react-native-firebase/auth';
+import { StorageService } from '../../redux/storage';
+import NotificationModal from '../../components/NotificationModal';
+import store from '../../redux/store';
+import { Notification } from '../../redux/models';
+import { connect } from 'react-redux';
 
 type State = {
   showTabs: boolean;
   selectedTab: string;
-  notification?: Notification;
 };
 type Props = {
   navigation: HomeNavigation;
   route: HomeParams;
+  notification?: Notification;
 };
 
 const tabs: TabModel[] = [
@@ -76,6 +71,12 @@ export type ProfileTabScreenProps = StackNavigationProp<
 export type ProfileScreenRouteProps = RouteProp<HomeScreenTabParams, 'Profile'>;
 
 const Tab = createBottomTabNavigator<HomeScreenTabParams>();
+
+function mapStoreToProps() {
+  let notification = NotificationHandler.latestNotification();
+  return { notification };
+}
+
 class HomeScreen extends React.PureComponent<Props, State> {
   constructor(props: Props) {
     super(props);
@@ -83,7 +84,6 @@ class HomeScreen extends React.PureComponent<Props, State> {
     this.state = {
       showTabs: true,
       selectedTab: TabKey.bills,
-      notification: undefined,
     };
   }
 
@@ -104,53 +104,56 @@ class HomeScreen extends React.PureComponent<Props, State> {
 
   render() {
     return (
-      <View style={styles.container}>
-        <Tab.Navigator
-          tabBar={(props) => (
-            <TabBar
-              show={this.state.showTabs}
-              current={this.state.selectedTab}
-              tabPressed={(tab) => {
-                this.setState({ selectedTab: tab });
-                props.navigation.navigate(tab);
-              }}
-              tabs={tabs}
-            />
-          )}
-        >
-          <Tab.Screen name="Bills">
-            {(props) => (
-              <BillScreen
-                navigation={props.navigation}
-                toggleTabs={(show: boolean) => {
-                  this.setState({ showTabs: show });
+      <>
+        <NotificationModal notification={this.props.notification} />
+        <View style={styles.container}>
+          <Tab.Navigator
+            tabBar={(props) => (
+              <TabBar
+                show={this.state.showTabs}
+                current={this.state.selectedTab}
+                tabPressed={(tab) => {
+                  this.setState({ selectedTab: tab });
+                  props.navigation.navigate(tab);
                 }}
+                tabs={tabs}
               />
             )}
-          </Tab.Screen>
-          <Tab.Screen name="Search">
-            {(props) => (
-              <SearchScreen
-                navigation={props.navigation}
-                toggleTabs={(show: boolean) => {
-                  this.setState({ showTabs: show });
-                }}
-              />
-            )}
-          </Tab.Screen>
-          <Tab.Screen name="Liked">{(props) => <LikedScreen />}</Tab.Screen>
-          <Tab.Screen name="Profile">
-            {(props) => (
-              <ProfileTab
-                navigation={props.navigation}
-                toggleTabs={(show: boolean) => {
-                  this.setState({ showTabs: show });
-                }}
-              />
-            )}
-          </Tab.Screen>
-        </Tab.Navigator>
-      </View>
+          >
+            <Tab.Screen name="Bills">
+              {(props) => (
+                <BillScreen
+                  navigation={props.navigation}
+                  toggleTabs={(show: boolean) => {
+                    this.setState({ showTabs: show });
+                  }}
+                />
+              )}
+            </Tab.Screen>
+            <Tab.Screen name="Search">
+              {(props) => (
+                <SearchScreen
+                  navigation={props.navigation}
+                  toggleTabs={(show: boolean) => {
+                    this.setState({ showTabs: show });
+                  }}
+                />
+              )}
+            </Tab.Screen>
+            <Tab.Screen name="Liked">{(props) => <LikedScreen />}</Tab.Screen>
+            <Tab.Screen name="Profile">
+              {(props) => (
+                <ProfileTab
+                  navigation={props.navigation}
+                  toggleTabs={(show: boolean) => {
+                    this.setState({ showTabs: show });
+                  }}
+                />
+              )}
+            </Tab.Screen>
+          </Tab.Navigator>
+        </View>
+      </>
     );
   }
 }
@@ -162,4 +165,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default HomeScreen;
+export default connect(mapStoreToProps)(HomeScreen);

@@ -7,6 +7,7 @@ export enum UIStatus {
 
 export interface UIState {
   status: UIStatus;
+  servicesLoaded: boolean;
   message?: string;
 }
 

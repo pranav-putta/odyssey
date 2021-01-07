@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { colors } from '../assets';
 import { Icon } from 'react-native-elements';
+import Space from './Space';
 
 type TabItemProps = {
   style?: StyleProp<ViewStyle>;
@@ -113,28 +114,11 @@ class TabBarItem extends React.Component<TabItemProps, TabItemState> {
           <Animated.View
             style={{
               zIndex: 15,
-              transform: [
-                { translateY: this.tabTranslation },
-                { scale: this.iconScale },
-              ],
+              transform: [{ scale: this.iconScale }],
             }}
           >
             <Icon type={icon.type} name={icon.name} size={28} color={color} />
           </Animated.View>
-          <View>
-            <Text style={[styles.label, { color }]}>{label}</Text>
-            <Animated.View
-              style={[
-                styles.labelOverlay,
-                {
-                  transform: [
-                    { translateY: this.labelOverlayTranslation },
-                    { rotateZ: '10deg' },
-                  ],
-                },
-              ]}
-            ></Animated.View>
-          </View>
         </View>
       </TouchableOpacity>
     );
@@ -153,6 +137,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '60%',
     borderRadius: 5,
+    paddingBottom: 10,
+    paddingTop: 5,
   },
   label: {
     fontFamily: 'Futura',

@@ -25,7 +25,7 @@ import { FlatList } from 'react-native-gesture-handler';
 import { Topic } from '../../models/Topic';
 import ProgressHUD from '../../components/ProgressHUD';
 import store from '../../redux/store';
-import { AuthService } from '../../redux/auth/auth';
+import { AuthService } from '../../redux/auth';
 import { AppState } from '../../redux/reducer';
 import { UIStatus } from '../../redux/ui/ui.types';
 import { connect } from 'react-redux';
@@ -180,7 +180,10 @@ class SetupScreen extends React.Component<Props, State> {
     } else if (this.state.state == AuthSetupState.address) {
       // address page
       this.addressSubmitted();
-    } else if (this.state.state == AuthSetupState.topics) {
+    } else if (
+      this.state.state == AuthSetupState.topics ||
+      this.state.state == AuthSetupState.complete
+    ) {
       // topics page
       this.topicsSubmitted();
     }

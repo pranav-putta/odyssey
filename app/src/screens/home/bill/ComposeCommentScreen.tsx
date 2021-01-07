@@ -14,12 +14,12 @@ import { Icon } from 'react-native-elements';
 import FastImage from 'react-native-fast-image';
 import { TextInput } from 'react-native-gesture-handler';
 import ProgressHUD from '../../../components/ProgressHUD';
-import { fetchRepresentatives, Representative } from '../../../models';
+import { Representative } from '../../../models';
 import { Comment } from '../../../models/BillData';
 import { User } from '../../../redux/models/user';
+import { StorageService } from '../../../redux/storage';
 import { Network } from '../../../util';
-import { Analytics } from '../../../util/AnalyticsHandler';
-import { PersistentStorage } from '../../../util/PersistentStorage';
+import { Analytics } from '../../../util/services/AnalyticsHandler';
 import {
   BillDetailCommentScreenRouteProps,
   BillDetailsCommentScreenProps,
@@ -30,36 +30,31 @@ interface Props {
   route: BillDetailCommentScreenRouteProps;
 }
 interface State {
-  reps: Representative[];
   shouldSendReps: boolean;
   text: string;
   showProgress: boolean;
-  user?: User;
 }
 
 export default class ComposeCommentScreen extends React.PureComponent<
   Props,
   State
 > {
+  private user: User;
+  private reps: Representative[];
+
   constructor(props: Props) {
     super(props);
     this.state = {
-      reps: [],
       shouldSendReps: true,
       text: '',
       showProgress: false,
-      user: undefined,
     };
+
+    this.user = StorageService.user();
+    this.reps = StorageService.reps();
   }
 
-  componentDidMount() {
-    fetchRepresentatives().then((reps) => {
-      this.setState({ reps: reps });
-    });
-    PersistentStorage.getUser().then((user) => {
-      this.setState({ user: user });
-    });
-  }
+  componentDidMount() {}
 
   render() {
     return (
@@ -84,7 +79,7 @@ export default class ComposeCommentScreen extends React.PureComponent<
           <Image
             style={{ height: 60, borderRadius: 10, flex: 1 }}
             source={{
-              uri: this.state.user?.pfp_url,
+              uri: this.user?.pfp_url,
             }}
           />
           <TextInput
@@ -106,7 +101,7 @@ export default class ComposeCommentScreen extends React.PureComponent<
                 alignSelf: 'center',
               }}
             >
-              {this.state.reps.map((val) => (
+              {this.reps.map((val) => (
                 <FastImage
                   key={val.member_url}
                   style={{
@@ -170,13 +165,12 @@ export default class ComposeCommentScreen extends React.PureComponent<
                 this.state.shouldSendReps
               );
               // create comment and send
-              let user = await PersistentStorage.getUser();
-              if (user) {
+              if (this.user) {
                 let comment: Comment = {
                   likes: {},
                   text: this.state.text,
-                  uid: user.uid,
-                  name: user.name,
+                  uid: this.user.uid,
+                  name: this.user.name,
                   date: Date.now(),
                 };
                 this.setState({ showProgress: true });

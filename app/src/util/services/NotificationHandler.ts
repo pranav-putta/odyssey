@@ -1,7 +1,7 @@
 import messaging, {
   FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging';
-import { storeNotification } from '../models';
+import { StorageService } from '../../redux/storage';
 
 export module NotificationHandler {
   export async function requestUserPermission() {
@@ -19,16 +19,19 @@ export module NotificationHandler {
     message: FirebaseMessagingTypes.RemoteMessage,
     delay?: boolean
   ) {
-    console.log(message);
     if (message && message.notification) {
       if (message.data && message.data.messageType == 'card') {
-        storeNotification(message.data.content);
+        StorageService.update({
+          notifications: [JSON.parse(message.data.content)],
+        });
+      } else if (message.data && message.data.messageType == 'bill') {
+        //PersistentStorage.storeNotification(message.data.content);
       }
     }
   }
 
   export async function subscribeToAlerts() {
-    messaging().subscribeToTopic('general_alerts');
+    await messaging().subscribeToTopic('general_alerts');
   }
 
   export async function createForegroundListener() {
@@ -46,5 +49,28 @@ export module NotificationHandler {
           handleMessage(message);
         }
       });
+  }
+
+  export function latestNotification() {
+    let notifications = StorageService.notifications();
+    notifications.sort((a, b) => {
+      if (a.seen && !b.seen) {
+        return -1;
+      } else if (!a.seen && b.seen) {
+        return 1;
+      }
+
+      if (a.time == 'asap' && b.time == 'asap') {
+        return 0;
+      } else if (a.time == 'asap') {
+        return -1;
+      } else if (b.time == 'asap') {
+        return 1;
+      } else {
+        return a.time - b.time;
+      }
+    });
+
+    return notifications[0];
   }
 }

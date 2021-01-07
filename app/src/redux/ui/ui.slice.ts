@@ -1,9 +1,16 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { UIState, UIStatus } from './ui.types';
-import { progressChanged, error, completed, stable } from './ui.reducers';
+import {
+  progressChanged,
+  error,
+  completed,
+  stable,
+  servicesLoaded,
+} from './ui.reducers';
 
 const initialState: UIState = {
   status: UIStatus.stable,
+  servicesLoaded: false,
 };
 
 const uiSlice = createSlice({
@@ -13,7 +20,8 @@ const uiSlice = createSlice({
     progressChanged,
     error,
     completed,
-    stable
+    stable,
+    servicesLoaded,
   },
 });
 

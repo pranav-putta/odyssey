@@ -1,6 +1,6 @@
 import analytics from '@react-native-firebase/analytics';
-import { Bill } from '../models/Bill';
-import { Comment, Vote } from '../models/BillData';
+import { Bill } from '../../models/Bill';
+import { Comment } from '../../models/BillData';
 
 export module Analytics {
   const eventLogin = 'login';

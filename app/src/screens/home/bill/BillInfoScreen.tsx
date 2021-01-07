@@ -14,7 +14,7 @@ import { colors } from '../../../assets';
 import { BillActionTag, formatBillNumber } from '../../../models/Bill';
 //@ts-ignore
 import TouchableScale from 'react-native-touchable-scale';
-import { Network, storeBillLike } from '../../../util';
+import { Network } from '../../../util';
 import {
   BillDetailInfoScreenRouteProps,
   BillDetailsInfoScreenProps,
@@ -24,13 +24,13 @@ import { SharedElement } from 'react-navigation-shared-element';
 import { BlurView } from '@react-native-community/blur';
 import { DefaultCategory } from '../../../models/Category';
 import { Config } from '../../../util/Config';
-import { Analytics } from '../../../util/AnalyticsHandler';
+import { Analytics } from '../../../util/services/AnalyticsHandler';
 import inappmessaging from '@react-native-firebase/in-app-messaging';
 import { Browser } from '../../../util/Browser';
-import { PersistentStorage } from '../../../util/PersistentStorage';
 import { User } from '../../../redux/models/user';
 import store from '../../../redux/store';
 import BillProgressBar from '../../../components/BillProgressBar';
+import { StorageService } from '../../../redux/storage';
 
 interface Props {
   navigation: BillDetailsInfoScreenProps;
@@ -124,13 +124,13 @@ export default class BillInfoScreen extends React.PureComponent<Props, State> {
       scrollAnimating: false,
     };
 
-    PersistentStorage.getUser().then((user) => {
-      let bill = props.route.params.bill;
-      let id = bill.assembly + bill.chamber + bill.number
-      if (user && user.liked[id]) {
-        this.setState({ liked: true });
-      }
-    });
+    let user = StorageService.user();
+
+    let bill = props.route.params.bill;
+    let id = bill.assembly + bill.chamber + bill.number;
+    if (user && user.liked[id]) {
+      this.setState({ liked: true });
+    }
   }
   componentDidMount() {
     this.props.navigation.addListener('transitionStart', (e) => {
@@ -491,7 +491,10 @@ export default class BillInfoScreen extends React.PureComponent<Props, State> {
             style={{ width: '100%', height: '100%' }}
             onPress={() => {
               Network.likeBill(this.props.route.params.bill, !this.state.liked);
-              storeBillLike(this.props.route.params.bill, !this.state.liked);
+              StorageService.billLike(
+                this.props.route.params.bill,
+                !this.state.liked
+              );
               this.setState({ liked: !this.state.liked });
             }}
           >

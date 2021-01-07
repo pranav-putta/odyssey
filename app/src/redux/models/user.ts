@@ -1,3 +1,5 @@
+import { Notification } from './notification';
+
 export type InterestedTopics = { [key: string]: boolean };
 export type LikedBills = { [key: string]: boolean };
 export interface User {
@@ -11,9 +13,10 @@ export interface User {
   created_time: number;
   email: string;
   anonymous: boolean;
+  notifications: Notification[];
 }
 
-export function userFromPartial(user: PartialUser) {
+export function userFromPartial(user: PartialUser): User {
   return {
     address: user.address ?? '',
     age: user.age ?? 0,
@@ -25,6 +28,7 @@ export function userFromPartial(user: PartialUser) {
     pfp_url: user.pfp_url ?? '',
     uid: user.uid ?? '',
     anonymous: user.anonymous ?? true,
+    notifications: user.notifications ?? [],
   };
 }
 

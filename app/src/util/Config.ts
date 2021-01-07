@@ -1,9 +1,10 @@
 import { firebase } from '@react-native-firebase/auth';
 import remoteConfig from '@react-native-firebase/remote-config';
 import { Alert } from 'react-native';
-import { getConfigFetchTime, storeConfigFetchTime } from '../models';
 import { Category } from '../models/Category';
 import { Topic } from '../models/Topic';
+import { StorageService } from '../redux/storage';
+import store from '../redux/store';
 import config_file from './config.json';
 
 export module Config {
@@ -16,11 +17,11 @@ export module Config {
       topicsConfig: JSON.stringify(config_file.topicsConfig),
       smallTopicsConfig: JSON.stringify(config_file.smallTopicsConfig),
     });
-    let refresh = await getConfigFetchTime();
+    let refresh = store.getState().storage.configRefresh;
     await remoteConfig().fetch(refresh);
     await remoteConfig().activate();
     if (refresh == 0) {
-      await storeConfigFetchTime(21600);
+      store.dispatch(StorageService.update({ configRefresh: 21600 }));
     }
   }
 
@@ -28,7 +29,7 @@ export module Config {
     Alert.alert(
       'Detected an app update! Close and reopen the app to see changes.'
     );
-    storeConfigFetchTime(0);
+    store.dispatch(StorageService.update({ configRefresh: 21600 }));
   }
 
   export function getTopics(): { [key: string]: Category } {

@@ -21,7 +21,7 @@ import { AppState } from '../../redux/reducer';
 import store, { AppDispatch } from '../../redux/store';
 import { UIStatus } from '../../redux/ui/ui.types';
 import { connect } from 'react-redux';
-import { AuthService } from '../../redux/auth/auth';
+import { AuthService } from '../../redux/auth';
 
 interface State {}
 interface Props {

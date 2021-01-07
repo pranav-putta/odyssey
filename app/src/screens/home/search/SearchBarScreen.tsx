@@ -19,7 +19,7 @@ import SearchBillCard from './SearchBillCard';
 import { Bill, formatBillNumber } from '../../../models/Bill';
 import { BillSearchScreenProps } from './SearchTab';
 import ProgressHUD from '../../../components/ProgressHUD';
-import { Analytics } from '../../../util/AnalyticsHandler';
+import { Analytics } from '../../../util/services/AnalyticsHandler';
 import { Network } from '../../../util';
 
 type State = {

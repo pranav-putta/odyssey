@@ -4,11 +4,16 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import BootSplash from 'react-native-bootsplash';
 import { Config } from './util/Config';
 import inAppMessaging from '@react-native-firebase/in-app-messaging';
-import { incrementAppLaunch, Network, NotificationHandler } from './util';
-import { Analytics } from './util/AnalyticsHandler';
+import { Network, NotificationHandler } from './util';
+import { Analytics } from './util/services/AnalyticsHandler';
 import { Provider } from 'react-redux';
-import store from './redux/store';
+import { PersistGate } from 'redux-persist/integration/react';
+import store, { persistor } from './redux/store';
+import { StorageService } from './redux/storage';
 import Navigator from './screens/Navigator';
+import { Services } from './util/services/Services';
+import { NotificationLocation, NotificationType } from './redux/models';
+import { Dimensions } from 'react-native';
 
 type Props = {
   navigation: any;
@@ -33,8 +38,6 @@ export type HomeParams = RouteProp<AppStackParams, 'Home'>;
 type Route = 'Home' | 'Setup' | 'Login';
 
 class App extends React.Component<Props, State> {
-  private NavigationRef = React.createRef<NavigationContainerRef>();
-
   constructor(props: Props) {
     super(props);
     this.state = {
@@ -49,19 +52,16 @@ class App extends React.Component<Props, State> {
 
   async initialize() {
     // setup all firebase stuffs
-    BootSplash.show();
-    Network.setupPerfMonitor();
-    await Config.initRemoteConfig();
-    await inAppMessaging().setMessagesDisplaySuppressed(false);
-    await incrementAppLaunch();
-    await Analytics.launch();
-    await NotificationHandler.createNotificationOpenListener();
+    Services.initialize();
+
   }
 
   render() {
     return (
       <Provider store={store}>
-        <Navigator />
+        <PersistGate persistor={persistor}>
+          <Navigator />
+        </PersistGate>
       </Provider>
     );
   }
