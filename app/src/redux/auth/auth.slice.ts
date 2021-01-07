@@ -1,16 +1,19 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { AuthState, AuthStatus } from './auth.types';
+import { AuthSetupState, AuthState, AuthStatus } from './auth.types';
 import {
   initializeUser,
   loginUser,
   logoutUser,
   ageSubmitted,
   addressSubmitted,
-  topicsSubmitted
+  topicsSubmitted,
+  nameSubmitted,
+  setSetupState,
 } from './auth.reducers';
 
 const initialState: AuthState = {
   status: AuthStatus.unknown,
+  setupState: AuthSetupState.name,
   user: {},
 };
 
@@ -23,7 +26,9 @@ const authSlice = createSlice({
     logoutUser,
     ageSubmitted,
     addressSubmitted,
-    topicsSubmitted
+    topicsSubmitted,
+    nameSubmitted,
+    setSetupState,
   },
 });
 

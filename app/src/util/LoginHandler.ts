@@ -28,16 +28,27 @@ export module LoginHandler {
       throw 'apple auth rejected';
     }
 
-    const { identityToken, nonce } = appleAuthReqResponse;
+    const { identityToken, nonce, fullName } = appleAuthReqResponse;
     const appleCredential = auth.AppleAuthProvider.credential(
       identityToken,
       nonce
     );
 
     let user = await auth().signInWithCredential(appleCredential);
+    let name = user.user.displayName;
+    if (!name) {
+      if (fullName && fullName.givenName && fullName.familyName) {
+        name = fullName?.givenName + ' ' + fullName?.familyName;
+      }
+
+      if (name) {
+        await auth().currentUser?.updateProfile({ displayName: name });
+      }
+    }
+
     return {
       email: user.user.email ?? '',
-      name: user.user.displayName ?? '',
+      name: name ?? '',
       uid: user.user.uid,
       anonymous: false,
     };

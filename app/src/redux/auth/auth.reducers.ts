@@ -4,6 +4,8 @@ import {
   AuthAddressSubmittedPayload,
   AuthAgeSubmittedPayload,
   AuthInitializeUserPayload,
+  AuthNameSubmittedPayload,
+  AuthSetupState,
   AuthState,
   AuthStatus,
   AuthTopicsSubmittedPayload,
@@ -25,15 +27,22 @@ export const initializeUser: AuthReducer<AuthInitializeUserPayload> = (
     } else {
       state.status = AuthStatus.authenticated;
     }
+
+    if (user.name && user.name != '') {
+      state.setupState = AuthSetupState.age;
+    } else {
+      state.setupState = AuthSetupState.name;
+    }
   } else {
     state.status = AuthStatus.unauthenticated;
   }
 };
 
 export const loginUser: AuthReducer<AuthState> = (state, action) => {
-  const { status, user } = action.payload;
+  const { status, setupState, user } = action.payload;
   state.status = status;
   state.user = user;
+  state.setupState = setupState;
 };
 
 export const logoutUser: AuthReducer<void> = (state, action) => {
@@ -41,11 +50,20 @@ export const logoutUser: AuthReducer<void> = (state, action) => {
   state.status = AuthStatus.unauthenticated;
 };
 
+export const nameSubmitted: AuthReducer<AuthNameSubmittedPayload> = (
+  state,
+  action
+) => {
+  state.user.name = action.payload.name;
+  state.setupState = AuthSetupState.age;
+};
+
 export const ageSubmitted: AuthReducer<AuthAgeSubmittedPayload> = (
   state,
   action
 ) => {
   state.user.age = action.payload.age;
+  state.setupState = AuthSetupState.address;
 };
 
 export const addressSubmitted: AuthReducer<AuthAddressSubmittedPayload> = (
@@ -53,10 +71,16 @@ export const addressSubmitted: AuthReducer<AuthAddressSubmittedPayload> = (
   action
 ) => {
   state.user.address = action.payload.address;
+  state.setupState = AuthSetupState.topics;
 };
 export const topicsSubmitted: AuthReducer<AuthTopicsSubmittedPayload> = (
   state,
   action
 ) => {
   state.user.interestedTopics = action.payload.topics;
+  state.setupState = AuthSetupState.complete;
+};
+
+export const setSetupState: AuthReducer<AuthSetupState> = (state, action) => {
+  state.setupState = action.payload;
 };

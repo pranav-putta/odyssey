@@ -225,7 +225,7 @@ function Headline() {
       <TouchableOpacity
         onPress={() => {
           Browser.openURL(
-            'https://www.odysseyapp.us/about-us.htm',
+            'https://www.odysseyapp.us/about-us/index.html',
             false,
             false
           );

@@ -8,8 +8,25 @@ export enum AuthStatus {
   unauthenticated,
 }
 
+export enum AuthSetupState {
+  name = 0,
+  age = 1,
+  address = 2,
+  topics = 3,
+  complete = 4,
+}
+
+export const AuthSetupStateOrdinal = [
+  AuthSetupState.name,
+  AuthSetupState.age,
+  AuthSetupState.address,
+  AuthSetupState.topics,
+  AuthSetupState.complete,
+];
+
 export interface AuthState {
   status: AuthStatus;
+  setupState: AuthSetupState;
   user: PartialUser;
 }
 
@@ -25,6 +42,10 @@ export interface AuthAgeSubmittedPayload {
 
 export interface AuthAddressSubmittedPayload {
   address: string;
+}
+
+export interface AuthNameSubmittedPayload {
+  name: string;
 }
 
 export interface AuthTopicsSubmittedPayload {

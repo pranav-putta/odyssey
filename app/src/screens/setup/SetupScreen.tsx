@@ -1,7 +1,6 @@
 import ViewPager from '@react-native-community/viewpager';
 import React from 'react';
 import {
-  Platform,
   SafeAreaView,
   StatusBar,
   StyleSheet,
@@ -30,42 +29,46 @@ import { AuthService } from '../../redux/auth/auth';
 import { AppState } from '../../redux/reducer';
 import { UIStatus } from '../../redux/ui/ui.types';
 import { connect } from 'react-redux';
+import { completed } from '../../redux/ui/ui.reducers';
 import { UIService } from '../../redux/ui/ui';
-import { userFromPartial } from '../../redux/models/user';
+import {
+  AuthSetupState,
+  AuthSetupStateOrdinal,
+} from '../../redux/auth/auth.types';
 
 interface Props {
   navigation: SetupNavigation;
-  progressVisible: boolean;
 }
 interface State {
   age: string;
   address: string;
+  name: string;
   selectedTopics: { [name: string]: boolean };
-  page: number;
+  progress: boolean;
+  state: AuthSetupState;
 }
-
-function mapStateToSetup(state: AppState) {
-  const { ui } = state;
-  console.log(ui.status);
-  return {
-    progressVisible: ui.status == UIStatus.loading,
-  };
-}
-
 class SetupScreen extends React.Component<Props, State> {
   private viewPager = React.createRef<ViewPager>();
+  private initialState;
 
   pageValidated() {
     let ui = store.getState().ui;
+    let state = AuthService.getSetupState();
+
+    if (this.state.state != state) {
+      this.next(state);
+    }
 
     switch (ui.status) {
-      case UIStatus.completed:
-        this.next();
+      case UIStatus.error:
+        Alert.alert('Error', ui.message ?? '');
         store.dispatch(UIService.setStableState());
         break;
-      case UIStatus.error:
-        Alert.alert(ui.message ?? '');
-        store.dispatch(UIService.setStableState());
+      case UIStatus.loading:
+        this.setState({ progress: true });
+        break;
+      case UIStatus.stable:
+        this.setState({ progress: false });
         break;
       default:
         return;
@@ -76,21 +79,29 @@ class SetupScreen extends React.Component<Props, State> {
     super(props);
     this.back = this.back.bind(this);
     this.continueClicked = this.continueClicked.bind(this);
+    this.pageValidated = this.pageValidated.bind(this);
+    this.initialState = AuthService.getSetupState();
+    let user = AuthService.getUser();
     this.state = {
       age: '',
       address: '',
+      name: user.name,
       selectedTopics: {},
-      page: 0,
+      progress: false,
+      state: this.initialState,
     };
-    this.pageValidated = this.pageValidated.bind(this);
   }
 
   componentDidMount() {
     store.subscribe(this.pageValidated);
   }
+
+  componentDidUpdate() {}
+
   render() {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
+        <StatusBar barStyle={'dark-content'} />
         <View style={{ flex: 1 }}>
           <TopBar onBackClick={this.back} />
           <Space height="4%" />
@@ -98,8 +109,14 @@ class SetupScreen extends React.Component<Props, State> {
             style={{ flex: 1 }}
             ref={this.viewPager}
             scrollEnabled={false}
-            initialPage={0}
+            initialPage={this.state.state}
           >
+            <NameScreen
+              nameChanged={(name) => {
+                this.setState({ name });
+              }}
+              name={this.state.name}
+            />
             <AgeScreen
               ageChanged={(age) => {
                 this.setState({ age: age });
@@ -123,41 +140,47 @@ class SetupScreen extends React.Component<Props, State> {
           </ViewPager>
           <ContinueButton
             press={this.continueClicked}
-            finish={this.state.page == 2}
-            move={this.state.page != 1}
+            finish={
+              this.state.state == AuthSetupState.topics ||
+              this.state.state == AuthSetupState.complete
+            }
+            move={this.state.state != AuthSetupState.address}
           />
         </View>
-        <ProgressHUD visible={this.props.progressVisible} />
+        <ProgressHUD visible={this.state.progress} />
       </SafeAreaView>
     );
   }
-  next() {
-    if (this.state.page == 2) {
-      // finish account creation
-      store.dispatch(AuthService.createUser());
-    } else {
-      this.setState({ page: this.state.page + 1 }, () => {
-        this.viewPager.current?.setPage(this.state.page);
-      });
-    }
+  next(state: AuthSetupState) {
+    this.setState({ state }, () => {
+      if (state != AuthSetupState.complete) {
+        this.viewPager.current?.setPage(this.state.state);
+      } else {
+        store.dispatch(AuthService.createUser());
+      }
+    });
   }
   back() {
-    if (this.state.page > 0) {
-      this.viewPager.current?.setPage(this.state.page - 1);
-      this.setState({ page: this.state.page - 1 });
+    let pop = this.initialState == this.state.state;
+    if (!pop) {
+      store.dispatch(
+        AuthService.setSetupState(AuthSetupStateOrdinal[this.state.state - 1])
+      );
     } else {
       store.dispatch(AuthService.logout());
     }
   }
 
   continueClicked() {
-    if (this.state.page == 0) {
+    if (this.state.state == AuthSetupState.name) {
+      this.nameSubmitted();
+    } else if (this.state.state == AuthSetupState.age) {
       // age page
       this.ageSubmitted();
-    } else if (this.state.page == 1) {
+    } else if (this.state.state == AuthSetupState.address) {
       // address page
       this.addressSubmitted();
-    } else if (this.state.page == 2) {
+    } else if (this.state.state == AuthSetupState.topics) {
       // topics page
       this.topicsSubmitted();
     }
@@ -172,6 +195,10 @@ class SetupScreen extends React.Component<Props, State> {
 
   topicsSubmitted() {
     store.dispatch(AuthService.submitTopics(this.state.selectedTopics));
+  }
+
+  nameSubmitted() {
+    store.dispatch(AuthService.submitName(this.state.name));
   }
 }
 
@@ -205,6 +232,45 @@ class TopBar extends React.PureComponent<TopBarProps, TopBarState> {
   }
 }
 
+interface NameState {}
+interface NameProps {
+  name: string;
+  nameChanged: (name: string) => void;
+}
+
+class NameScreen extends React.Component<NameProps, NameState> {
+  constructor(props: NameProps) {
+    super(props);
+    this.state = {
+      age: '',
+    };
+  }
+
+  render() {
+    return (
+      <View style={{ alignItems: 'center' }}>
+        <Text style={styles.title}>What is your name?</Text>
+        <Space height={12} />
+        <View style={styles.ageEntry}>
+          <TextInput
+            placeholder={'Enter name'}
+            placeholderTextColor={colors.textInputPlaceholderColor}
+            returnKeyType={'done'}
+            keyboardType={'default'}
+            value={this.props.name}
+            onChangeText={this.props.nameChanged}
+            style={{
+              flex: 1,
+              textAlign: 'center',
+              fontFamily: 'Futura',
+              fontSize: 24,
+            }}
+          ></TextInput>
+        </View>
+      </View>
+    );
+  }
+}
 interface AgeState {}
 interface AgeProps {
   age: string;
@@ -294,6 +360,7 @@ class AddressScreen extends React.Component<AddressProps, AddressState> {
             if (!works) {
               this.setState({ address: '' });
               Alert.alert(
+                'Error',
                 "You must be an Illinois resident currently. Sorry for the inconvenience! We'll be rolling out to new states in the coming months. Stay tuned."
               );
             } else {
@@ -537,4 +604,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default connect(mapStateToSetup)(SetupScreen);
+export default connect()(SetupScreen);

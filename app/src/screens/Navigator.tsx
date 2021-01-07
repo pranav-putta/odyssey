@@ -52,7 +52,15 @@ export default function Navigator() {
         component = HomeScreen;
     }
 
-    return <Stack.Screen name={screen} component={component} />;
+    return (
+      <Stack.Screen
+        name={screen}
+        component={component}
+        options={{
+          animationTypeForReplace: screen == 'Login' ? 'pop' : 'push',
+        }}
+      />
+    );
   };
 
   useEffect(() => {

@@ -1,6 +1,6 @@
 import { authActions } from './auth.slice';
 import store, { AppThunk } from '../store';
-import { AuthLoginType, AuthStatus } from './auth.types';
+import { AuthLoginType, AuthSetupState, AuthStatus } from './auth.types';
 import messaging from '@react-native-firebase/messaging';
 import auth from '@react-native-firebase/auth';
 import { uiActions } from '../ui/ui.slice';
@@ -30,7 +30,11 @@ module AuthenticationService {
     dispatch
   ) => {
     await PersistentStorage.storeUser(user);
-    dispatch(authActions.loginUser({ user, status }));
+    let state = AuthSetupState.name;
+    if (user.name != '') {
+      state = AuthSetupState.age;
+    }
+    dispatch(authActions.loginUser({ user, setupState: state, status }));
   };
 
   /**
@@ -96,9 +100,18 @@ module AuthenticationService {
       await PersistentStorage.logout();
       await auth().signOut();
     } catch (err) {
-      console.log(err);
+      err;
     }
     dispatch(authActions.logoutUser());
+  };
+
+  export const submitName = (pure: string): AppThunk => async (dispatch) => {
+    if (pure.length > 0) {
+      dispatch(authActions.nameSubmitted({ name: pure }));
+      dispatch(uiActions.completed());
+    } else {
+      dispatch(uiActions.error({ error: 'Please enter a valid name!' }));
+    }
   };
 
   export const submitAge = (pure: string): AppThunk => async (dispatch) => {
@@ -106,7 +119,6 @@ module AuthenticationService {
     let result = age.validate();
     if (result === AgeResult.valid) {
       dispatch(authActions.ageSubmitted({ age: age.formatted() }));
-      dispatch(uiActions.completed());
     } else if (result === AgeResult.invalid) {
       dispatch(uiActions.error({ error: 'Please enter a valid age.' }));
     } else if (result === AgeResult.under13) {
@@ -121,7 +133,6 @@ module AuthenticationService {
     let result = address.validate();
     if (result === AddressResult.valid) {
       dispatch(authActions.addressSubmitted({ address: address.formatted() }));
-      dispatch(uiActions.completed());
     } else if (result === AddressResult.invalid) {
       dispatch(uiActions.error({ error: 'Please enter a valid address.' }));
     }
@@ -131,16 +142,16 @@ module AuthenticationService {
     dispatch
   ) => {
     dispatch(authActions.topicsSubmitted({ topics }));
-    dispatch(uiActions.completed());
   };
 
   export const createUser = (): AppThunk => async (dispatch) => {
     dispatch(uiActions.progressChanged({ visible: true }));
+
     let user = getUser();
     let status = await Network.createUser(user);
     let x = await Network.refresh();
     if (x) {
-      await PersistentStorage.storeUser(x[0]);
+      user = x[0];
     }
     dispatch(uiActions.progressChanged({ visible: false }));
 
@@ -158,6 +169,16 @@ module AuthenticationService {
 
   export const getUser = (): User => {
     return userFromPartial(store.getState().auth.user);
+  };
+
+  export const getSetupState = (): AuthSetupState => {
+    return store.getState().auth.setupState;
+  };
+
+  export const setSetupState = (state: AuthSetupState): AppThunk => async (
+    dispatch
+  ) => {
+    dispatch(authActions.setSetupState(state));
   };
 }
 export default AuthenticationService;

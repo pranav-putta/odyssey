@@ -215,7 +215,7 @@ export default class EditScreen extends React.Component<Props, State> {
                   }}
                   onPress={() => {
                     Browser.openURL(
-                      'https://www.odysseyapp.us/contact-us.html',
+                      'https://www.odysseyapp.us/privacy.html',
                       true,
                       false
                     );

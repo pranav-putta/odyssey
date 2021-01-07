@@ -183,7 +183,6 @@ export module Network {
     let user = await PersistentStorage.getUser();
     return Axios.post(awsURLs.billFeed, { topics: user?.interestedTopics })
       .then((response) => {
-        console.log(response);
         if (response.status == 200) {
           return response.data.bills;
         } else {
