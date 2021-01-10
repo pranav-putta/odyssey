@@ -137,4 +137,12 @@ export module BillHandler {
   export function id(b: Bill | BillMetadata) {
     return b.assembly + b.chamber + b.number;
   }
+
+  export function meta(b: Bill): BillMetadata {
+    return {
+      assembly: b.assembly,
+      number: b.number,
+      chamber: b.chamber,
+    };
+  }
 }

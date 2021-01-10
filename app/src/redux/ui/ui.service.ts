@@ -1,4 +1,4 @@
-import { BillMetadata } from '../../models/Bill';
+import { Bill, BillHandler, BillMetadata } from '../../models/Bill';
 import { Network } from '../../util';
 import { billActions } from '../bill/bill.slice';
 import store, { AppThunk } from '../store';

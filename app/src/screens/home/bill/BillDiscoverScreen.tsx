@@ -16,7 +16,7 @@ import Carousel from 'react-native-snap-carousel';
 import { Icon } from 'react-native-elements';
 import { colors } from '../../../assets';
 import { Representative } from '../../../models';
-import { Bill } from '../../../models/Bill';
+import { Bill, BillHandler } from '../../../models/Bill';
 import BillCard, { BillCardSpecs } from './BillCard';
 import FastImage from 'react-native-fast-image';
 // @ts-ignore
@@ -117,24 +117,26 @@ class BillDiscoverScreen extends React.Component<Props, State> {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
         <StatusBar barStyle={'dark-content'} />
-        <ScrollView
-          style={{ flex: 1 }}
-          overScrollMode={'never'}
-          nestedScrollEnabled={true}
-          refreshControl={
-            <RefreshControl onRefresh={this.loadData} refreshing={loading} />
-          }
-        >
-          <Headline />
-          <BillCarousel
-            bills={this.props.feed}
-            ref={this.carouselRef}
-            onPress={(item) => {
-              store.dispatch(UIService.launchBill(item.bill));
-            }}
-          />
-        </ScrollView>
-        <Space height={'10%'} />
+        <Headline />
+        <FlatList
+          data={this.props.feed}
+          decelerationRate={'fast'}
+          keyExtractor={(item) => item.actions_hash}
+          contentContainerStyle={{ paddingTop: '2.5%' }}
+          snapToInterval={BillCardSpecs.height + BillCardSpecs.verticalSpacing}
+          renderItem={({ item, index }) => (
+            <BillCard
+              bill={item}
+              category={Config.getTopics()[item.category]}
+              index={index}
+              onPress={() => {
+                Analytics.billClick(item);
+                store.dispatch(UIService.launchBill(BillHandler.meta(item)));
+              }}
+            />
+          )}
+        />
+        <Space height={'8.5%'} />
       </SafeAreaView>
     );
   }
@@ -292,97 +294,90 @@ function RepCard(props: {
 }
 
 // carousel for new tab
-const BillCarousel = React.forwardRef(
-  (
-    props: {
-      bills: Bill[];
-      onPress: (item: { bill: Bill; category: Category }) => void;
-    },
-    ref
-  ) => {
-    const scrollX = React.useRef(new Animated.Value(0)).current;
-    return (
+const BillCarousel = (props: {
+  bills: Bill[];
+  onPress: (item: { bill: Bill; category: Category }) => void;
+}) => {
+  const scrollX = React.useRef(new Animated.Value(0)).current;
+  return (
+    <View
+      style={{
+        paddingBottom: '5%',
+        flex: 1,
+      }}
+    >
       <View
         style={{
-          paddingBottom: '5%',
+          backgroundColor: '#eceff1',
+          flexDirection: 'row',
+          marginHorizontal: '5%',
+          marginTop: '4%',
+          marginBottom: '3%',
+          paddingHorizontal: '5%',
+          paddingVertical: '2.5%',
+          borderRadius: 5,
         }}
       >
-        <View
+        <TouchableOpacity
           style={{
-            backgroundColor: '#eceff1',
             flexDirection: 'row',
-            marginHorizontal: '5%',
-            marginTop: '4%',
-            marginBottom: '3%',
-            paddingHorizontal: '5%',
-            paddingVertical: '2.5%',
-            borderRadius: 5,
+            justifyContent: 'center',
+            alignItems: 'center',
           }}
         >
-          <TouchableOpacity
+          <Icon
+            name={'fire'}
+            type={'font-awesome-5'}
+            size={14}
+            color={'black'}
+          />
+          <Space width={7.5} />
+          <Text
             style={{
-              flexDirection: 'row',
-              justifyContent: 'center',
-              alignItems: 'center',
+              color: 'black',
+              fontFamily: 'Futura',
+              fontWeight: 'bold',
+              fontSize: 12,
             }}
           >
-            <Icon
-              name={'fire'}
-              type={'font-awesome-5'}
-              size={14}
-              color={'black'}
-            />
-            <Space width={7.5} />
-            <Text
-              style={{
-                color: 'black',
-                fontFamily: 'Futura',
-                fontWeight: 'bold',
-                fontSize: 12,
-              }}
-            >
-              HOT POSTS
-            </Text>
-          </TouchableOpacity>
-        </View>
-        <Animated.FlatList
-          data={props.bills}
-          showsHorizontalScrollIndicator={false}
-          onScroll={Animated.event(
-            [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-            { useNativeDriver: true }
-          )}
-          decelerationRate={'fast'}
-          keyExtractor={(item: Bill) => item.actions_hash}
-          overScrollMode={true}
-          snapToInterval={BillCardSpecs.width + 2 * BillCardSpecs.spacing}
-          contentContainerStyle={{
-            maxHeight: height * 0.5,
-            paddingLeft: 10,
-            paddingRight: 50,
-          }}
-          renderItem={(item: { item: Bill; index: number }) => {
-            let category = Config.getTopics()[item.item.category];
-            return (
-              <>
-                <BillCard
-                  index={item.index}
-                  bill={item.item}
-                  scrollX={scrollX}
-                  category={category}
-                  onPress={async (image, container, content) => {
-                    Analytics.billClick(item.item);
-                    props.onPress({ bill: item.item, category: category });
-                  }}
-                />
-              </>
-            );
-          }}
-        />
+            HOT POSTS
+          </Text>
+        </TouchableOpacity>
       </View>
-    );
-  }
-);
+      <Animated.FlatList
+        nestedScrollEnabled={true}
+        data={props.bills}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+          { useNativeDriver: true }
+        )}
+        keyExtractor={(item: Bill) => item.actions_hash}
+        contentContainerStyle={{
+          maxHeight: height * 0.5,
+          paddingLeft: 10,
+          paddingRight: 50,
+        }}
+        renderItem={(item: { item: Bill; index: number }) => {
+          let category = Config.getTopics()[item.item.category];
+          return (
+            <>
+              <BillCard
+                index={item.index}
+                bill={item.item}
+                scrollX={scrollX}
+                category={category}
+                onPress={async (image, container, content) => {
+                  Analytics.billClick(item.item);
+                  props.onPress({ bill: item.item, category: category });
+                }}
+              />
+            </>
+          );
+        }}
+      />
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {

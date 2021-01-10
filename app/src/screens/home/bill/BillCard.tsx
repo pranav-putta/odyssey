@@ -14,22 +14,19 @@ type Props = {
   bill: Bill;
   category: Category;
   index: number;
-  scrollX: any;
-  onPress: (
-    imageRef: React.RefObject<View>,
-    containerRef: React.RefObject<any>,
-    contentRef: React.RefObject<any>
-  ) => void;
+  onPress: () => void;
 };
 
 const screenWidth = Dimensions.get('screen').width;
+const screenHeight = Dimensions.get('screen').height;
 
 export const BillCardSpecs = {
-  width: screenWidth * 0.8,
-  height: '100%',
+  width: screenWidth * 0.95,
+  height: screenHeight * 0.6,
   externalRadius: 20,
   internalRadius: 10,
-  spacing: 10,
+  horizontalSpacing: 10,
+  verticalSpacing: screenHeight * 0.05,
 };
 
 export default class BillCard extends React.PureComponent<Props, State> {
@@ -38,28 +35,13 @@ export default class BillCard extends React.PureComponent<Props, State> {
   private contentRef = React.createRef<any>();
 
   render() {
-    let { bill, index, scrollX, onPress } = this.props;
+    let { bill, index, onPress } = this.props;
     let category = Config.getTopics()[bill.category];
     if (!category) {
       category = DefaultCategory;
       Config.alertUpdateConfig();
     }
-    const { width, spacing } = BillCardSpecs;
-    const fullSize = width + 2 * spacing;
-    const extraPadding = 0;
-    const inputRange = [
-      (index - 1) * fullSize + extraPadding,
-      index * fullSize + extraPadding,
-      (index + 1) * fullSize + extraPadding,
-    ];
-    const translateX = scrollX.interpolate({
-      inputRange: inputRange,
-      outputRange: [width / 1.5, 0, -width / 1.5],
-    });
-    const contentShadowOpacity = scrollX.interpolate({
-      inputRange: inputRange,
-      outputRange: [0, 0.5, 0],
-    });
+
     return (
       <Animated.View
         style={[
@@ -71,9 +53,7 @@ export default class BillCard extends React.PureComponent<Props, State> {
         ref={this.containerRef}
       >
         <TouchableOpacity
-          onPress={() =>
-            onPress(this.imageRef, this.containerRef, this.contentRef)
-          }
+          onPress={() => onPress()}
           activeOpacity={1}
           style={{ width: '100%', height: '100%' }}
         >
@@ -83,19 +63,7 @@ export default class BillCard extends React.PureComponent<Props, State> {
           >
             <FastImage style={styles.image} source={{ uri: category.image }} />
           </SharedElement>
-          <Animated.View
-            ref={this.contentRef}
-            style={[
-              styles.content,
-              {
-                shadowOpacity: contentShadowOpacity,
-                transform: [
-                  { translateX: translateX },
-                  //  { rotateY: rotateY },
-                ],
-              },
-            ]}
-          >
+          <Animated.View ref={this.contentRef} style={[styles.content]}>
             <View style={{ flex: 1 }}>
               <View style={styles.categoriesContainer}>
                 <Text style={styles.number}>{formatBillNumber(bill)}</Text>
@@ -141,7 +109,8 @@ const styles = StyleSheet.create({
     width: BillCardSpecs.width,
     borderRadius: BillCardSpecs.externalRadius,
     alignSelf: 'center',
-    marginHorizontal: BillCardSpecs.spacing,
+    marginHorizontal: BillCardSpecs.horizontalSpacing,
+    marginBottom: BillCardSpecs.verticalSpacing,
   },
   touchableContainer: {
     width: '100%',
