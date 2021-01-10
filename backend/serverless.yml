@@ -136,6 +136,13 @@ functions:
           path: send-notifications
           method: post
           cors: true
+  fetch-bill:
+    handler: dist/handler.fetch_bill
+    events:
+      - http:
+          path: fetch-bill
+          method: post
+          cors: true
 
 plugins:
   - serverless-offline

@@ -1,7 +1,12 @@
 import messaging, {
   FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging';
+import { BillMetadata } from '../../models/Bill';
+import { BillService } from '../../redux/bill';
+import { Notification, NotificationType } from '../../redux/models';
 import { StorageService } from '../../redux/storage';
+import store from '../../redux/store';
+import { UIService } from '../../redux/ui/ui';
 
 export module NotificationHandler {
   export async function requestUserPermission() {
@@ -21,13 +26,28 @@ export module NotificationHandler {
   ) {
     if (message && message.notification) {
       if (message.data && message.data.messageType == 'card') {
-        StorageService.update({
-          notifications: [JSON.parse(message.data.content)],
-        });
+        store.dispatch(
+          StorageService.update({
+            notifications: [JSON.parse(message.data.content)],
+          })
+        );
       } else if (message.data && message.data.messageType == 'bill') {
         //PersistentStorage.storeNotification(message.data.content);
       }
     }
+  }
+
+  function handleMessageOpen(message: FirebaseMessagingTypes.RemoteMessage) {
+    try {
+      if (message.data && message.data.content) {
+        let notification: Notification = JSON.parse(message.data.content);
+
+        if (notification.type == NotificationType.bill) {
+          let meta: BillMetadata = JSON.parse(notification.content);
+          store.dispatch(UIService.launchBill(meta));
+        }
+      }
+    } catch (err) {}
   }
 
   export async function subscribeToAlerts() {
@@ -46,7 +66,7 @@ export module NotificationHandler {
       .getInitialNotification()
       .then((message) => {
         if (message) {
-          handleMessage(message);
+          handleMessageOpen(message);
         }
       });
   }

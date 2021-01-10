@@ -69,49 +69,48 @@ function Shimmer(props: { style: StyleProp<ViewStyle> }) {
 }
 
 export module Skeletons {
-  export function RepCard() {
-    let Card = () => {
-      return (
-        <View style={{ flexDirection: 'row', flex: 1, margin: 5 }}>
+  const Card = () => {
+    return (
+      <View style={{ flexDirection: 'row', flex: 1, margin: 5 }}>
+        <Shimmer
+          style={{
+            height: '100%',
+            flex: 1,
+            backgroundColor: boxColor,
+            borderRadius: 5,
+          }}
+        />
+        <View
+          style={{
+            height: '100%',
+            flex: 3.5,
+            marginLeft: 20,
+            paddingTop: 5,
+            paddingBottom: 17.5,
+          }}
+        >
           <Shimmer
             style={{
-              height: '100%',
               flex: 1,
               backgroundColor: boxColor,
-              borderRadius: 5,
+              borderRadius: 10,
+              width: '90%',
             }}
           />
-          <View
+          <View style={{ flex: 0.75 }} />
+          <Shimmer
             style={{
-              height: '100%',
-              flex: 3.5,
-              marginLeft: 20,
-              paddingTop: 5,
-              paddingBottom: 17.5,
+              flex: 1,
+              width: '65%',
+              backgroundColor: boxColor,
+              borderRadius: 10,
             }}
-          >
-            <Shimmer
-              style={{
-                flex: 1,
-                backgroundColor: boxColor,
-                borderRadius: 10,
-                width: '90%',
-              }}
-            />
-            <View style={{ flex: 0.75 }} />
-            <Shimmer
-              style={{
-                flex: 1,
-                width: '65%',
-                backgroundColor: boxColor,
-                borderRadius: 10,
-              }}
-            />
-          </View>
+          />
         </View>
-      );
-    };
-
+      </View>
+    );
+  };
+  export function RepCard() {
     return (
       <View>
         <View style={[styles.repCardContainer]}>
@@ -119,6 +118,14 @@ export module Skeletons {
           <Space height={5} />
           {Card()}
         </View>
+      </View>
+    );
+  }
+
+  export function BillInfo() {
+    return (
+      <View style={{ flex: 1 }}>
+        
       </View>
     );
   }

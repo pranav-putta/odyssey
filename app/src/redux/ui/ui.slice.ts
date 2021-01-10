@@ -1,15 +1,17 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { UIState, UIStatus } from './ui.types';
+import { UIScreenCode, UIState, UIStatus, UIStatusCode } from './ui.types';
 import {
   progressChanged,
   error,
-  completed,
   stable,
   servicesLoaded,
+  setState,
 } from './ui.reducers';
 
 const initialState: UIState = {
-  status: UIStatus.stable,
+  status: { code: UIStatusCode.stable },
+  screen: { code: UIScreenCode.splash },
+  firstDataRefresh: false,
   servicesLoaded: false,
 };
 
@@ -19,9 +21,9 @@ const uiSlice = createSlice({
   reducers: {
     progressChanged,
     error,
-    completed,
     stable,
     servicesLoaded,
+    setState,
   },
 });
 

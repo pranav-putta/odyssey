@@ -19,7 +19,7 @@ import RaisedButton from './components/RaisedButton';
 import { AuthLoginType } from '../../redux/auth/auth.types';
 import { AppState } from '../../redux/reducer';
 import store, { AppDispatch } from '../../redux/store';
-import { UIStatus } from '../../redux/ui/ui.types';
+import { UIStatusCode } from '../../redux/ui/ui.types';
 import { connect } from 'react-redux';
 import { AuthService } from '../../redux/auth';
 
@@ -32,7 +32,7 @@ interface Props {
 function mapStateToLogin(state: AppState) {
   const { ui } = state;
   return {
-    progressVisible: ui.status === UIStatus.loading,
+    progressVisible: ui.status.code === UIStatusCode.loading,
   };
 }
 
@@ -114,7 +114,11 @@ class TopBar extends React.PureComponent<TopBarProps, TopBarState> {
   }
 
   onInfoButtonPress() {
-    Browser.openURL('https://www.odysseyapp.us/about-us/index.html', true, false);
+    Browser.openURL(
+      'https://www.odysseyapp.us/about-us/index.html',
+      true,
+      false
+    );
   }
 }
 class Headline extends React.PureComponent {

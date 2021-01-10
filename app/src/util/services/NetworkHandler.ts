@@ -2,13 +2,14 @@ import { firebase } from '@react-native-firebase/functions';
 import { Representative } from '../../models';
 import NetInfo from '@react-native-community/netinfo';
 import Axios from 'axios';
-import { Bill } from '../../models/Bill';
+import { Bill, BillMetadata } from '../../models/Bill';
 import { BillData, Comment, Vote } from '../../models/BillData';
 import perf from '@react-native-firebase/perf';
 import { User } from '../../redux/models/user';
 import messaging from '@react-native-firebase/messaging';
 import store from '../../redux/store';
 import { StorageService } from '../../redux/storage';
+import { Alert } from 'react-native';
 
 export module Network {
   export async function isNetworkAvailable() {
@@ -47,6 +48,8 @@ export module Network {
       'https://tde26c6cp5.execute-api.us-east-2.amazonaws.com/prod/delete-user',
     emailRep:
       'https://tde26c6cp5.execute-api.us-east-2.amazonaws.com/prod/email-rep',
+    fetchBill:
+      'https://tde26c6cp5.execute-api.us-east-2.amazonaws.com/prod/fetch-bill',
   };
 
   export function setupPerfMonitor() {
@@ -188,6 +191,25 @@ export module Network {
       });
   }
 
+  export async function getBill(
+    metadata: BillMetadata
+  ): Promise<[Bill, BillData] | undefined> {
+    if (!isNetworkAvailable()) {
+      return undefined;
+    }
+    return Axios.post(awsURLs.fetchBill, { bill: metadata })
+      .then((response) => {
+        if (response.status == 200) {
+          return [response.data.bills, response.data.data] as [Bill, BillData];
+        } else {
+          return undefined;
+        }
+      })
+      .catch((err) => {
+        return undefined;
+      });
+  }
+
   export async function likedBills(): Promise<Bill[]> {
     if (!isNetworkAvailable()) {
       return [];
@@ -266,7 +288,7 @@ export module Network {
       });
   }
 
-  export async function getBillData(bill: Bill): Promise<BillData> {
+  export async function getBillData(bill: Bill): Promise<BillData | undefined> {
     let id = bill.assembly + bill.chamber + bill.number;
     if (!isNetworkAvailable()) {
       return {
@@ -291,7 +313,7 @@ export module Network {
       })
       .catch((err) => {
         console.log(JSON.stringify(err));
-        return [];
+        return undefined;
       });
   }
 

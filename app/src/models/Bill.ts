@@ -127,8 +127,14 @@ export interface Bill {
   voting_events: BillVotingEvent[];
 }
 
+export interface BillMetadata {
+  assembly: number;
+  chamber: string;
+  number: number;
+}
+
 export module BillHandler {
-  export function id(b: Bill) {
+  export function id(b: Bill | BillMetadata) {
     return b.assembly + b.chamber + b.number;
   }
 }

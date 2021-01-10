@@ -4,7 +4,6 @@ import { Notification } from '../models';
 import { User } from '../models/user';
 
 export interface StorageState {
-  feed: Bill[];
   user: User;
   representatives: Representative[];
   notifications: Notification[];

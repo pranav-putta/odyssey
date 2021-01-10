@@ -25,13 +25,8 @@ module StorageService {
     dispatch(storageActions.updateStorage({ appLaunchCount: ct }));
   };
 
-  export const billLike = (bill: Bill, liked: boolean): AppThunk => async (
-    dispatch
-  ) => {
-    let user = StorageService.user();
-    let id = BillHandler.id(bill);
-    user.liked[id] = liked;
-    dispatch(storageActions.updateStorage({ user }));
+  export const billLike = (bill: Bill, liked: boolean) => {
+    return storageActions.updateBillLiked({ bill, liked });
   };
 
   export const logout = (): AppThunk => async (dispatch) => {

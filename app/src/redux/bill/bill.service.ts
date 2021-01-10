@@ -1,35 +1,16 @@
+import { Alert } from 'react-native';
+import { Representative } from '../../models';
 import { BillMetadata } from '../../models/Bill';
 import { Network } from '../../util';
-import { billActions } from '../bill/bill.slice';
+import { User } from '../models/user';
+import { StorageService } from '../storage';
 import store, { AppThunk } from '../store';
-import { uiActions } from './ui.slice';
-import { UIScreen, UIScreenCode, UIState, UIStatusCode } from './ui.types';
+import { UIService } from '../ui/ui';
+import { uiActions } from '../ui/ui.slice';
+import { UIStatus, UIStatusCode } from '../ui/ui.types';
+import { billActions } from './bill.slice';
 
-module UIService {
-  export const setProgress = (visible: boolean) => {
-    return uiActions.progressChanged({ visible });
-  };
-
-  export const setError = (error: string) => {
-    return uiActions.error({ error });
-  };
-
-  export const setStableState = () => {
-    return uiActions.stable();
-  };
-
-  export const setServicesLoaded = () => {
-    return uiActions.servicesLoaded();
-  };
-
-  export const setState = (state: Partial<UIState>) => {
-    return uiActions.setState(state);
-  };
-
-  export const setScreen = (screen: UIScreen) => {
-    return uiActions.setState({ screen: screen });
-  };
-
+module BillService {
   export const launchBill = (meta: BillMetadata): AppThunk => async (
     dispatch
   ) => {
@@ -44,7 +25,9 @@ module UIService {
       );
 
     dispatch(billActions.billRefreshing({ meta, bill }));
-    dispatch(UIService.setScreen({ code: UIScreenCode.bill, meta: meta }));
+    dispatch(
+      uiActions.setState({ status: { code: UIStatusCode.bill, bill: meta } })
+    );
 
     // if bill was not in feed, pull from online
     if (!bill) {
@@ -71,6 +54,11 @@ module UIService {
       }
     }
   };
+
+  export const closeBill = (): AppThunk => async (dispatch) => {
+    dispatch(uiActions.stable());
+    dispatch(billActions.billClear());
+  };
 }
 
-export default UIService;
+export default BillService;

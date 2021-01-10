@@ -9,13 +9,10 @@ import { Comment } from '../../../models/BillData';
 import { Category } from '../../../models/Category';
 import BillCommentFullScreeen from './BillCommentFullScreen';
 import BillInfoScreen from './BillInfoScreen';
-import { BillDetailStackProps, BillDetailStackRouteProps } from './BillTab';
 import VoteScreen from './BillVotingScreen';
 import ComposeCommentScreen from './ComposeCommentScreen';
 
 interface Props {
-  navigation: BillDetailStackProps;
-  route: BillDetailStackRouteProps;
 }
 interface State {}
 
@@ -103,19 +100,16 @@ export default class BillDetailStack extends React.Component<Props, State> {
             headerShown: false,
             cardStyle: { backgroundColor: 'transparent' },
           }}
-          initialParams={this.props.route.params}
           component={BillInfoScreen}
         />
         <Stack.Screen
           name="Vote"
           component={VoteScreen}
-          initialParams={this.props.route.params}
           options={{ headerShown: false }}
         />
         <Stack.Screen
           name="Comment"
           component={ComposeCommentScreen}
-          initialParams={this.props.route.params}
           options={{
             transitionSpec: {
               open: { animation: 'timing', config: { duration: 300 } },

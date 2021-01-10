@@ -27,9 +27,8 @@ import ProgressHUD from '../../components/ProgressHUD';
 import store from '../../redux/store';
 import { AuthService } from '../../redux/auth';
 import { AppState } from '../../redux/reducer';
-import { UIStatus } from '../../redux/ui/ui.types';
+import { UIStatus, UIStatusCode } from '../../redux/ui/ui.types';
 import { connect } from 'react-redux';
-import { completed } from '../../redux/ui/ui.reducers';
 import { UIService } from '../../redux/ui/ui';
 import {
   AuthSetupState,
@@ -59,15 +58,15 @@ class SetupScreen extends React.Component<Props, State> {
       this.next(state);
     }
 
-    switch (ui.status) {
-      case UIStatus.error:
-        Alert.alert('Error', ui.message ?? '');
+    switch (ui.status.code) {
+      case UIStatusCode.error:
+        Alert.alert('Error', ui.status.message ?? '');
         store.dispatch(UIService.setStableState());
         break;
-      case UIStatus.loading:
+      case UIStatusCode.loading:
         this.setState({ progress: true });
         break;
-      case UIStatus.stable:
+      case UIStatusCode.stable:
         this.setState({ progress: false });
         break;
       default:

@@ -52,7 +52,7 @@ const feedback = () => {
 
 const edgar = () => {
   const htmlContent = `
-  <img style="width:100%;height:${250}" src="https://qph.fs.quoracdn.net/main-qimg-0fbd891633b05dbfc74e2fe82fc0d21e.webp"/>
+  <img style="width:100%;height:${250}" src="https://static.onecms.io/wp-content/uploads/sites/6/2020/11/24/HUC2-FF-002475.jpg"/>
   <div style="margin:7.5%">
     <h1>Baby Yoda</h1>
     <p>This man is so lit you literally just have to check him out. I swear to god if you don't I'm going to bite your cock off HEHEHEH</p>
@@ -94,14 +94,28 @@ const edgar = () => {
     });
 };
 
-const test = async () => {
+const testBill = async () => {
+  let bill = { assembly: 101, chamber: "SB", number: 1 };
+  let notification = {
+    title: "Bill update",
+    body: "message",
+    type: 3,
+    location: 0,
+    time: "asap",
+    content: JSON.stringify(bill),
+    seen: false,
+  };
+
   await admin
     .messaging()
     .sendToTopic("general_alerts", {
       notification: {
-        title: "BILL UPDATE BUDDY",
-        body: "THERE IS A MESSAGE FOR U JIIII",
+        title: "Oh JIIIII there is a bill update waiting for you mera raja",
+        body: "SB JERO JERO JERO ONE HAS PASSED YOU FRUITCAKE 🤪",
         sound: "default",
+      },
+      data: {
+        content: JSON.stringify(notification),
       },
     })
     .then((val) => {
@@ -115,6 +129,4 @@ const test = async () => {
     });
 };
 
-for (let i = 0; i < 100; i++) {
-  edgar();
-}
+testBill();

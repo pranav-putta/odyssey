@@ -10,13 +10,14 @@ import {
   Animated,
   StatusBar,
   Alert,
+  FlatList,
 } from 'react-native';
 import Carousel from 'react-native-snap-carousel';
 import { Icon } from 'react-native-elements';
 import { colors } from '../../../assets';
 import { Representative } from '../../../models';
 import { Bill } from '../../../models/Bill';
-import BillCard from './BillCard';
+import BillCard, { BillCardSpecs } from './BillCard';
 import FastImage from 'react-native-fast-image';
 // @ts-ignore
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -35,6 +36,9 @@ import { FeedStatus } from '../../../redux/feed/feed.types';
 import { connect } from 'react-redux';
 import { User } from '../../../redux/models/user';
 import Skeleton, { Skeletons } from '../../../components/Skeleton';
+import { BillService } from '../../../redux/bill';
+import { UIService } from '../../../redux/ui/ui';
+import { BlurView } from '@react-native-community/blur';
 
 const width = Dimensions.get('screen').width;
 const height = Dimensions.get('screen').height;
@@ -45,6 +49,7 @@ interface Props {
   feed: Bill[];
   representatives: Representative[];
   status: FeedStatus;
+  refreshed: boolean;
 }
 
 interface State {
@@ -62,12 +67,16 @@ enum BillTabKey {
 
 function mapStoreToProps() {
   let feed = store.getState().feed;
-  return feed;
+  let refreshed = store.getState().ui.firstDataRefresh;
+  return { ...feed, refreshed };
 }
 
 class BillDiscoverScreen extends React.Component<Props, State> {
+  private lastStatus: FeedStatus;
+  private carouselRef: React.RefObject<Carousel<Bill>>;
+
   componentDidMount() {
-    if (this.props.status === FeedStatus.unknown) this.loadData();
+    if (!this.props.refreshed) this.loadData();
   }
 
   loadData = async (): Promise<void> => {
@@ -75,7 +84,7 @@ class BillDiscoverScreen extends React.Component<Props, State> {
     store.dispatch(FeedService.refresh());
   };
 
-  constructor(props: any) {
+  constructor(props: Props) {
     super(props);
 
     this.state = {
@@ -87,61 +96,41 @@ class BillDiscoverScreen extends React.Component<Props, State> {
     };
 
     this.loadData = this.loadData.bind(this);
+    this.lastStatus = props.status;
+    this.carouselRef = React.createRef<Carousel<Bill>>();
+  }
+
+  componentDidUpdate() {
+    if (
+      this.lastStatus !== FeedStatus.refreshed &&
+      this.props.status === FeedStatus.refreshed
+    ) {
+      // if the screen just finished refreshing, scroll to the first bill
+      this.carouselRef.current?.snapToItem(0);
+    }
+    this.lastStatus = this.props.status;
   }
 
   render() {
     let loading = this.props.status === FeedStatus.refreshing;
 
     return (
-      <SafeAreaView style={{ flex: 1 }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
         <StatusBar barStyle={'dark-content'} />
         <ScrollView
           style={{ flex: 1 }}
           overScrollMode={'never'}
+          nestedScrollEnabled={true}
           refreshControl={
             <RefreshControl onRefresh={this.loadData} refreshing={loading} />
           }
         >
           <Headline />
-          <Skeleton
-            styles={{
-              paddingHorizontal: '10%',
-              height: '20%',
-              marginTop: '2.5%',
-            }}
-            loading={loading}
-            skeleton={Skeletons.RepCard}
-          >
-            <View
-              style={{
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginHorizontal: '10%',
-                marginTop: '2.5%',
-              }}
-            >
-              {this.props.representatives.map((rep, i) => (
-                <>
-                  <RepCard
-                    key={rep.member_url}
-                    clicked={() => {
-                      this.props.navigation.push('Rep', { rep: rep });
-                    }}
-                    rep={rep}
-                  />
-                  {i !== this.props.representatives.length ? (
-                    <Space height={10} />
-                  ) : null}
-                </>
-              ))}
-            </View>
-          </Skeleton>
-          <ProgressHUD visible={loading} />
-          <Space height={'1.5%'} />
           <BillCarousel
             bills={this.props.feed}
+            ref={this.carouselRef}
             onPress={(item) => {
-              this.props.navigation.push('Details', item);
+              store.dispatch(UIService.launchBill(item.bill));
             }}
           />
         </ScrollView>
@@ -158,7 +147,7 @@ function Headline() {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        marginHorizontal: '10%',
+        marginHorizontal: '5%',
       }}
     >
       <Text style={styles.discover}>Discover</Text>
@@ -174,6 +163,46 @@ function Headline() {
         <Icon name="info" type="feather" color="#2196f3" />
       </TouchableOpacity>
     </View>
+  );
+}
+
+function Reps(props: {
+  representatives: Representative[];
+  loading: boolean;
+  navigation: StackNavigationProp<BillScreenStackParamList, any>;
+}) {
+  return (
+    <Skeleton
+      styles={{
+        paddingHorizontal: '10%',
+        height: '20%',
+        marginTop: '2.5%',
+      }}
+      loading={props.loading && props.representatives.length == 0}
+      skeleton={Skeletons.RepCard}
+    >
+      <View
+        style={{
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginHorizontal: '10%',
+          marginTop: '2.5%',
+        }}
+      >
+        {props.representatives.map((rep, i) => (
+          <>
+            <RepCard
+              key={rep.member_url}
+              clicked={() => {
+                props.navigation.push('Rep', { rep: rep });
+              }}
+              rep={rep}
+            />
+            {i !== props.representatives.length ? <Space height={10} /> : null}
+          </>
+        ))}
+      </View>
+    </Skeleton>
   );
 }
 
@@ -263,48 +292,97 @@ function RepCard(props: {
 }
 
 // carousel for new tab
-function BillCarousel(props: {
-  bills: Bill[];
-  onPress: (item: { bill: Bill; category: Category }) => void;
-}) {
-  const scrollX = React.useRef(new Animated.Value(0)).current;
-  return (
-    <Carousel
-      enableMomentum={true}
-      lockScrollWhileSnapping={true}
-      data={props.bills}
-      renderItem={(item: { item: Bill; index: number }) => {
-        let category = Config.getTopics()[item.item.category];
-        return (
-          <BillCard
-            index={item.index}
-            bill={item.item}
-            scrollX={scrollX}
-            category={category}
-            onPress={async (image, container, content) => {
-              Analytics.billClick(item.item);
-              props.onPress({ bill: item.item, category: category });
+const BillCarousel = React.forwardRef(
+  (
+    props: {
+      bills: Bill[];
+      onPress: (item: { bill: Bill; category: Category }) => void;
+    },
+    ref
+  ) => {
+    const scrollX = React.useRef(new Animated.Value(0)).current;
+    return (
+      <View
+        style={{
+          paddingBottom: '5%',
+        }}
+      >
+        <View
+          style={{
+            backgroundColor: '#eceff1',
+            flexDirection: 'row',
+            marginHorizontal: '5%',
+            marginTop: '4%',
+            marginBottom: '3%',
+            paddingHorizontal: '5%',
+            paddingVertical: '2.5%',
+            borderRadius: 5,
+          }}
+        >
+          <TouchableOpacity
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'center',
+              alignItems: 'center',
             }}
-          />
-        );
-      }}
-      containerCustomStyle={{ maxHeight: height * 0.6 }}
-      sliderWidth={width}
-      itemWidth={width * 0.8}
-      itemHeight={height}
-      layout={'default'}
-      inactiveSlideScale={0.9}
-      inactiveSlideOpacity={0.7}
-      centerContent={true}
-      loop={false}
-      autoplayInterval={10000}
-      onScroll={Animated.event(
-        [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-        { useNativeDriver: true }
-      )}
-    />
-  );
-}
+          >
+            <Icon
+              name={'fire'}
+              type={'font-awesome-5'}
+              size={14}
+              color={'black'}
+            />
+            <Space width={7.5} />
+            <Text
+              style={{
+                color: 'black',
+                fontFamily: 'Futura',
+                fontWeight: 'bold',
+                fontSize: 12,
+              }}
+            >
+              HOT POSTS
+            </Text>
+          </TouchableOpacity>
+        </View>
+        <Animated.FlatList
+          data={props.bills}
+          showsHorizontalScrollIndicator={false}
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+            { useNativeDriver: true }
+          )}
+          decelerationRate={'fast'}
+          keyExtractor={(item: Bill) => item.actions_hash}
+          overScrollMode={true}
+          snapToInterval={BillCardSpecs.width + 2 * BillCardSpecs.spacing}
+          contentContainerStyle={{
+            maxHeight: height * 0.5,
+            paddingLeft: 10,
+            paddingRight: 50,
+          }}
+          renderItem={(item: { item: Bill; index: number }) => {
+            let category = Config.getTopics()[item.item.category];
+            return (
+              <>
+                <BillCard
+                  index={item.index}
+                  bill={item.item}
+                  scrollX={scrollX}
+                  category={category}
+                  onPress={async (image, container, content) => {
+                    Analytics.billClick(item.item);
+                    props.onPress({ bill: item.item, category: category });
+                  }}
+                />
+              </>
+            );
+          }}
+        />
+      </View>
+    );
+  }
+);
 
 const styles = StyleSheet.create({
   container: {
@@ -350,7 +428,7 @@ const styles = StyleSheet.create({
   },
   nameText: { fontSize: 18, fontWeight: 'bold' },
   discover: {
-    fontSize: 30,
+    fontSize: 36,
     fontFamily: 'Futura',
     fontWeight: '500',
     textAlign: 'left',

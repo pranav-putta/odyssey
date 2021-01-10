@@ -1,5 +1,6 @@
 import { Representative } from '../../models';
 import { Bill } from '../../models/Bill';
+import { BillData } from '../../models/BillData';
 import { User } from '../models/user';
 
 export enum FeedStatus {
@@ -11,12 +12,15 @@ export enum FeedStatus {
 export interface FeedState {
   status: FeedStatus;
   feed: Bill[];
-  currentUser: User;
   representatives: Representative[];
 }
 export interface FeedRefreshingPayload {}
 export interface FeedRefreshingFinishedPayload {
   bills: Bill[];
-  user?: User;
   reps?: Representative[];
+}
+
+export interface FeedSelectBillPayload {
+  bill: Bill;
+  data: BillData;
 }

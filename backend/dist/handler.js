@@ -69,7 +69,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.send_notifications = exports.email_rep = exports.delete_user = exports.update_profile = exports.upload_pfp = exports.delete_comment = exports.like_comment = exports.get_bill_data = exports.add_comment = exports.vote = exports.like = exports.search = exports.refresh = exports.liked_bills = exports.load_bill_feed = exports.new_user = exports.get_user = exports.user_exists = void 0;
+exports.send_notifications = exports.email_rep = exports.delete_user = exports.fetch_bill = exports.update_profile = exports.upload_pfp = exports.delete_comment = exports.like_comment = exports.get_bill_data = exports.add_comment = exports.vote = exports.like = exports.search = exports.refresh = exports.liked_bills = exports.load_bill_feed = exports.new_user = exports.get_user = exports.user_exists = void 0;
 var axios_1 = __importDefault(require("axios"));
 var pg_1 = __importDefault(require("pg"));
 var querystring_1 = __importDefault(require("querystring"));
@@ -911,6 +911,54 @@ exports.update_profile = function (event) {
                         return [2 /*return*/, createSuccess({ result: true })];
                     }
                     return [2 /*return*/];
+            }
+        });
+    });
+};
+exports.fetch_bill = function (event) {
+    if (event === void 0) { event = {}; }
+    return __awaiter(void 0, void 0, void 0, function () {
+        var Vote, data, bill, id, client, exists, query, billData, pgPool, bills, response;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    (function (Vote) {
+                        Vote[Vote["None"] = -1] = "None";
+                        Vote[Vote["Yes"] = 0] = "Yes";
+                        Vote[Vote["No"] = 1] = "No";
+                    })(Vote || (Vote = {}));
+                    data = JSON.parse(event.body);
+                    bill = data.bill;
+                    id = bill.assembly + bill.chamber + bill.number;
+                    // set up dynamodb client
+                    aws.config.update(aws_config_1.default.aws_remote_config);
+                    client = new aws.DynamoDB.DocumentClient();
+                    exists = {
+                        TableName: aws_config_1.default.aws_voting_table_name,
+                        Key: {
+                            bill_id: id,
+                        },
+                    };
+                    return [4 /*yield*/, client.get(exists).promise()];
+                case 1:
+                    query = _a.sent();
+                    billData = { bill_id: id, comments: [], votes: {} };
+                    if (query.$response.data && query.$response.data.Item) {
+                        // bill exists
+                        billData = query.$response.data.Item;
+                    }
+                    pgPool = new pg_1.default.Pool(pgConfig);
+                    return [4 /*yield*/, pgPool.query("select * from public.bills where assembly=" + bill.assembly + " and chamber='" + bill.chamber + "' and number=" + bill.number + " limit 1")];
+                case 2:
+                    bills = _a.sent();
+                    return [4 /*yield*/, pgPool.end()];
+                case 3:
+                    _a.sent();
+                    response = {
+                        data: billData,
+                        bills: bills.rows[0],
+                    };
+                    return [2 /*return*/, createSuccess(response)];
             }
         });
     });

@@ -21,9 +21,9 @@ module AuthenticationService {
   /**
    * initializes current user state by getting data from persistent storage
    */
-  export const initialize = (): AppThunk => async (dispatch) => {
+  export const initialize = () => {
     const user = StorageService.user();
-    dispatch(authActions.initializeUser({ user }));
+    return authActions.initializeUser({ user });
   };
 
   export const loginUser = (user: User, status: AuthStatus): AppThunk => async (
@@ -97,7 +97,7 @@ module AuthenticationService {
 
   export const logout = (): AppThunk => async (dispatch) => {
     try {
-      StorageService.logout();
+      dispatch(StorageService.logout());
       await auth().signOut();
     } catch (err) {
       err;
@@ -108,7 +108,6 @@ module AuthenticationService {
   export const submitName = (pure: string): AppThunk => async (dispatch) => {
     if (pure.length > 0) {
       dispatch(authActions.nameSubmitted({ name: pure }));
-      dispatch(uiActions.completed());
     } else {
       dispatch(uiActions.error({ error: 'Please enter a valid name!' }));
     }

@@ -2,6 +2,7 @@ import { CaseReducer, PayloadAction } from '@reduxjs/toolkit';
 import {
   FeedRefreshingFinishedPayload,
   FeedRefreshingPayload,
+  FeedSelectBillPayload,
   FeedState,
   FeedStatus,
 } from './feed.types';
@@ -17,13 +18,9 @@ export const feedRefreshed: AuthReducer<FeedRefreshingFinishedPayload> = (
   state,
   action
 ) => {
-  const { bills, reps, user } = action.payload;
+  const { bills, reps } = action.payload;
   state.status = FeedStatus.refreshed;
   state.feed = bills;
-
-  if (user) {
-    state.currentUser = user;
-  }
 
   if (reps) {
     state.representatives = reps;

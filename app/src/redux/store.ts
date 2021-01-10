@@ -1,9 +1,15 @@
-import { Action, configureStore, ThunkAction } from '@reduxjs/toolkit';
+import {
+  Action,
+  configureStore,
+  getDefaultMiddleware,
+  ThunkAction,
+} from '@reduxjs/toolkit';
 import { persistStore } from 'redux-persist';
 import appReducer, { AppState } from './reducer';
 
 const store = configureStore({
   reducer: appReducer,
+  middleware: getDefaultMiddleware({ immutableCheck: false }),
 });
 export const persistor = persistStore(store);
 

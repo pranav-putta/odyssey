@@ -1,3 +1,4 @@
+import { BillHandler, BillMetadata } from '../../models/Bill';
 import { Notification } from './notification';
 
 export type InterestedTopics = { [key: string]: boolean };
@@ -37,3 +38,9 @@ export function emptyUser() {
 }
 
 export type PartialUser = Partial<User>;
+
+export module UserHandler {
+  export function hasLikedBill(user: User, bill: BillMetadata): boolean {
+    return user.liked[BillHandler.id(bill)] === true;
+  }
+}

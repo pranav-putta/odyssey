@@ -5,9 +5,9 @@ import { emptyUser } from '../models/user';
 
 const initialState: FeedState = {
   status: FeedStatus.unknown,
-  currentUser: emptyUser(),
   representatives: [],
   feed: [],
+  
 };
 
 const billFeedSlice = createSlice({

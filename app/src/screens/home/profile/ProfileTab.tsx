@@ -28,7 +28,6 @@ export type ProfileScreenParams = RouteProp<ProfileTabStackParams, 'Profile'>;
 
 export default function ProfileTab(props: {
   navigation: ProfileTabScreenProps;
-  toggleTabs: (show: boolean) => void;
 }) {
   return (
     <Stack.Navigator
@@ -49,18 +48,14 @@ export default function ProfileTab(props: {
         name="Profile"
         component={ProfileScreen}
         listeners={{
-          focus: () => {
-            props.toggleTabs(true);
-          },
+          focus: () => {},
         }}
       />
       <Stack.Screen
         name="Edit"
         component={EditScreen}
         listeners={{
-          focus: () => {
-            props.toggleTabs(false);
-          },
+          focus: () => {},
         }}
       />
     </Stack.Navigator>

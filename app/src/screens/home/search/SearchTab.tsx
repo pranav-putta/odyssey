@@ -11,7 +11,6 @@ import BillDetailStack from '../bill/BillDetailsStack';
 import SearchBarScreen from './SearchBarScreen';
 interface Props {
   navigation: BottomTabNavigationProp<any, any>;
-  toggleTabs: (show: boolean) => void;
 }
 interface State {}
 
@@ -63,9 +62,7 @@ export default class SearchTab extends React.Component<Props, State> {
           name="Search"
           options={{ headerShown: false }}
           listeners={{
-            focus: () => {
-              this.props.toggleTabs(true);
-            },
+            focus: () => {},
           }}
           component={SearchBarScreen}
         />
@@ -73,9 +70,7 @@ export default class SearchTab extends React.Component<Props, State> {
           name="Details"
           component={BillDetailStack}
           listeners={{
-            focus: () => {
-              this.props.toggleTabs(false);
-            },
+            focus: () => {},
           }}
         />
       </Stack.Navigator>

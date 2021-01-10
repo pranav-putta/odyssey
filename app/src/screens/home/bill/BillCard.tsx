@@ -7,7 +7,6 @@ import { Category, DefaultCategory } from '../../../models/Category';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { SharedElement } from 'react-navigation-shared-element';
 import { Config } from '../../../util/Config';
-import BillProgressBar from '../../../components/BillProgressBar';
 
 type State = {};
 
@@ -47,7 +46,7 @@ export default class BillCard extends React.PureComponent<Props, State> {
     }
     const { width, spacing } = BillCardSpecs;
     const fullSize = width + 2 * spacing;
-    const extraPadding = -index * spacing * 2;
+    const extraPadding = 0;
     const inputRange = [
       (index - 1) * fullSize + extraPadding,
       index * fullSize + extraPadding,
@@ -141,8 +140,8 @@ const styles = StyleSheet.create({
     height: BillCardSpecs.height,
     width: BillCardSpecs.width,
     borderRadius: BillCardSpecs.externalRadius,
-    marginHorizontal: BillCardSpecs.spacing,
     alignSelf: 'center',
+    marginHorizontal: BillCardSpecs.spacing,
   },
   touchableContainer: {
     width: '100%',

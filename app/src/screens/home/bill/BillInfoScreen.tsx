@@ -3,6 +3,7 @@ import {
   Animated,
   Dimensions,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -11,31 +12,43 @@ import {
 import { Icon } from 'react-native-elements';
 import FastImage from 'react-native-fast-image';
 import { colors } from '../../../assets';
-import { BillActionTag, formatBillNumber } from '../../../models/Bill';
+import {
+  Bill,
+  BillActionTag,
+  BillMetadata,
+  formatBillNumber,
+} from '../../../models/Bill';
 //@ts-ignore
 import TouchableScale from 'react-native-touchable-scale';
 import { Network } from '../../../util';
-import {
-  BillDetailInfoScreenRouteProps,
-  BillDetailsInfoScreenProps,
-} from './BillDetailsStack';
+import { BillDetailsInfoScreenProps } from './BillDetailsStack';
 import * as Animatable from 'react-native-animatable';
 import { SharedElement } from 'react-navigation-shared-element';
 import { BlurView } from '@react-native-community/blur';
-import { DefaultCategory } from '../../../models/Category';
+import { Category, DefaultCategory } from '../../../models/Category';
 import { Config } from '../../../util/Config';
 import { Analytics } from '../../../util/services/AnalyticsHandler';
 import inappmessaging from '@react-native-firebase/in-app-messaging';
 import { Browser } from '../../../util/Browser';
-import { User } from '../../../redux/models/user';
+import { User, UserHandler } from '../../../redux/models/user';
 import store from '../../../redux/store';
 import BillProgressBar from '../../../components/BillProgressBar';
 import { StorageService } from '../../../redux/storage';
+import { connect } from 'react-redux';
+import { UIStatus } from '../../../redux/ui/ui.types';
+import { FeedService } from '../../../redux/feed';
+import { voteButtonAnimation } from '../../../components/Animations';
+import { BillStatusCode } from '../../../redux/bill/bill.types';
+import { BillService } from '../../../redux/bill';
+import tinycolor from 'tinycolor2';
+import Skeleton, { Skeletons } from '../../../components/Skeleton';
+import { Odyssey } from '../../Navigator';
+import { StackActions } from 'react-navigation';
 
 interface Props {
-  navigation: BillDetailsInfoScreenProps;
-  route: BillDetailInfoScreenRouteProps;
+  bill?: Bill;
   user: User;
+  navigation: BillDetailsInfoScreenProps;
 }
 
 enum ScrollDirection {
@@ -47,7 +60,6 @@ type State = {
   expanded: boolean;
   animation: Animated.Value;
   numberLines: number | undefined;
-  liked: boolean;
   transition: Animated.Value;
   transitionComplete: boolean;
   contentRef: React.RefObject<ScrollView>;
@@ -58,62 +70,30 @@ type State = {
   scrollAnimating: boolean;
 };
 
-const voteButtonAnimation = {
-  0: { scaleX: 1, scaleY: 1, transform: [{ rotate: '0deg' }] },
-  0.1: {
-    scaleX: 0.85,
-    scaleY: 0.85,
-    transform: [{ rotate: '-4deg' }],
-  },
-  0.2: {
-    scaleX: 0.85,
-    scaleY: 0.85,
-    transform: [{ rotate: '-4deg' }],
-  },
-  0.3: {
-    scaleX: 1.1,
-    scaleY: 1.1,
-    transform: [{ rotate: '-4deg' }],
-  },
-  0.4: {
-    transform: [{ rotate: '4deg' }],
-  },
-  0.5: {
-    transform: [{ rotate: '-4deg' }],
-  },
-  0.6: {
-    transform: [{ rotate: '4deg' }],
-  },
-  0.7: {
-    transform: [{ rotate: '-4deg' }],
-  },
-  0.8: {
-    transform: [{ rotate: '4deg' }],
-  },
-  0.9: {
-    scaleX: 1.1,
-    scaleY: 1.1,
-    transform: [{ rotate: '4deg' }],
-  },
-  1: {
-    scaleX: 1,
-    scaleY: 1,
-    transform: [{ rotate: '0deg' }],
-  },
-};
-
 const AnimatedSharedElement = Animated.createAnimatedComponent(SharedElement);
 const AnimatedFastImage = Animated.createAnimatedComponent(FastImage);
 const { height } = Dimensions.get('screen');
 
-export default class BillInfoScreen extends React.PureComponent<Props, State> {
+function mapStoreToProps() {
+  let { ui, storage, bill } = store.getState();
+  let user = storage.user;
+
+  let b = bill.status.bill;
+  return {
+    user,
+    bill: b,
+  };
+}
+
+class BillInfoScreen extends React.PureComponent<Props, State> {
+  private category: Category;
+  private blurType: 'light' | 'ultraThinMaterial';
   constructor(props: Props) {
     super(props);
     this.state = {
       expanded: false,
       animation: new Animated.Value(0),
       numberLines: 5,
-      liked: false,
       transition: new Animated.Value(0),
       transitionComplete: true,
       contentRef: React.createRef<ScrollView>(),
@@ -123,14 +103,21 @@ export default class BillInfoScreen extends React.PureComponent<Props, State> {
       scrollDirection: ScrollDirection.down,
       scrollAnimating: false,
     };
+    if (this.props.bill) {
+      this.category = Config.getTopics()[this.props.bill.category];
+      if (!this.category) {
+        this.category = DefaultCategory;
 
-    let user = StorageService.user();
-
-    let bill = props.route.params.bill;
-    let id = bill.assembly + bill.chamber + bill.number;
-    if (user && user.liked[id]) {
-      this.setState({ liked: true });
+        Config.alertUpdateConfig().then(() => {
+          this.forceUpdate();
+        });
+      }
+    } else {
+      this.category = DefaultCategory;
     }
+
+    let isDark = tinycolor(this.category.bgColor).isDark();
+    this.blurType = isDark ? 'light' : 'ultraThinMaterial';
   }
   componentDidMount() {
     this.props.navigation.addListener('transitionStart', (e) => {
@@ -153,378 +140,249 @@ export default class BillInfoScreen extends React.PureComponent<Props, State> {
   }
 
   render() {
-    let { bill, category } = this.props.route.params;
-    category = Config.getTopics()[bill.category];
-    if (!category) {
-      category = DefaultCategory;
+    const { bill } = this.props;
 
-      Config.alertUpdateConfig().then(() => {
-        this.forceUpdate();
-      });
-    }
-
-    const renderForeground = () => {
+    if (bill) {
+      return (
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: 'white',
+          }}
+        >
+          <Header bill={bill} scroll={this.state.scroll} />
+          <Animated.ScrollView
+            onScroll={Animated.event(
+              [{ nativeEvent: { contentOffset: { y: this.state.scroll } } }],
+              {
+                useNativeDriver: true,
+                listener: (e) => {
+                  //@ts-ignore
+                  let newPos = e.nativeEvent.contentOffset.y;
+                  this.setState({
+                    scrollDirection:
+                      newPos - this.state.scrollPos > 0
+                        ? ScrollDirection.down
+                        : ScrollDirection.up,
+                  });
+                  this.setState({ scrollPos: newPos });
+                },
+              }
+            )}
+            ref={this.state.contentRef}
+            onScrollBeginDrag={() => {
+              this.setState({ scrollAnimating: false });
+            }}
+            onMomentumScrollEnd={(e: any) => {
+              if (!this.state.scrollAnimating) {
+                let y = e.nativeEvent.contentOffset.y;
+                let isDown = this.state.scrollDirection == ScrollDirection.down;
+                if (y > 0.05 * height && y < 0.3 * height && isDown) {
+                  this.state.contentRef.current?.scrollTo({
+                    y: 0.275 * height,
+                  });
+                  this.setState({ scrollAnimating: true });
+                } else if (y <= 0.05 * height && isDown) {
+                  this.state.contentRef.current?.scrollTo({ y: 0 });
+                  this.setState({ scrollAnimating: true });
+                } else if (y <= 0.35 * height && !isDown) {
+                  this.state.contentRef.current?.scrollTo({ y: 0 });
+                  this.setState({ scrollAnimating: true });
+                } else {
+                  this.state.contentRef.current?.scrollTo({ y: y });
+                }
+              }
+            }}
+            onScrollEndDrag={(e: any) => {
+              if (!this.state.scrollAnimating) {
+                let y = e.nativeEvent.contentOffset.y;
+                let isDown = this.state.scrollDirection == ScrollDirection.down;
+                if (y > 0.05 * height && y < 0.3 * height && isDown) {
+                  this.state.contentRef.current?.scrollTo({
+                    y: 0.275 * height,
+                  });
+                  this.setState({ scrollAnimating: true });
+                } else if (y <= 0.05 * height && isDown) {
+                  this.state.contentRef.current?.scrollTo({ y: 0 });
+                  this.setState({ scrollAnimating: true });
+                } else if (y <= 0.35 * height && !isDown) {
+                  this.state.contentRef.current?.scrollTo({ y: 0 });
+                  this.setState({ scrollAnimating: true });
+                }
+              }
+            }}
+            overScrollMode="never"
+            scrollToOverflowEnabled={true}
+          >
+            <Cover
+              bill={bill}
+              category={this.category}
+              scroll={this.state.scroll}
+            />
+            <Body bill={bill} />
+          </Animated.ScrollView>
+          {this.closeButton()}
+          {this.likeButton()}
+          {this.footer()}
+        </View>
+      );
+    } else {
       return (
         <View>
-          <AnimatedSharedElement
-            id={`bill.${bill.number}.photo`}
-            style={[
-              styles.imageContainer,
-              {
-                minHeight: 0.125 * height,
-                maxHeight: 0.35 * height,
-                height: 0.3 * height,
-                zIndex: 100,
-                transform: [
-                  {
-                    scale: this.state.scroll.interpolate({
-                      inputRange: [
-                        -0.3 * height,
-                        -0.2 * height,
-                        0,
-                        0.3 * height,
-                      ],
-                      outputRange: [1.2, 1.2, 1, 1],
-                    }),
-                  },
-                  {
-                    translateY: this.state.scroll.interpolate({
-                      inputRange: [-1, 0, 1],
-                      outputRange: [-0.5, 0, 0],
-                    }),
-                  },
-                ],
-              },
-            ]}
-          >
-            <AnimatedFastImage
-              resizeMode="cover"
-              style={[
-                styles.image,
-                {
-                  transform: [
-                    {
-                      translateY: this.state.scroll.interpolate({
-                        inputRange: [0, 0.3 * height],
-                        outputRange: [0, 0.1 * height],
-                      }),
-                    },
-                  ],
-                },
-              ]}
-              source={{ uri: category.image }}
-            />
-          </AnimatedSharedElement>
-          <Animated.View
-            style={{
-              marginHorizontal: '7.5%',
-              marginTop: '3.5%',
-              transform: [
-                {
-                  translateY: this.state.scroll.interpolate({
-                    inputRange: [-1, 0, 0.3 * height],
-                    outputRange: [0, 0, -0.1 * height],
-                  }),
-                },
-              ],
-            }}
-          >
-            <View style={styles.categoriesContainer}>
-              <Text style={styles.number}>{formatBillNumber(bill)}</Text>
-              <SharedElement
-                id={`bill.${bill.number}.category`}
-                style={[
-                  styles.category,
-                  { backgroundColor: category.categoryColor },
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.categoryText,
-                    { color: category.categoryTextColor },
-                  ]}
-                >
-                  {bill.category}
-                </Text>
-              </SharedElement>
-            </View>
-            <Text style={styles.title}>{bill.title}</Text>
-          </Animated.View>
+          <Skeleton loading={true} skeleton={Skeletons.RepCard} />
         </View>
       );
-    };
-    const renderHeader = () => {
-      return (
-        <Animated.View
-          style={[
-            {
-              position: 'absolute',
-              width: '100%',
-              height: 0.125 * height,
-              zIndex: 100,
-              shadowRadius: 10,
-              shadowOpacity: 0.35,
-              shadowColor: 'black',
-              shadowOffset: { width: 0, height: 2 },
-              borderBottomLeftRadius: 15,
-              borderBottomRightRadius: 15,
-              overflow: 'hidden',
-            },
-            {
-              opacity: this.state.scroll.interpolate({
-                inputRange: [0, 0.15 * height, 0.25 * height],
-                outputRange: [0, 0, 1],
-                extrapolate: 'clamp',
-              }),
-            },
-          ]}
-        >
-          <BlurView
-            style={{
-              width: '100%',
-              height: '100%',
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
-            blurType="ultraThinMaterial"
-            blurAmount={5}
-          >
-            <Text
-              style={{
-                color: 'white',
-                fontWeight: 'bold',
-                fontFamily: 'Futura',
-                marginHorizontal: '20%',
-                marginTop: '10%',
-                fontSize: 16,
-                textAlign: 'center',
-              }}
-              numberOfLines={2}
-              adjustsFontSizeToFit={true}
-            >
-              {bill.title}
-            </Text>
-          </BlurView>
-        </Animated.View>
-      );
-    };
-    const renderBody = () => {
-      return (
-        <View style={[styles.content]}>
-          <BillProgressBar bill={bill} />
-          <Text ellipsizeMode="tail" style={styles.synopsis}>
-            {bill.short_summary + bill.full_summary}
-          </Text>
-        </View>
-      );
-    };
-    return (
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: 'white',
-        }}
-      >
-        {renderHeader()}
-        <Animated.ScrollView
-          onScroll={Animated.event(
-            [{ nativeEvent: { contentOffset: { y: this.state.scroll } } }],
-            {
-              useNativeDriver: true,
-              listener: (e) => {
-                //@ts-ignore
-                let newPos = e.nativeEvent.contentOffset.y;
-                this.setState({
-                  scrollDirection:
-                    newPos - this.state.scrollPos > 0
-                      ? ScrollDirection.down
-                      : ScrollDirection.up,
-                });
-                this.setState({ scrollPos: newPos });
-              },
-            }
-          )}
-          ref={this.state.contentRef}
-          onScrollBeginDrag={() => {
-            this.setState({ scrollAnimating: false });
-          }}
-          onMomentumScrollEnd={(e: any) => {
-            if (!this.state.scrollAnimating) {
-              let y = e.nativeEvent.contentOffset.y;
-              let isDown = this.state.scrollDirection == ScrollDirection.down;
-              if (y > 0.05 * height && y < 0.3 * height && isDown) {
-                this.state.contentRef.current?.scrollTo({ y: 0.275 * height });
-                this.setState({ scrollAnimating: true });
-              } else if (y <= 0.05 * height && isDown) {
-                this.state.contentRef.current?.scrollTo({ y: 0 });
-                this.setState({ scrollAnimating: true });
-              } else if (y <= 0.35 * height && !isDown) {
-                this.state.contentRef.current?.scrollTo({ y: 0 });
-                this.setState({ scrollAnimating: true });
-              } else {
-                this.state.contentRef.current?.scrollTo({ y: y });
-              }
-            }
-          }}
-          onScrollEndDrag={(e: any) => {
-            if (!this.state.scrollAnimating) {
-              let y = e.nativeEvent.contentOffset.y;
-              let isDown = this.state.scrollDirection == ScrollDirection.down;
-              if (y > 0.05 * height && y < 0.3 * height && isDown) {
-                this.state.contentRef.current?.scrollTo({ y: 0.275 * height });
-                this.setState({ scrollAnimating: true });
-              } else if (y <= 0.05 * height && isDown) {
-                this.state.contentRef.current?.scrollTo({ y: 0 });
-                this.setState({ scrollAnimating: true });
-              } else if (y <= 0.35 * height && !isDown) {
-                this.state.contentRef.current?.scrollTo({ y: 0 });
-                this.setState({ scrollAnimating: true });
-              }
-            }
-          }}
-          overScrollMode="never"
-          scrollToOverflowEnabled={true}
-        >
-          {renderForeground()}
-          {renderBody()}
-        </Animated.ScrollView>
-        {this.closeButton()}
-        {this.likeButton()}
-        {this.footer()}
-      </View>
-    );
+    }
   }
 
   footer = () => {
     const { height } = Dimensions.get('screen');
-    return (
-      <View
-        style={{
-          height: height * 0.07,
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'flex-start',
-          marginBottom: '7%',
-          marginHorizontal: '7.5%',
-          backgroundColor: 'transparent',
-        }}
-      >
-        <Animatable.View
-          animation={voteButtonAnimation}
-          iterationCount={'infinite'}
-          duration={2000}
-          iterationDelay={3000}
-          style={styles.voteButton}
+    const { bill } = this.props;
+    if (bill) {
+      return (
+        <View
+          style={{
+            height: height * 0.07,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'flex-start',
+            marginBottom: '7%',
+            marginHorizontal: '7.5%',
+            backgroundColor: 'transparent',
+          }}
         >
-          <TouchableOpacity
-            style={{
-              flex: 1,
-              alignItems: 'center',
-              flexDirection: 'row',
-              justifyContent: 'center',
-            }}
-            onPress={() => {
-              // @ts-ignore
-              this.props.navigation.push('Vote', this.props.route.params);
-            }}
+          <Animatable.View
+            animation={voteButtonAnimation}
+            iterationCount={'infinite'}
+            duration={2000}
+            iterationDelay={3000}
+            style={styles.voteButton}
           >
-            <Icon
-              type="material-community"
-              name="vote-outline"
-              size={30}
-              color="white"
-            />
-            <Text
+            <TouchableOpacity
               style={{
-                fontSize: 18,
-                fontWeight: '600',
-                fontFamily: 'Futura',
-                marginLeft: '10%',
-                color: 'white',
-              }}
-            >
-              Share your thoughts!
-            </Text>
-          </TouchableOpacity>
-        </Animatable.View>
-        <View style={styles.fullBill}>
-          <TouchableScale
-            style={{
-              flex: 1,
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
-            onPress={() => {
-              Analytics.billFullPage(this.props.route.params.bill);
-              Browser.openURL(this.props.route.params.bill.url, true, true);
-            }}
-          >
-            <Icon type="feather" name="external-link" size={30} color="black" />
-          </TouchableScale>
-        </View>
-      </View>
-    );
-  };
-
-  likeButton = () => {
-    return (
-      <Animated.View
-        style={{
-          position: 'absolute',
-          width: 40,
-          height: 40,
-          top: '23%',
-          right: '6%',
-          zIndex: 100,
-          transform: [
-            {
-              translateY: this.state.scroll.interpolate({
-                inputRange: [-1, 0, height * 0.25, height * 0.3],
-                outputRange: [0, 0, -0.17 * height, -0.17 * height],
-              }),
-            },
-          ],
-        }}
-      >
-        <Animatable.View animation={'fadeIn'} style={[styles.likeButton]}>
-          <TouchableOpacity
-            style={{ width: '100%', height: '100%' }}
-            onPress={() => {
-              Network.likeBill(this.props.route.params.bill, !this.state.liked);
-              StorageService.billLike(
-                this.props.route.params.bill,
-                !this.state.liked
-              );
-              this.setState({ liked: !this.state.liked });
-            }}
-          >
-            <Animatable.View
-              animation={this.state.liked ? 'pulse' : undefined}
-              iterationCount="infinite"
-              style={{
-                width: '100%',
-                height: '100%',
-                justifyContent: 'center',
+                flex: 1,
                 alignItems: 'center',
+                flexDirection: 'row',
+                justifyContent: 'center',
+              }}
+              onPress={() => {
+                // @ts-ignore
+                this.props.navigation.push('Vote', this.props.route.params);
               }}
             >
               <Icon
-                size={26}
-                name={this.state.liked ? 'heart-sharp' : 'heart-outline'}
-                type="ionicon"
-                color={this.state.liked ? colors.republican : 'black'}
+                type="material-community"
+                name="vote-outline"
+                size={30}
+                color="white"
               />
-            </Animatable.View>
-          </TouchableOpacity>
-        </Animatable.View>
-      </Animated.View>
-    );
+              <Text
+                style={{
+                  fontSize: 18,
+                  fontWeight: '600',
+                  fontFamily: 'Futura',
+                  marginLeft: '10%',
+                  color: 'white',
+                }}
+              >
+                Share your thoughts!
+              </Text>
+            </TouchableOpacity>
+          </Animatable.View>
+          <View style={styles.fullBill}>
+            <TouchableScale
+              style={{
+                flex: 1,
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+              onPress={() => {
+                Analytics.billFullPage(bill);
+                Browser.openURL(bill.url, true, true);
+              }}
+            >
+              <Icon
+                type="feather"
+                name="external-link"
+                size={30}
+                color="black"
+              />
+            </TouchableScale>
+          </View>
+        </View>
+      );
+    } else {
+      return null;
+    }
+  };
+
+  likeButton = () => {
+    const { bill, user } = this.props;
+    if (bill) {
+      let liked = UserHandler.hasLikedBill(user, bill);
+
+      return (
+        <Animated.View
+          style={{
+            position: 'absolute',
+            width: 40,
+            height: 40,
+            top: '23%',
+            right: '6%',
+            zIndex: 100,
+            transform: [
+              {
+                translateY: this.state.scroll.interpolate({
+                  inputRange: [-1, 0, height * 0.25, height * 0.3],
+                  outputRange: [0, 0, -0.17 * height, -0.17 * height],
+                }),
+              },
+            ],
+          }}
+        >
+          <BlurView
+            style={[styles.likeButton]}
+            blurType={this.blurType}
+            blurAmount={15}
+            overlayColor={'black'}
+          >
+            <TouchableOpacity
+              style={{ width: '100%', height: '100%' }}
+              onPress={() => {
+                Network.likeBill(bill, !liked);
+                store.dispatch(StorageService.billLike(bill, !liked));
+              }}
+            >
+              <Animatable.View
+                animation={liked ? 'pulse' : undefined}
+                iterationCount="infinite"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                <Icon
+                  size={26}
+                  name={liked ? 'heart-sharp' : 'heart-outline'}
+                  type="ionicon"
+                  color={liked ? colors.republican : 'white'}
+                />
+              </Animatable.View>
+            </TouchableOpacity>
+          </BlurView>
+        </Animated.View>
+      );
+    } else {
+      return null;
+    }
   };
 
   // generate the close button
   closeButton = () => {
     return (
-      <Animatable.View style={styles.closeButton} animation="fadeIn">
+      <BlurView style={styles.closeButton} blurType={this.blurType}>
         <TouchableOpacity
           style={{
             width: '100%',
@@ -533,21 +391,178 @@ export default class BillInfoScreen extends React.PureComponent<Props, State> {
             alignItems: 'center',
           }}
           onPress={() => {
-            this.props.navigation.goBack();
+            Odyssey.navigationRef.current?.goBack();
           }}
         >
-          <Icon size={26} name="arrow-left" type="feather" color="black" />
+          <Icon size={26} name="arrow-left" type="feather" color="white" />
         </TouchableOpacity>
-      </Animatable.View>
+      </BlurView>
     );
   };
 }
 
-function mapStoreToProps() {
-  const user = store.getState().auth.user;
-  return {
-    user: user,
-  };
+function Cover(props: {
+  bill: Bill;
+  scroll: Animated.Value;
+  category: Category;
+}) {
+  const { bill, scroll, category } = props;
+  let isDark = tinycolor(category.bgColor).isDark();
+  return (
+    <>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
+      <View>
+        <AnimatedSharedElement
+          id={`bill.${bill.number}.photo`}
+          style={[
+            styles.imageContainer,
+            {
+              minHeight: 0.125 * height,
+              maxHeight: 0.35 * height,
+              height: 0.3 * height,
+              zIndex: 100,
+              transform: [
+                {
+                  scale: scroll.interpolate({
+                    inputRange: [-0.3 * height, -0.2 * height, 0, 0.3 * height],
+                    outputRange: [1.2, 1.2, 1, 1],
+                  }),
+                },
+                {
+                  translateY: scroll.interpolate({
+                    inputRange: [-1, 0, 1],
+                    outputRange: [-0.5, 0, 0],
+                  }),
+                },
+              ],
+            },
+          ]}
+        >
+          <AnimatedFastImage
+            resizeMode="cover"
+            style={[
+              styles.image,
+              {
+                transform: [
+                  {
+                    translateY: scroll.interpolate({
+                      inputRange: [0, 0.3 * height],
+                      outputRange: [0, 0.1 * height],
+                    }),
+                  },
+                ],
+              },
+            ]}
+            source={{ uri: category.image }}
+          />
+        </AnimatedSharedElement>
+        <Animated.View
+          style={{
+            marginHorizontal: '7.5%',
+            marginTop: '3.5%',
+            transform: [
+              {
+                translateY: scroll.interpolate({
+                  inputRange: [-1, 0, 0.3 * height],
+                  outputRange: [0, 0, -0.1 * height],
+                }),
+              },
+            ],
+          }}
+        >
+          <View style={styles.categoriesContainer}>
+            <Text style={styles.number}>{formatBillNumber(bill)}</Text>
+            <SharedElement
+              id={`bill.${bill.number}.category`}
+              style={[
+                styles.category,
+                { backgroundColor: category.categoryColor },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.categoryText,
+                  { color: category.categoryTextColor },
+                ]}
+              >
+                {bill.category}
+              </Text>
+            </SharedElement>
+          </View>
+          <Text style={styles.title}>{bill.title}</Text>
+        </Animated.View>
+      </View>
+    </>
+  );
+}
+
+function Header(props: { bill: Bill; scroll: Animated.Value }) {
+  const { bill, scroll } = props;
+  return (
+    <Animated.View
+      style={[
+        {
+          position: 'absolute',
+          width: '100%',
+          height: 0.125 * height,
+          zIndex: 100,
+          shadowRadius: 10,
+          shadowOpacity: 0.35,
+          shadowColor: 'black',
+          shadowOffset: { width: 0, height: 2 },
+          borderBottomLeftRadius: 15,
+          borderBottomRightRadius: 15,
+          overflow: 'hidden',
+        },
+        {
+          opacity: scroll.interpolate({
+            inputRange: [0, 0.15 * height, 0.25 * height],
+            outputRange: [0, 0, 1],
+            extrapolate: 'clamp',
+          }),
+        },
+      ]}
+    >
+      <BlurView
+        style={{
+          width: '100%',
+          height: '100%',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+        blurType="ultraThinMaterial"
+        blurAmount={5}
+      >
+        <Text
+          style={{
+            color: 'white',
+            fontWeight: 'bold',
+            fontFamily: 'Futura',
+            marginHorizontal: '20%',
+            marginTop: '10%',
+            fontSize: 16,
+            textAlign: 'center',
+          }}
+          numberOfLines={2}
+          adjustsFontSizeToFit={true}
+        >
+          {bill.title}
+        </Text>
+      </BlurView>
+    </Animated.View>
+  );
+}
+
+function Body(props: { bill: Bill }) {
+  const { bill } = props;
+  return (
+    <View style={[styles.content]}>
+      <BillProgressBar bill={bill} />
+      <Text ellipsizeMode="tail" style={styles.synopsis}>
+        {bill.short_summary + bill.full_summary}
+      </Text>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -565,8 +580,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: 'black',
-    shadowOpacity: 0.5,
-    shadowRadius: 15,
+    shadowOpacity: 0,
+    shadowRadius: 0,
     shadowOffset: { width: 0, height: 2.5 },
   },
   image: {
@@ -631,27 +646,17 @@ const styles = StyleSheet.create({
     left: '6%',
     top: '6%',
     zIndex: 100,
-    backgroundColor: 'white',
     borderRadius: 12.5,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: 'black',
-    shadowRadius: 5,
-    shadowOpacity: 0.45,
-    shadowOffset: { width: 0, height: 1 },
   },
   likeButton: {
     position: 'absolute',
     width: '100%',
     height: '100%',
-    backgroundColor: 'white',
     borderRadius: 12.5,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: 'black',
-    shadowRadius: 5,
-    shadowOpacity: 0.25,
-    shadowOffset: { width: 0, height: 1 },
   },
   backButton: {
     width: 40,
@@ -693,3 +698,5 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
+
+export default connect(mapStoreToProps)(BillInfoScreen);

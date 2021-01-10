@@ -176,11 +176,8 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
     alignSelf: 'center',
-    shadowColor: 'black',
-    shadowOffset: { width: 0, height: -0.5 },
-    shadowOpacity: 0.25,
     shadowRadius: 0,
-    backgroundColor: 'white',
+    backgroundColor: '#eceff1',
     flexDirection: 'row',
     justifyContent: 'space-evenly',
     position: 'absolute',

@@ -1,10 +1,9 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { updateStorage } from './storage.reducers';
+import { updateStorage, updateBillLiked } from './storage.reducers';
 import { emptyUser } from '../models/user';
 import { StorageState } from './storage.types';
 
 export const initialState: StorageState = {
-  feed: [],
   lastRefresh: 0,
   configRefresh: 0,
   loggedIn: false,
@@ -19,6 +18,7 @@ const storageSlice = createSlice({
   initialState,
   reducers: {
     updateStorage,
+    updateBillLiked,
   },
 });
 

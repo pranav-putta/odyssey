@@ -741,6 +741,76 @@ export const update_profile = async (event: any = {}): Promise<any> => {
     return createSuccess({ result: true });
   }
 };
+
+export const fetch_bill = async (event: any = {}): Promise<any> => {
+  interface BillMetadata {
+    assembly: number;
+    chamber: string;
+    number: number;
+  }
+
+  enum Vote {
+    None = -1,
+    Yes = 0,
+    No = 1,
+  }
+
+  interface BillVotes {
+    [uid: string]: Vote;
+  }
+
+  interface Comment {
+    uid: string;
+    text: string;
+    likes: { [uid: string]: boolean };
+    name: string;
+    date: number;
+  }
+
+  interface BillData {
+    bill_id: string;
+    votes: BillVotes;
+    comments: Comment[];
+  }
+
+  let data = JSON.parse(event.body);
+  let bill: BillMetadata = data.bill;
+
+  let id = bill.assembly + bill.chamber + bill.number;
+
+  // set up dynamodb client
+  aws.config.update(awsconfig.aws_remote_config);
+  var client = new aws.DynamoDB.DocumentClient();
+
+  // check if bill exists
+  const exists: DocumentClient.GetItemInput = {
+    TableName: awsconfig.aws_voting_table_name,
+    Key: {
+      bill_id: id,
+    },
+  };
+  // look for document with specified uid
+  let query = await client.get(exists).promise();
+  let billData: BillData = { bill_id: id, comments: [], votes: {} };
+  if (query.$response.data && query.$response.data.Item) {
+    // bill exists
+    billData = query.$response.data.Item as BillData;
+  }
+
+  // fetch actual bill data
+  let pgPool = new pg.Pool(pgConfig);
+  let bills = await pgPool.query(
+    `select * from public.bills where assembly=${bill.assembly} and chamber='${bill.chamber}' and number=${bill.number} limit 1`
+  );
+  await pgPool.end();
+
+  const response = {
+    data: billData,
+    bills: bills.rows[0],
+  };
+
+  return createSuccess(response);
+};
 export const delete_user = async (event: any = {}): Promise<any> => {};
 export const email_rep = async (event: any = {}): Promise<any> => {};
 

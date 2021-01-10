@@ -1,30 +1,46 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Alert } from 'react-native';
 import TabBar, { TabKey, TabModel } from '../../components/TabBar';
-import BillScreen from './bill/BillTab';
-import SearchScreen from './search/SearchTab';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import ProfileTab from './profile/ProfileTab';
-import { RouteProp } from '@react-navigation/native';
 import { HomeNavigation, HomeParams } from '../../App';
 import { NotificationHandler } from '../../util/';
 import inAppMessaging from '@react-native-firebase/in-app-messaging';
 import LikedScreen from './liked/LikedScreen';
-import { StorageService } from '../../redux/storage';
 import NotificationModal from '../../components/NotificationModal';
 import store from '../../redux/store';
 import { Notification } from '../../redux/models';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
+import BillTab from './bill/BillTab';
+import SearchTab from './search/SearchTab';
+import { createSharedElementStackNavigator } from 'react-navigation-shared-element';
+import BillDetailStack from './bill/BillDetailsStack';
+import {
+  UIStatusCode,
+  UIStatus,
+  UIScreen,
+  UIScreenCode,
+} from '../../redux/ui/ui.types';
+import { BillMetadata } from '../../models/Bill';
+import { BillStatusCode } from '../../redux/bill/bill.types';
+import { AppState } from '../../redux/reducer';
+import { BillService } from '../../redux/bill';
+import {
+  NavigationContainer,
+  StackActions,
+  useNavigation,
+} from '@react-navigation/native';
+import { Odyssey } from '../Navigator';
 
 type State = {
   showTabs: boolean;
   selectedTab: string;
 };
 type Props = {
-  navigation: HomeNavigation;
-  route: HomeParams;
   notification?: Notification;
+  screen: UIScreen;
+  status: UIStatus;
 };
 
 const tabs: TabModel[] = [
@@ -64,20 +80,27 @@ type HomeScreenTabParams = {
   Profile: undefined;
 };
 
-export type ProfileTabScreenProps = StackNavigationProp<
-  HomeScreenTabParams,
-  'Profile'
->;
-export type ProfileScreenRouteProps = RouteProp<HomeScreenTabParams, 'Profile'>;
+type HomeScreenStackParams = {
+  Home: undefined;
+  Bill: undefined;
+};
 
 const Tab = createBottomTabNavigator<HomeScreenTabParams>();
+const Stack = createSharedElementStackNavigator<HomeScreenStackParams>();
+
+type HomeStackNavigation = StackNavigationProp<HomeScreenStackParams, 'Home'>;
+type BillStackNavigation = StackNavigationProp<HomeScreenStackParams, 'Bill'>;
 
 function mapStoreToProps() {
   let notification = NotificationHandler.latestNotification();
-  return { notification };
+  let { screen, status } = store.getState().ui;
+
+  return { notification, screen, status };
 }
 
 class HomeScreen extends React.PureComponent<Props, State> {
+  private screen: UIScreen;
+
   constructor(props: Props) {
     super(props);
 
@@ -85,10 +108,26 @@ class HomeScreen extends React.PureComponent<Props, State> {
       showTabs: true,
       selectedTab: TabKey.bills,
     };
+
+    this.screen = store.getState().ui.screen;
   }
 
   componentDidMount() {
     this.initialize();
+  }
+
+  componentDidUpdate() {
+    const { screen } = this.props;
+
+    if (this.screen.code != screen.code) {
+      switch (screen.code) {
+        case UIScreenCode.bill:
+          Odyssey.navigationRef.current?.dispatch(StackActions.push('Bill'));
+          break;
+        default:
+          return;
+      }
+    }
   }
 
   private async initialize() {
@@ -103,59 +142,69 @@ class HomeScreen extends React.PureComponent<Props, State> {
   }
 
   render() {
+    switch (this.props.status.code) {
+      case UIStatusCode.error:
+        Alert.alert('Error', this.props.status.message);
+        break;
+    }
     return (
       <>
         <NotificationModal notification={this.props.notification} />
-        <View style={styles.container}>
-          <Tab.Navigator
-            tabBar={(props) => (
-              <TabBar
-                show={this.state.showTabs}
-                current={this.state.selectedTab}
-                tabPressed={(tab) => {
-                  this.setState({ selectedTab: tab });
-                  props.navigation.navigate(tab);
-                }}
-                tabs={tabs}
-              />
-            )}
-          >
-            <Tab.Screen name="Bills">
-              {(props) => (
-                <BillScreen
-                  navigation={props.navigation}
-                  toggleTabs={(show: boolean) => {
-                    this.setState({ showTabs: show });
-                  }}
-                />
-              )}
-            </Tab.Screen>
-            <Tab.Screen name="Search">
-              {(props) => (
-                <SearchScreen
-                  navigation={props.navigation}
-                  toggleTabs={(show: boolean) => {
-                    this.setState({ showTabs: show });
-                  }}
-                />
-              )}
-            </Tab.Screen>
-            <Tab.Screen name="Liked">{(props) => <LikedScreen />}</Tab.Screen>
-            <Tab.Screen name="Profile">
-              {(props) => (
-                <ProfileTab
-                  navigation={props.navigation}
-                  toggleTabs={(show: boolean) => {
-                    this.setState({ showTabs: show });
-                  }}
-                />
-              )}
-            </Tab.Screen>
-          </Tab.Navigator>
-        </View>
+        <NavigationContainer independent={true} ref={Odyssey.navigationRef}>
+          <Stack.Navigator headerMode="none">
+            <Stack.Screen
+              component={HomeScreenTabs}
+              name={'Home'}
+              options={{ animationTypeForReplace: 'pop' }}
+            />
+            <Stack.Screen
+              listeners={{
+                blur: () => {
+                  store.dispatch(BillService.closeBill());
+                },
+              }}
+              name="Bill"
+              sharedElements={(_, other, showing) => {
+                if (other.name === 'Discover' && showing) {
+                  const bill = store.getState().bill.status.bill;
+                  if (bill) {
+                    return [{ id: `bill.${bill.number}.photo` }];
+                  }
+                }
+              }}
+              component={BillDetailStack}
+            />
+          </Stack.Navigator>
+        </NavigationContainer>
       </>
     );
   }
+}
+
+function HomeScreenTabs(props: { navigation: HomeStackNavigation }) {
+  let [tab, setTab] = React.useState<string>(TabKey.bills);
+  let status = useSelector((state: AppState) => state.ui.status);
+
+  return (
+    <Tab.Navigator
+      tabBar={(props) => (
+        <TabBar
+          show={true}
+          current={tab}
+          tabPressed={(tab) => {
+            setTab(tab);
+            props.navigation.navigate(tab);
+          }}
+          tabs={tabs}
+        />
+      )}
+    >
+      <Tab.Screen name="Bills" component={BillTab} />
+      <Tab.Screen name="Search" component={SearchTab} />
+      <Tab.Screen name="Liked" component={LikedScreen} />
+      <Tab.Screen name="Profile" component={ProfileTab} />
+    </Tab.Navigator>
+  );
 }
 
 const styles = StyleSheet.create({

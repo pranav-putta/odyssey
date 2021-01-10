@@ -70,7 +70,7 @@ class TabBarItem extends React.Component<TabItemProps, TabItemState> {
     });
     this.hide = Animated.timing(this.animation, {
       toValue: 0,
-      duration: 150,
+      duration: 0,
       useNativeDriver: true,
     });
   }

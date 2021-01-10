@@ -1,11 +1,6 @@
 import React from 'react';
 import { NavigationContainerRef, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import BootSplash from 'react-native-bootsplash';
-import { Config } from './util/Config';
-import inAppMessaging from '@react-native-firebase/in-app-messaging';
-import { Network, NotificationHandler } from './util';
-import { Analytics } from './util/services/AnalyticsHandler';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import store, { persistor } from './redux/store';
@@ -14,15 +9,14 @@ import Navigator from './screens/Navigator';
 import { Services } from './util/services/Services';
 import { NotificationLocation, NotificationType } from './redux/models';
 import { Dimensions } from 'react-native';
+import { AuthStatus } from './redux/auth/auth.types';
+import { UIService } from './redux/ui/ui';
+import { UIScreenCode } from './redux/ui/ui.types';
 
 type Props = {
   navigation: any;
 };
-type State = {
-  screen: Route;
-  loaded: boolean;
-  routeName?: string;
-};
+type State = {};
 
 type AppStackParams = {
   Login: undefined;
@@ -35,25 +29,62 @@ export type SetupNavigation = StackNavigationProp<AppStackParams, 'Setup'>;
 export type SetupParams = RouteProp<AppStackParams, 'Setup'>;
 export type HomeParams = RouteProp<AppStackParams, 'Home'>;
 
-type Route = 'Home' | 'Setup' | 'Login';
-
 class App extends React.Component<Props, State> {
+  private storeUnsubscribe;
+  private auth: AuthStatus;
+
   constructor(props: Props) {
     super(props);
-    this.state = {
-      screen: 'Home',
-      loaded: false,
-    };
+
+    // bind
+    this.uiHandler = this.uiHandler.bind(this);
+
+    this.storeUnsubscribe = store.subscribe(this.uiHandler);
+    this.auth = AuthStatus.unknown;
   }
 
   componentDidMount() {
     this.initialize();
+
+    this.uiHandler();
+  }
+
+  componentWillUnmount() {
+    this.storeUnsubscribe();
+  }
+
+  mapAuth(auth: AuthStatus) {
+    this.auth = auth;
+
+    switch (this.auth) {
+      case AuthStatus.unauthenticated:
+        store.dispatch(UIService.setScreen({ code: UIScreenCode.login }));
+        break;
+      case AuthStatus.authenticatedSetupRequired:
+        store.dispatch(UIService.setScreen({ code: UIScreenCode.setup }));
+        break;
+      default:
+        store.dispatch(UIService.setScreen({ code: UIScreenCode.home }));
+        break;
+    }
+  }
+
+  uiHandler() {
+    let state = store.getState();
+
+    if (!state.ui.servicesLoaded) {
+      return;
+    }
+
+    let auth = state.auth.status;
+    if (this.auth != auth) {
+      this.mapAuth(auth);
+    }
   }
 
   async initialize() {
     // setup all firebase stuffs
     Services.initialize();
-
   }
 
   render() {
