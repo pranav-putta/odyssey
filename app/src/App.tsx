@@ -31,7 +31,6 @@ export type HomeParams = RouteProp<AppStackParams, 'Home'>;
 
 class App extends React.Component<Props, State> {
   private storeUnsubscribe;
-  private auth: AuthStatus;
 
   constructor(props: Props) {
     super(props);
@@ -40,7 +39,6 @@ class App extends React.Component<Props, State> {
     this.uiHandler = this.uiHandler.bind(this);
 
     this.storeUnsubscribe = store.subscribe(this.uiHandler);
-    this.auth = AuthStatus.unknown;
   }
 
   componentDidMount() {
@@ -53,32 +51,11 @@ class App extends React.Component<Props, State> {
     this.storeUnsubscribe();
   }
 
-  mapAuth(auth: AuthStatus) {
-    this.auth = auth;
-
-    switch (this.auth) {
-      case AuthStatus.unauthenticated:
-        store.dispatch(UIService.setScreen({ code: UIScreenCode.login }));
-        break;
-      case AuthStatus.authenticatedSetupRequired:
-        store.dispatch(UIService.setScreen({ code: UIScreenCode.setup }));
-        break;
-      default:
-        store.dispatch(UIService.setScreen({ code: UIScreenCode.home }));
-        break;
-    }
-  }
-
   uiHandler() {
     let state = store.getState();
 
     if (!state.ui.servicesLoaded) {
       return;
-    }
-
-    let auth = state.auth.status;
-    if (this.auth != auth) {
-      this.mapAuth(auth);
     }
   }
 

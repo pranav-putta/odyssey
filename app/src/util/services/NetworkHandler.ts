@@ -10,6 +10,7 @@ import messaging from '@react-native-firebase/messaging';
 import store from '../../redux/store';
 import { StorageService } from '../../redux/storage';
 import { Alert } from 'react-native';
+import { Committee } from '../../redux/models/committee';
 
 export module Network {
   export async function isNetworkAvailable() {
@@ -34,8 +35,7 @@ export module Network {
     billData:
       'https://tde26c6cp5.execute-api.us-east-2.amazonaws.com/prod/get-bill-data',
     vote: 'https://tde26c6cp5.execute-api.us-east-2.amazonaws.com/prod/vote',
-    addComment:
-      'https://tde26c6cp5.execute-api.us-east-2.amazonaws.com/prod/add-comment',
+    addComment: 'https://tde26c6cp5.execute-api.us-east-2.amazonaws.com/prod/add-comment',
     likeComment:
       'https://tde26c6cp5.execute-api.us-east-2.amazonaws.com/prod/like-comment',
     deleteComment:
@@ -50,6 +50,8 @@ export module Network {
       'https://tde26c6cp5.execute-api.us-east-2.amazonaws.com/prod/email-rep',
     fetchBill:
       'https://tde26c6cp5.execute-api.us-east-2.amazonaws.com/prod/fetch-bill',
+    fetchCommittees:
+      'https://tde26c6cp5.execute-api.us-east-2.amazonaws.com/prod/fetch-committees',
   };
 
   export function setupPerfMonitor() {
@@ -191,6 +193,24 @@ export module Network {
       });
   }
 
+  export async function loadCommittees(): Promise<Committee[]> {
+    if (!isNetworkAvailable()) {
+      return [];
+    }
+    return Axios.post(awsURLs.fetchCommittees, {})
+      .then((response) => {
+        if (response.status == 200) {
+          return response.data.committees;
+        } else {
+          return [];
+        }
+      })
+      .catch((err) => {
+        console.log(JSON.stringify(err));
+        return [];
+      });
+  }
+
   export async function getBill(
     metadata: BillMetadata
   ): Promise<[Bill, BillData] | undefined> {
@@ -235,7 +255,7 @@ export module Network {
     query: string
   ): Promise<Bill[]> {
     if (!isNetworkAvailable()) {
-      return [];
+      throw 'no internet';
     }
     return Axios.post(awsURLs.search, { searchBy: searchBy, query: query })
       .then((response) => {
@@ -293,7 +313,7 @@ export module Network {
     if (!isNetworkAvailable()) {
       return {
         bill_id: id,
-        comments: [],
+        comments: {},
         votes: {},
       };
     }
@@ -374,7 +394,7 @@ export module Network {
 
   export async function likeComment(
     bill: Bill,
-    index: number,
+    cid: string,
     value: boolean
   ): Promise<boolean> {
     if (!isNetworkAvailable()) {
@@ -386,7 +406,7 @@ export module Network {
     return Axios.post(awsURLs.likeComment, {
       bill_id: id,
       uid: uid,
-      comment_index: index,
+      cid: cid,
       liked: value,
     })
       .then((response) => {
@@ -431,7 +451,7 @@ export module Network {
 
   export async function deleteComment(
     bill: Bill,
-    commentIndex: number
+    cid: string
   ): Promise<boolean> {
     if (!isNetworkAvailable()) {
       return false;
@@ -439,7 +459,7 @@ export module Network {
     let id = bill.assembly + bill.chamber + bill.number;
 
     return Axios.post(awsURLs.deleteComment, {
-      comment_index: commentIndex,
+      cid: cid,
       bill_id: id,
     })
       .then((response) => {

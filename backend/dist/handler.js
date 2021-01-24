@@ -69,7 +69,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.send_notifications = exports.email_rep = exports.delete_user = exports.fetch_bill = exports.update_profile = exports.upload_pfp = exports.delete_comment = exports.like_comment = exports.get_bill_data = exports.add_comment = exports.vote = exports.like = exports.search = exports.refresh = exports.liked_bills = exports.load_bill_feed = exports.new_user = exports.get_user = exports.user_exists = void 0;
+exports.send_notifications = exports.email_rep = exports.delete_user = exports.fetch_committees = exports.fetch_bill = exports.update_profile = exports.upload_pfp = exports.delete_comment = exports.like_comment = exports.get_bill_data = exports.add_comment = exports.vote = exports.like = exports.search = exports.refresh = exports.liked_bills = exports.load_bill_feed = exports.new_user = exports.get_user = exports.user_exists = void 0;
 var axios_1 = __importDefault(require("axios"));
 var pg_1 = __importDefault(require("pg"));
 var querystring_1 = __importDefault(require("querystring"));
@@ -600,7 +600,7 @@ exports.vote = function (event) {
                         },
                         ExpressionAttributeValues: {
                             ":vote": input,
-                            ":comments": [],
+                            ":comments": {},
                         },
                     };
                     return [4 /*yield*/, client.update(params).promise()];
@@ -622,7 +622,7 @@ exports.vote = function (event) {
 exports.add_comment = function (event) {
     if (event === void 0) { event = {}; }
     return __awaiter(void 0, void 0, void 0, function () {
-        var data, uid, billID, comment, client, exists, query, response, params, params;
+        var data, uid, billID, comment, client, exists, query, response, params, input, params;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -650,12 +650,13 @@ exports.add_comment = function (event) {
                         Key: {
                             bill_id: billID.toString(),
                         },
-                        UpdateExpression: "set #comments = list_append(#comments, :comment)",
+                        UpdateExpression: "set #comments.#uid = :comment",
                         ExpressionAttributeNames: {
                             "#comments": "comments",
+                            "#uid": comment.cid,
                         },
                         ExpressionAttributeValues: {
-                            ":comment": [comment],
+                            ":comment": comment,
                         },
                     };
                     return [4 /*yield*/, client.update(params).promise()];
@@ -663,6 +664,8 @@ exports.add_comment = function (event) {
                     response = _a.sent();
                     return [3 /*break*/, 5];
                 case 3:
+                    input = {};
+                    input[comment.cid] = comment;
                     params = {
                         TableName: aws_config_1.default.aws_voting_table_name,
                         Key: {
@@ -675,7 +678,7 @@ exports.add_comment = function (event) {
                         },
                         ExpressionAttributeValues: {
                             ":vote": {},
-                            ":comments": [comment],
+                            ":comments": input,
                         },
                     };
                     return [4 /*yield*/, client.update(params).promise()];
@@ -738,13 +741,12 @@ exports.get_bill_data = function (event) {
 exports.like_comment = function (event) {
     if (event === void 0) { event = {}; }
     return __awaiter(void 0, void 0, void 0, function () {
-        var data, billID, commentIndex, uid, liked, client, params, response;
+        var data, billID, uid, liked, client, params, response;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     data = JSON.parse(event.body);
                     billID = data.bill_id;
-                    commentIndex = data.comment_index;
                     uid = data.uid;
                     liked = data.liked;
                     // set up dynamodb client
@@ -755,9 +757,10 @@ exports.like_comment = function (event) {
                         Key: {
                             bill_id: billID.toString(),
                         },
-                        UpdateExpression: "set #comments[" + commentIndex + "].likes.#uid = :value",
+                        UpdateExpression: "set #comments.#cid.likes.#uid = :value",
                         ExpressionAttributeNames: {
                             "#comments": "comments",
+                            "#cid": data.cid,
                             "#uid": uid,
                         },
                         ExpressionAttributeValues: {
@@ -781,12 +784,12 @@ exports.like_comment = function (event) {
 exports.delete_comment = function (event) {
     if (event === void 0) { event = {}; }
     return __awaiter(void 0, void 0, void 0, function () {
-        var data, commentIndex, billID, client, params, response;
+        var data, cid, billID, client, params, response;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     data = JSON.parse(event.body);
-                    commentIndex = data.comment_index;
+                    cid = data.cid;
                     billID = data.bill_id;
                     // set up dynamodb client
                     aws.config.update(aws_config_1.default.aws_remote_config);
@@ -796,9 +799,10 @@ exports.delete_comment = function (event) {
                         Key: {
                             bill_id: billID.toString(),
                         },
-                        UpdateExpression: "remove #comments[" + commentIndex + "]",
+                        UpdateExpression: "remove #comments.#cid",
                         ExpressionAttributeNames: {
                             "#comments": "comments",
+                            "#cid": cid,
                         },
                     };
                     return [4 /*yield*/, client.update(params).promise()];
@@ -959,6 +963,32 @@ exports.fetch_bill = function (event) {
                         bills: bills.rows[0],
                     };
                     return [2 /*return*/, createSuccess(response)];
+            }
+        });
+    });
+};
+/**
+ * generates committees
+ * @param event
+ */
+exports.fetch_committees = function (event) {
+    if (event === void 0) { event = {}; }
+    return __awaiter(void 0, void 0, void 0, function () {
+        var pgPool, committees, response;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    pgPool = new pg_1.default.Pool(pgConfig);
+                    return [4 /*yield*/, pgPool.query("select * from public.committees")];
+                case 1:
+                    committees = _a.sent();
+                    return [4 /*yield*/, pgPool.end()];
+                case 2:
+                    _a.sent();
+                    response = {
+                        committees: committees.rows,
+                    };
+                    return [2 /*return*/, { statusCode: 200, body: JSON.stringify(response) }];
             }
         });
     });

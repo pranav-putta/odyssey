@@ -2,7 +2,6 @@ import messaging, {
   FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging';
 import { BillMetadata } from '../../models/Bill';
-import { BillService } from '../../redux/bill';
 import { Notification, NotificationType } from '../../redux/models';
 import { StorageService } from '../../redux/storage';
 import store from '../../redux/store';

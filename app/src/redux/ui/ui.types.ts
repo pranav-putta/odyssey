@@ -1,3 +1,4 @@
+import { Representative } from '../../models';
 import { Bill, BillMetadata } from '../../models/Bill';
 import { BillData } from '../../models/BillData';
 
@@ -14,6 +15,12 @@ export enum UIScreenCode {
   home,
   bill,
   rep,
+}
+
+export enum UIEvent {
+  created_comment,
+  network,
+  none,
 }
 
 interface ErrorStatus {
@@ -54,18 +61,25 @@ interface UIScreenBill {
   billData?: BillData;
 }
 
+interface UIScreenRep {
+  code: UIScreenCode.rep;
+  rep: Representative;
+}
+
 export type UIScreen =
   | UIScreenHome
   | UIScreenBill
   | UIScreenLogin
   | UIScreenSetup
-  | UIScreenSplash;
+  | UIScreenSplash
+  | UIScreenRep;
 
 export interface UIState {
   status: UIStatus;
   screen: UIScreen;
   servicesLoaded: boolean;
   firstDataRefresh: boolean;
+  lastEvent: UIEvent;
 }
 
 export interface UIProgressChangedPayload {

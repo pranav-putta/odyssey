@@ -1,9 +1,18 @@
 import React from 'react';
-import { Animated, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import {
+  Animated,
+  Dimensions,
+  FlatList,
+  StyleProp,
+  StyleSheet,
+  View,
+  ViewStyle,
+} from 'react-native';
 import tinycolor from 'tinycolor2';
 import { colors } from '../assets';
 import Space from './Space';
 import LinearGradient from 'react-native-linear-gradient';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export const backgroundColor = '#eeeeee';
 export const boxColor = '#e0e0e0';
@@ -32,7 +41,7 @@ function Shimmer(props: { style: StyleProp<ViewStyle> }) {
   let animation = new Animated.Value(0);
   let translation = animation.interpolate({
     inputRange: [0, 1],
-    outputRange: ['-200%', '150%'],
+    outputRange: ['-400%', '400%'],
   });
 
   let lighten = (num: number) => {
@@ -123,9 +132,38 @@ export module Skeletons {
   }
 
   export function BillInfo() {
+    const { width, height } = Dimensions.get('screen');
+
     return (
-      <View style={{ flex: 1 }}>
-        
+      <SafeAreaView style={{ height: '100%' }}>
+        <Shimmer
+          style={{
+            height: '25%',
+            backgroundColor: boxColor,
+            borderRadius: 10,
+            margin: 10,
+          }}
+        />
+        <FlatList
+          scrollEnabled={false}
+          keyExtractor={(item, index) => item.toString()}
+          data={[1, 2, 3, 4, 5]}
+          renderItem={() => (
+            <View style={{ height: height * 0.1, margin: 10 }}>{Card()}</View>
+          )}
+        />
+      </SafeAreaView>
+    );
+  }
+
+  export function Comment() {
+    return (
+      <View>
+        <View style={[styles.commentContainer]}>
+          {Card()}
+          <Space height={5} />
+          {Card()}
+        </View>
       </View>
     );
   }
@@ -135,6 +173,13 @@ const styles = StyleSheet.create({
   repCardContainer: {
     width: '100%',
     height: '100%',
+    backgroundColor: backgroundColor,
+    borderRadius: 5,
+    padding: 5,
+  },
+  commentContainer: {
+    width: '100%',
+    height: 150,
     backgroundColor: backgroundColor,
     borderRadius: 5,
     padding: 5,

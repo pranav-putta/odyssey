@@ -13,7 +13,11 @@ import { Icon } from 'react-native-elements';
 import FastImage from 'react-native-fast-image';
 import { SharedElement } from 'react-navigation-shared-element';
 import { colors } from '../../../assets';
+import { Representative } from '../../../models';
+import store from '../../../redux/store';
+import { UIScreenCode, UIStatusCode } from '../../../redux/ui/ui.types';
 import { Browser } from '../../../util/Browser';
+import { ErrorScreen } from '../../ErrorScreen';
 import {
   RepresentativeScreenProps,
   RepresentativeScreenRouteProp,
@@ -52,7 +56,13 @@ let Header = (props: { name: string; type: string }) => (
 
 export default class RepScreen extends React.Component<Props, State> {
   render() {
-    const { rep } = this.props.route.params;
+    let rep = undefined;
+    let screen = store.getState().ui.screen;
+    if (screen.code == UIScreenCode.rep && screen.rep) {
+      rep = screen.rep;
+    } else {
+      return <ErrorScreen />;
+    }
     let chamber = replaceAt(0, rep.chamber[0].toUpperCase(), rep.chamber);
     return (
       <View style={styles.card}>

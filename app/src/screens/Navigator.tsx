@@ -36,22 +36,24 @@ const Stack = createStackNavigator<AppStackParams>();
 type Route = 'Home' | 'Setup' | 'Login';
 
 export default function Navigator() {
-  const screenStatus = useSelector((state: AppState) => state.ui.screen.code);
+  const authStatus = useSelector((state: AppState) => state.auth.status);
+  const servicesLoaded = useSelector(
+    (state: AppState) => state.ui.servicesLoaded
+  );
 
   const mapAuthToRoute = () => {
     let screen: Route = 'Login';
     let component: React.ComponentType<any> = HomeScreen;
-    switch (screenStatus) {
-      case UIScreenCode.login:
+    switch (authStatus) {
+      case AuthStatus.unauthenticated:
         screen = 'Login';
         component = LoginScreen;
         break;
-      case UIScreenCode.setup:
+      case AuthStatus.authenticatedSetupRequired:
         screen = 'Setup';
         component = SetupScreen;
         break;
-      case UIScreenCode.splash:
-        BootSplash.show();
+      case AuthStatus.unknown:
         return null;
       default:
         screen = 'Home';
@@ -70,7 +72,8 @@ export default function Navigator() {
   };
 
   let route = mapAuthToRoute();
-  if (!route) {
+  if (!route || !servicesLoaded) {
+    BootSplash.show();
     return null;
   }
 
@@ -89,5 +92,9 @@ export module Odyssey {
   export const navigationRef = React.createRef<NavigationContainerRef>();
   export function navigate(name: string) {
     navigationRef.current?.navigate(name);
+  }
+
+  export function push(name: string) {
+    navigationRef.current?.dispatch(StackActions.push(name));
   }
 }

@@ -8,16 +8,21 @@ export interface BillVotes {
   [uid: string]: Vote;
 }
 
+export interface Comments {
+  [uid: string]: Comment;
+}
+
 export interface Comment {
   uid: string;
   text: string;
   likes: { [uid: string]: boolean };
   name: string;
   date: number;
+  cid: string;
 }
 
 export interface BillData {
   bill_id: string;
   votes: BillVotes;
-  comments: Comment[];
+  comments: Comments;
 }

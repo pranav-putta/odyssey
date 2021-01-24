@@ -1,5 +1,6 @@
 import { Representative } from '../../models';
 import { Network } from '../../util';
+import { formatCommitteeArray } from '../models/committee';
 import { User } from '../models/user';
 import { StorageService } from '../storage';
 import store, { AppThunk } from '../store';
@@ -51,7 +52,15 @@ module FeedService {
 
     // retrieve bill data
     let bills = await Network.loadBillFeed();
+
     let reps = store.getState().storage.representatives;
+
+    // do in background
+    Network.loadCommittees().then((committees) => {
+      dispatch(
+        StorageService.update({ committees: formatCommitteeArray(committees) })
+      );
+    });
     dispatch(billFeedActions.feedRefreshed({ bills, reps }));
   };
 }

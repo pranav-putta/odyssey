@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   SafeAreaView,
   RefreshControl,
@@ -9,9 +9,11 @@ import {
   Dimensions,
   Animated,
   StatusBar,
-  Alert,
+  TouchableOpacity,
   FlatList,
+  Image,
 } from 'react-native';
+import * as Animatable from 'react-native-animatable';
 import Carousel from 'react-native-snap-carousel';
 import { Icon } from 'react-native-elements';
 import { colors } from '../../../assets';
@@ -25,7 +27,6 @@ import { BillScreenStackParamList } from './BillTab';
 import { Category } from '../../../models/Category';
 import ProgressHUD from '../../../components/ProgressHUD';
 import { SharedElement } from 'react-navigation-shared-element';
-import { TouchableOpacity } from 'react-native-gesture-handler';
 import { Config } from '../../../util/Config';
 import { Analytics } from '../../../util/services/AnalyticsHandler';
 import { Browser } from '../../../util/Browser';
@@ -36,12 +37,19 @@ import { FeedStatus } from '../../../redux/feed/feed.types';
 import { connect } from 'react-redux';
 import { User } from '../../../redux/models/user';
 import Skeleton, { Skeletons } from '../../../components/Skeleton';
-import { BillService } from '../../../redux/bill';
 import { UIService } from '../../../redux/ui/ui';
 import { BlurView } from '@react-native-community/blur';
+import { UIScreenCode } from '../../../redux/ui/ui.types';
+import Modal from 'react-native-modal';
+import { StorageService } from '../../../redux/storage';
 
 const width = Dimensions.get('screen').width;
 const height = Dimensions.get('screen').height;
+
+const Specs = {
+  filterHeight: 40,
+  filterModalPadding: 15,
+};
 
 interface Props {
   navigation: StackNavigationProp<BillScreenStackParamList, any>;
@@ -58,6 +66,7 @@ interface State {
   repSelectedInfo: Representative | undefined;
   likedBills: Bill[];
   progress: boolean;
+  swipeDownShowing: boolean;
 }
 
 enum BillTabKey {
@@ -73,10 +82,29 @@ function mapStoreToProps() {
 
 class BillDiscoverScreen extends React.Component<Props, State> {
   private lastStatus: FeedStatus;
-  private carouselRef: React.RefObject<Carousel<Bill>>;
+
+  private swipeDownTimeout: NodeJS.Timeout | undefined = undefined;
+  private listRef = React.createRef<FlatList>();
+
+  startSwipDownTimeout() {
+    let tutorial = store.getState().storage.tutorialSeen;
+
+    if (!tutorial) {
+      this.swipeDownTimeout = setTimeout(() => {
+        this.setState({ swipeDownShowing: true });
+        store.dispatch(StorageService.tutorialSeen());
+      }, 10 * 1000);
+    }
+  }
 
   componentDidMount() {
-    if (!this.props.refreshed) this.loadData();
+    if (!this.props.refreshed) {
+      setTimeout(() => {
+        this.loadData();
+      }, 500);
+    }
+
+    this.startSwipDownTimeout();
   }
 
   loadData = async (): Promise<void> => {
@@ -93,11 +121,11 @@ class BillDiscoverScreen extends React.Component<Props, State> {
       repSelectedInfo: undefined,
       likedBills: [],
       progress: false,
+      swipeDownShowing: false,
     };
 
     this.loadData = this.loadData.bind(this);
     this.lastStatus = props.status;
-    this.carouselRef = React.createRef<Carousel<Bill>>();
   }
 
   componentDidUpdate() {
@@ -106,7 +134,7 @@ class BillDiscoverScreen extends React.Component<Props, State> {
       this.props.status === FeedStatus.refreshed
     ) {
       // if the screen just finished refreshing, scroll to the first bill
-      this.carouselRef.current?.snapToItem(0);
+      this.listRef.current?.scrollToIndex({ index: 0, animated: true });
     }
     this.lastStatus = this.props.status;
   }
@@ -117,12 +145,26 @@ class BillDiscoverScreen extends React.Component<Props, State> {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
         <StatusBar barStyle={'dark-content'} />
-        <Headline />
+        <Headline loading={loading} reps={this.props.representatives} />
         <FlatList
+          ref={this.listRef}
+          refreshControl={
+            <RefreshControl refreshing={loading} onRefresh={this.loadData} />
+          }
           data={this.props.feed}
           decelerationRate={'fast'}
+          onScroll={(_) => {
+            if (this.swipeDownTimeout) clearTimeout(this.swipeDownTimeout);
+            this.setState({ swipeDownShowing: false }, () => {
+              let tutorial = store.getState().storage.tutorialSeen;
+              if (!tutorial) {
+                this.startSwipDownTimeout();
+              }
+            });
+          }}
           keyExtractor={(item) => item.actions_hash}
-          contentContainerStyle={{ paddingTop: '2.5%' }}
+          contentContainerStyle={{ paddingTop: '5%', paddingBottom: '10%' }}
+          showsVerticalScrollIndicator={false}
           snapToInterval={BillCardSpecs.height + BillCardSpecs.verticalSpacing}
           renderItem={({ item, index }) => (
             <BillCard
@@ -136,86 +178,124 @@ class BillDiscoverScreen extends React.Component<Props, State> {
             />
           )}
         />
-        <Space height={'8.5%'} />
+        <SwipeDownModal active={this.state.swipeDownShowing} />
       </SafeAreaView>
     );
   }
 }
 
-function Headline() {
+let swipeDownOpacity = new Animated.Value(0);
+
+function SwipeDownModal(props: { active: boolean }) {
+  const { active } = props;
+
+  let AV = Animated.createAnimatedComponent(Animatable.View);
+
+  useEffect(() => {
+    let val = active ? 1 : 0;
+
+    Animated.timing(swipeDownOpacity, {
+      toValue: val,
+      useNativeDriver: true,
+      duration: active ? 250 : 100,
+    }).start();
+  });
+  return (
+    <AV
+      style={{
+        position: 'absolute',
+        width: 150,
+        height: 70,
+        bottom: '14%',
+        borderRadius: 5,
+        alignSelf: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        overflow: 'hidden',
+        opacity: swipeDownOpacity,
+      }}
+      animation={'bounce'}
+      iterationCount={'infinite'}
+      duration={2500}
+      iterationDelay={5000}
+    >
+      <BlurView
+        style={{
+          width: '100%',
+          height: '100%',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+        blurType={'xlight'}
+        blurAmount={5}
+      >
+        <Icon type={'feather'} name={'arrow-down'} />
+        <Space height={2.5} />
+        <Text style={{ fontFamily: 'Futura', fontSize: 16 }}>Swipe Down</Text>
+      </BlurView>
+    </AV>
+  );
+}
+
+function Headline(props: { reps: Representative[]; loading: boolean }) {
   return (
     <View
       style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginHorizontal: '5%',
+        backgroundColor: 'white',
+        paddingHorizontal: '5%',
+        paddingBottom: '2.5%',
+        shadowColor: 'black',
+        shadowOpacity: 0.15,
+        zIndex: 3,
+        shadowOffset: { width: 0, height: 5 },
+        maxHeight: '15%',
       }}
     >
-      <Text style={styles.discover}>Discover</Text>
-      <TouchableOpacity
-        onPress={() => {
-          Browser.openURL(
-            'https://www.odysseyapp.us/about-us/index.html',
-            false,
-            false
-          );
+      <View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'flex-end',
         }}
       >
-        <Icon name="info" type="feather" color="#2196f3" />
-      </TouchableOpacity>
+        <Text style={styles.discover}>Discover</Text>
+        <Filter />
+      </View>
+      <Reps representatives={props.reps} loading={props.loading} />
     </View>
   );
 }
 
-function Reps(props: {
-  representatives: Representative[];
-  loading: boolean;
-  navigation: StackNavigationProp<BillScreenStackParamList, any>;
-}) {
+function Reps(props: { representatives: Representative[]; loading: boolean }) {
   return (
-    <Skeleton
-      styles={{
-        paddingHorizontal: '10%',
-        height: '20%',
-        marginTop: '2.5%',
+    <View
+      style={{
+        flexDirection: 'row',
       }}
-      loading={props.loading && props.representatives.length == 0}
-      skeleton={Skeletons.RepCard}
     >
-      <View
-        style={{
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginHorizontal: '10%',
-          marginTop: '2.5%',
-        }}
-      >
-        {props.representatives.map((rep, i) => (
+      {props.representatives.map((rep, i) => {
+        return (
           <>
             <RepCard
-              key={rep.member_url}
-              clicked={() => {
-                props.navigation.push('Rep', { rep: rep });
-              }}
               rep={rep}
+              clicked={() => {
+                store.dispatch(
+                  UIService.setScreen({ code: UIScreenCode.rep, rep: rep })
+                );
+              }}
             />
-            {i !== props.representatives.length ? <Space height={10} /> : null}
+            {i != props.representatives.length - 1 ? <Space width={5} /> : null}
           </>
-        ))}
-      </View>
-    </Skeleton>
+        );
+      })}
+    </View>
   );
 }
 
-function RepCard(props: {
-  rep: Representative;
-  clicked: (rep: Representative) => void;
-}) {
+function RepCard(props: { rep: Representative; clicked: () => void }) {
   const { rep, clicked } = props;
   let title = () => {
     if (rep.chamber === 'house') {
-      return 'My Representative';
+      return 'My Rep';
     } else if (rep.chamber === 'senate') {
       return 'My Senator';
     } else {
@@ -224,160 +304,103 @@ function RepCard(props: {
   };
   return (
     <TouchableOpacity
-      style={styles.repcard}
-      onPress={() => {
-        clicked(rep);
+      style={{
+        flex: 1,
+        alignItems: 'center',
+        borderRadius: 10,
+        flexDirection: 'row',
+        padding: '1%',
+        marginTop: '1.5%',
       }}
+      onPress={clicked}
     >
-      <View style={{ flexDirection: 'row' }}>
-        <SharedElement id={`rep.${rep.member_url}.photo`}>
-          <FastImage
-            style={styles.repcardImage}
-            source={{
-              uri: rep.picture_url,
-            }}
-          />
-        </SharedElement>
-        <View
-          style={{
-            justifyContent: 'space-between',
-            alignItems: 'flex-start',
-            alignSelf: 'flex-end',
-            marginLeft: '5%',
-          }}
+      <FastImage
+        source={{ uri: rep.picture_url }}
+        style={styles.repcardImage}
+      />
+      <Space width={'5%'} />
+      <View
+        style={{ flex: 1, height: '100%', flexDirection: 'column-reverse' }}
+      >
+        <Text
+          style={{ fontWeight: 'bold', fontSize: 16 }}
+          numberOfLines={1}
+          adjustsFontSizeToFit={true}
         >
-          <Text
-            style={{
-              fontFamily: 'Roboto',
-              fontSize: 17,
-              fontWeight: 'bold',
-              color: 'black',
-            }}
-          >
-            {title()}
-          </Text>
-          <Text
-            numberOfLines={1}
-            style={{
-              fontFamily: 'Roboto',
-              fontWeight: 'normal',
-              color: 'black',
-            }}
-          >
-            {rep.name}
-          </Text>
-        </View>
-        <View style={{ flex: 1 }} />
-        <View
-          style={{
-            position: 'absolute',
-            right: 0,
-            alignSelf: 'center',
-            padding: 5,
-            borderRadius: 20,
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <Icon
-            type={'feather'}
-            name={'arrow-right'}
-            color={'black'}
-            solid={true}
-            size={20}
-            containerStyle={{}}
-          />
-        </View>
+          {rep.name}
+        </Text>
+        <Text adjustsFontSizeToFit={true} style={{ fontFamily: 'Futura' }}>
+          {title()}
+        </Text>
       </View>
     </TouchableOpacity>
   );
 }
 
-// carousel for new tab
-const BillCarousel = (props: {
-  bills: Bill[];
-  onPress: (item: { bill: Bill; category: Category }) => void;
-}) => {
-  const scrollX = React.useRef(new Animated.Value(0)).current;
+function Filter(props: {}) {
+  let [modalShown, setModalShown] = React.useState(false);
+
   return (
     <View
       style={{
-        paddingBottom: '5%',
-        flex: 1,
+        maxHeight: Specs.filterHeight,
+        zIndex: 10000,
       }}
     >
-      <View
+      <TouchableOpacity
         style={{
           backgroundColor: '#eceff1',
           flexDirection: 'row',
-          marginHorizontal: '5%',
-          marginTop: '4%',
-          marginBottom: '3%',
-          paddingHorizontal: '5%',
-          paddingVertical: '2.5%',
+          paddingHorizontal: 10,
+          paddingVertical: 7.5,
           borderRadius: 5,
+          alignItems: 'center',
+        }}
+        onPress={() => {
+          //setModalShown(!modalShown);
         }}
       >
-        <TouchableOpacity
-          style={{
-            flexDirection: 'row',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
+        <Icon
+          name={'fire'}
+          type={'font-awesome-5'}
+          color={'#ff3d00'}
+          size={12}
+        />
+        <Space width={5} />
+        <Text
+          style={{ fontSize: 12, fontWeight: '500', fontFamily: 'Roboto' }}
+          adjustsFontSizeToFit={true}
         >
-          <Icon
-            name={'fire'}
-            type={'font-awesome-5'}
-            size={14}
-            color={'black'}
-          />
-          <Space width={7.5} />
-          <Text
-            style={{
-              color: 'black',
-              fontFamily: 'Futura',
-              fontWeight: 'bold',
-              fontSize: 12,
-            }}
-          >
-            HOT POSTS
-          </Text>
-        </TouchableOpacity>
-      </View>
-      <Animated.FlatList
-        nestedScrollEnabled={true}
-        data={props.bills}
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-          { useNativeDriver: true }
-        )}
-        keyExtractor={(item: Bill) => item.actions_hash}
-        contentContainerStyle={{
-          maxHeight: height * 0.5,
-          paddingLeft: 10,
-          paddingRight: 50,
-        }}
-        renderItem={(item: { item: Bill; index: number }) => {
-          let category = Config.getTopics()[item.item.category];
-          return (
-            <>
-              <BillCard
-                index={item.index}
-                bill={item.item}
-                scrollX={scrollX}
-                category={category}
-                onPress={async (image, container, content) => {
-                  Analytics.billClick(item.item);
-                  props.onPress({ bill: item.item, category: category });
-                }}
-              />
-            </>
-          );
-        }}
-      />
+          Hot Bills
+        </Text>
+        <Space width={10} />
+        <Icon name={'chevron-down'} type={'feather'} size={14} solid={true} />
+      </TouchableOpacity>
+      <FilterModal shown={modalShown} />
     </View>
   );
-};
+}
+
+function FilterModal(props: { shown: boolean }) {
+  if (props.shown) {
+    return (
+      <View
+        style={{
+          position: 'absolute',
+          width: '100%',
+          height: 100,
+          top: Specs.filterHeight,
+          backgroundColor: colors.blueGray,
+          right: 0,
+          borderRadius: 5,
+          zIndex: 10000,
+        }}
+      ></View>
+    );
+  } else {
+    return null;
+  }
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -436,12 +459,15 @@ const styles = StyleSheet.create({
     fontWeight: '400',
   },
   repcard: {
-    flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#eceff1',
+    borderRadius: 15,
+    flex: 1,
+    height: 100,
   },
   repcardImage: {
-    width: 50,
-    height: 50,
+    width: 40,
+    height: 40,
     borderRadius: 10,
     resizeMode: 'cover',
   },

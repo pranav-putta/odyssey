@@ -12,8 +12,7 @@ import BillInfoScreen from './BillInfoScreen';
 import VoteScreen from './BillVotingScreen';
 import ComposeCommentScreen from './ComposeCommentScreen';
 
-interface Props {
-}
+interface Props {}
 interface State {}
 
 export interface Measure {
@@ -33,10 +32,7 @@ export type BillDetailStackParams = {
     textCardDims: Measure;
     cardDims: Measure;
   };
-  Vote: {
-    bill: Bill;
-    category: Category;
-  };
+  Vote: undefined;
   Comment: {
     bill: Bill;
   };

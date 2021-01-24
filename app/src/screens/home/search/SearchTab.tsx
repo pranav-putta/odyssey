@@ -66,13 +66,6 @@ export default class SearchTab extends React.Component<Props, State> {
           }}
           component={SearchBarScreen}
         />
-        <Stack.Screen
-          name="Details"
-          component={BillDetailStack}
-          listeners={{
-            focus: () => {},
-          }}
-        />
       </Stack.Navigator>
     );
   }

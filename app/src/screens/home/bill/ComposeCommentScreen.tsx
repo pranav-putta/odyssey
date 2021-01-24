@@ -4,6 +4,7 @@ import {
   Image,
   Keyboard,
   KeyboardAvoidingView,
+  StatusBar,
   StyleSheet,
   Switch,
   Text,
@@ -18,6 +19,7 @@ import { Representative } from '../../../models';
 import { Comment } from '../../../models/BillData';
 import { User } from '../../../redux/models/user';
 import { StorageService } from '../../../redux/storage';
+import { UIService } from '../../../redux/ui/ui';
 import { Network } from '../../../util';
 import { Analytics } from '../../../util/services/AnalyticsHandler';
 import {
@@ -25,20 +27,33 @@ import {
   BillDetailsCommentScreenProps,
 } from './BillDetailsStack';
 
+import uuid from 'react-native-uuid';
+import store from '../../../redux/store';
+import { UIEvent, UIStatusCode } from '../../../redux/ui/ui.types';
+import { connect } from 'react-redux';
+
 interface Props {
   navigation: BillDetailsCommentScreenProps;
   route: BillDetailCommentScreenRouteProps;
+  progress: boolean;
+  error?: string;
+  exit: boolean;
 }
 interface State {
   shouldSendReps: boolean;
   text: string;
-  showProgress: boolean;
 }
 
-export default class ComposeCommentScreen extends React.PureComponent<
-  Props,
-  State
-> {
+function mapStoreToProps() {
+  let { ui } = store.getState();
+  return {
+    progress: ui.status.code == UIStatusCode.loading,
+    exit: ui.lastEvent == UIEvent.created_comment,
+    error: ui.status.code == UIStatusCode.error ? ui.status.message : undefined,
+  };
+}
+
+class ComposeCommentScreen extends React.PureComponent<Props, State> {
   private user: User;
   private reps: Representative[];
 
@@ -47,7 +62,6 @@ export default class ComposeCommentScreen extends React.PureComponent<
     this.state = {
       shouldSendReps: true,
       text: '',
-      showProgress: false,
     };
 
     this.user = StorageService.user();
@@ -56,10 +70,22 @@ export default class ComposeCommentScreen extends React.PureComponent<
 
   componentDidMount() {}
 
+  componentDidUpdate() {
+    if (this.props.exit) {
+      this.props.navigation.pop();
+      store.dispatch(UIService.setState({ lastEvent: UIEvent.none }));
+    }
+
+    if (this.props.error) {
+      Alert.alert('Error', this.props.error);
+    }
+  }
+
   render() {
     return (
       <View style={styles.container}>
-        <ProgressHUD visible={this.state.showProgress} />
+        <StatusBar barStyle={'dark-content'} />
+        <ProgressHUD visible={this.props.progress} />
 
         <View style={styles.header}>
           <Text style={styles.headerText}>Share your opinion</Text>
@@ -171,21 +197,10 @@ export default class ComposeCommentScreen extends React.PureComponent<
                   text: this.state.text,
                   uid: this.user.uid,
                   name: this.user.name,
+                  cid: uuid.v4(),
                   date: Date.now(),
                 };
-                this.setState({ showProgress: true });
-                Network.addComment(
-                  this.props.route.params.bill,
-                  comment,
-                  this.state.shouldSendReps
-                ).then((val) => {
-                  this.setState({ showProgress: false });
-                  if (val) {
-                    this.props.navigation.pop();
-                  } else {
-                    Alert.alert("Couldn't submit your request");
-                  }
-                });
+                UIService.billComment(comment, this.state.shouldSendReps);
               }
             }}
           >
@@ -228,3 +243,5 @@ const styles = StyleSheet.create({
   closeButton: {},
   footer: {},
 });
+
+export default connect(mapStoreToProps)(ComposeCommentScreen);

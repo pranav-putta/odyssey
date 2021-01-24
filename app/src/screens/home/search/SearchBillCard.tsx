@@ -16,7 +16,6 @@ export default class SearchBillCard extends React.PureComponent<Props, State> {
   render() {
     let topic = Config.getSmallTopics()[this.props.bill.category];
     if (!topic) {
-      console.log("search screen")
       Config.alertUpdateConfig().then(() => {
         this.forceUpdate();
       });
@@ -37,7 +36,7 @@ export default class SearchBillCard extends React.PureComponent<Props, State> {
           </View>
           <View style={{ marginLeft: '5%', width: '100%' }}>
             <Text style={{ fontWeight: '700', fontFamily: 'Futura' }}>
-              {this.props.bill.title}
+              {this.props.bill.title.trim()}
             </Text>
             <Text ellipsizeMode={'tail'} numberOfLines={2}>
               {this.props.bill.short_summary.trim()}

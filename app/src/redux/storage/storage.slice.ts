@@ -9,8 +9,10 @@ export const initialState: StorageState = {
   loggedIn: false,
   notifications: [],
   representatives: [],
+  committees: {},
   user: emptyUser(),
   appLaunchCount: 0,
+  tutorialSeen: false,
 };
 
 const storageSlice = createSlice({

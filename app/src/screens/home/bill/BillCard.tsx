@@ -7,6 +7,7 @@ import { Category, DefaultCategory } from '../../../models/Category';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { SharedElement } from 'react-navigation-shared-element';
 import { Config } from '../../../util/Config';
+import tinycolor from 'tinycolor2';
 
 type State = {};
 
@@ -21,12 +22,12 @@ const screenWidth = Dimensions.get('screen').width;
 const screenHeight = Dimensions.get('screen').height;
 
 export const BillCardSpecs = {
-  width: screenWidth * 0.95,
-  height: screenHeight * 0.6,
+  width: screenWidth * 0.9,
+  height: screenHeight * 0.65,
   externalRadius: 20,
   internalRadius: 10,
   horizontalSpacing: 10,
-  verticalSpacing: screenHeight * 0.05,
+  verticalSpacing: screenHeight * 0.035,
 };
 
 export default class BillCard extends React.PureComponent<Props, State> {
@@ -41,6 +42,12 @@ export default class BillCard extends React.PureComponent<Props, State> {
       category = DefaultCategory;
       Config.alertUpdateConfig();
     }
+
+    let categoryTextColor = tinycolor(category.bgColor)
+      .darken(10)
+      .toHexString();
+
+    let categoryColor = tinycolor(category.bgColor).lighten(20).toHexString();
 
     return (
       <Animated.View
@@ -70,16 +77,10 @@ export default class BillCard extends React.PureComponent<Props, State> {
 
                 <SharedElement
                   id={`bill.${bill.number}.category`}
-                  style={[
-                    styles.category,
-                    { backgroundColor: category.categoryColor },
-                  ]}
+                  style={[styles.category, { backgroundColor: category.categoryColor }]}
                 >
                   <Text
-                    style={[
-                      styles.categoryText,
-                      { color: category.categoryTextColor },
-                    ]}
+                    style={[styles.categoryText, { color: category.categoryTextColor }]}
                   >
                     {bill.category}
                   </Text>
@@ -118,9 +119,8 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     borderRadius: BillCardSpecs.externalRadius,
     shadowColor: 'black',
-    shadowOpacity: 0,
+    shadowOpacity: 1,
     shadowRadius: 5,
-    shadowOffset: { width: 0, height: 4 },
   },
   imageContainer: {
     width: '100%',
@@ -144,8 +144,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: '7.5%',
     flex: 2,
     shadowColor: 'rgba(0, 0, 0, 0.5)',
-    shadowRadius: 15,
-    shadowOffset: { width: 0, height: 0 },
+    shadowRadius: 10,
+    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 4 },
     zIndex: 100,
   },
   number: {
@@ -170,7 +171,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: '2%',
     paddingHorizontal: '4%',
-    borderRadius: 20,
+    borderRadius: 10,
   },
   categoryText: {
     fontFamily: 'Roboto-Thin',

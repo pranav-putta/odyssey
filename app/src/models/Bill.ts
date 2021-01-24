@@ -1,3 +1,6 @@
+import { Images } from '../assets/images';
+import { BillData, Comment, Vote } from './BillData';
+
 export interface BillFullText {
   url: string;
   fullText: string;
@@ -32,7 +35,10 @@ export interface BillAction {
   Tag: BillActionTag;
 }
 
-export interface BillVotingEvent {}
+export interface BillVotingEvent {
+  Chamber: string;
+  Votes: { [key: string]: string };
+}
 
 export function formatBillNumber(item: Bill) {
   let num = item.number.toString();
@@ -41,71 +47,6 @@ export function formatBillNumber(item: Bill) {
 }
 
 type action = BillAction;
-interface IBillProgress {
-  chamber1Arrival: action;
-  chamber1Debating: action;
-  chamber1Passed: action;
-  chamber2Arrival: action;
-  chamber2Debating: action;
-  chamber2Passed: action;
-  waitingForGovernor: action;
-  billPassed: action;
-}
-
-export type BillProgress = Partial<IBillProgress>;
-
-export function classifyBillProgress(item: Bill) {
-  let { actions } = item;
-
-  let search = (
-    i: number,
-    tag: BillActionTag
-  ): [number, action | undefined] => {
-    for (; i < actions.length; i++) {
-      if (actions[i].Tag == tag) {
-        return [i, actions[i]];
-      }
-    }
-    return [i, undefined];
-  };
-
-  // go in order, first check introduced
-  let i = 0;
-  let progress: BillProgress = {};
-  [i, progress.chamber1Arrival] = search(i, BillActionTag.first_reading);
-  [i, progress.chamber1Debating] = search(i, BillActionTag.second_reading);
-  [i, progress.chamber1Passed] = search(i, BillActionTag.bill_vote_pass);
-  [i, progress.chamber2Arrival] = search(i, BillActionTag.first_reading);
-  [i, progress.chamber2Debating] = search(i, BillActionTag.second_reading);
-  [i, progress.chamber2Passed] = search(i, BillActionTag.bill_vote_pass);
-  [i, progress.waitingForGovernor] = search(i, BillActionTag.sent_to_governor);
-  [i, progress.billPassed] = search(i, BillActionTag.public_act);
-
-  let acts = [];
-  if (progress.chamber1Passed) {
-    acts.push('Passed in ' + progress.chamber1Passed.Chamber);
-
-    if (progress.chamber2Passed) {
-      acts.push('Passed in ' + progress.chamber2Passed.Chamber);
-
-      if (progress.billPassed) {
-        acts.push('Bill Passed');
-      } else if (progress.waitingForGovernor) {
-        acts.push('Sent to Governor');
-      }
-    } else if (progress.chamber2Debating) {
-      acts.push('Debating in ' + progress.chamber2Debating.Chamber);
-    } else if (progress.chamber2Arrival) {
-      acts.push('Arrival in ' + progress.chamber2Arrival.Chamber);
-    }
-  } else if (progress.chamber1Debating) {
-    acts.push('Debating in ' + progress.chamber1Debating.Chamber);
-  } else if (progress.chamber1Arrival) {
-    acts.push('Arrival in ' + progress.chamber1Arrival.Chamber);
-  }
-
-  return acts;
-}
 
 export interface Bill {
   assembly: number;
@@ -133,6 +74,26 @@ export interface BillMetadata {
   number: number;
 }
 
+interface IBillProgress {
+  introduced: action;
+  chamber1Arrival: action;
+  chamber1Debating: action;
+  chamber1Passed: action;
+  chamber2Arrival: action;
+  chamber2Debating: action;
+  chamber2Passed: action;
+  waitingForGovernor: action;
+  billPassed: action;
+}
+
+export type BillProgress = Partial<IBillProgress>;
+
+export type BillProgressAction = {
+  text: string;
+  action: BillAction;
+  image: any;
+};
+
 export module BillHandler {
   export function id(b: Bill | BillMetadata) {
     return b.assembly + b.chamber + b.number;
@@ -143,6 +104,133 @@ export module BillHandler {
       assembly: b.assembly,
       number: b.number,
       chamber: b.chamber,
+    };
+  }
+
+  export function constructTimeline(b: Bill) {
+    let { actions } = b;
+
+    let search = (
+      i: number,
+      tag: BillActionTag
+    ): [number, action | undefined] => {
+      for (; i < actions.length; i++) {
+        if (actions[i].Tag == tag) {
+          return [i, actions[i]];
+        }
+      }
+      return [i, undefined];
+    };
+
+    // go in order, first check introduced
+    let i = 0;
+    let progress: BillProgress = {};
+    [i, progress.chamber1Arrival] = search(i, BillActionTag.first_reading);
+    [i, progress.chamber1Debating] = search(i, BillActionTag.second_reading);
+    [i, progress.chamber1Passed] = search(i, BillActionTag.bill_vote_pass);
+    [i, progress.chamber2Arrival] = search(i, BillActionTag.first_reading);
+    [i, progress.chamber2Debating] = search(i, BillActionTag.second_reading);
+    [i, progress.chamber2Passed] = search(i, BillActionTag.bill_vote_pass);
+    [i, progress.waitingForGovernor] = search(
+      i,
+      BillActionTag.sent_to_governor
+    );
+    [i, progress.billPassed] = search(i, BillActionTag.public_act);
+
+    let acts: BillProgressAction[] = [];
+    if (actions.length > 0) {
+      acts.push({
+        action: actions[0],
+        image: Images.bill_introduced,
+        text: 'Bill Introduced',
+      });
+    }
+    if (progress.chamber1Passed) {
+      acts.push({
+        action: progress.chamber1Passed,
+        image: Images.bill_body_passed,
+        text: 'Passed in ' + progress.chamber1Passed.Chamber,
+      });
+
+      if (progress.chamber2Passed) {
+        acts.push({
+          action: progress.chamber2Passed,
+          image: Images.bill_body_passed,
+          text: 'Passed in ' + progress.chamber2Passed.Chamber,
+        });
+
+        if (progress.billPassed) {
+          acts.push({
+            action: progress.billPassed,
+            image: Images.bill_passed,
+            text: 'Bill signed into law',
+          });
+        } else if (progress.waitingForGovernor) {
+          acts.push({
+            action: progress.waitingForGovernor,
+            image: Images.bill_passed,
+            text: 'Sent to Governor',
+          });
+        }
+      } else if (progress.chamber2Debating) {
+        acts.push({
+          action: progress.chamber2Debating,
+          image: Images.bill_debating,
+          text: 'Debating in ' + progress.chamber2Debating.Chamber,
+        });
+      } else if (progress.chamber2Arrival) {
+        acts.push({
+          action: progress.chamber2Arrival,
+          image: Images.bill_debating,
+          text: 'Arrival in ' + progress.chamber2Arrival.Chamber,
+        });
+      }
+    } else if (progress.chamber1Debating) {
+      acts.push({
+        action: progress.chamber1Debating,
+        image: Images.bill_debating,
+        text: 'Debating in ' + progress.chamber1Debating.Chamber,
+      });
+    } else if (progress.chamber1Arrival) {
+      acts.push({
+        action: progress.chamber1Arrival,
+
+        image: Images.bill_debating,
+        text: 'Arrival in ' + progress.chamber1Arrival.Chamber,
+      });
+    }
+
+    return acts;
+  }
+
+  export function extractTopComment(
+    data: BillData
+  ): { yes?: Comment; no?: Comment } {
+    let { comments, votes } = data;
+
+    let ids = Object.keys(comments);
+
+    let topYes = undefined;
+    try {
+      topYes = ids
+        .filter((id) => votes[comments[id].uid] == Vote.Yes)
+        .reduce((prev, curr) =>
+          comments[prev].likes > comments[curr].likes ? prev : curr
+        );
+    } catch (err) {}
+
+    let topNo = undefined;
+    try {
+      topNo = ids
+        .filter((id) => votes[comments[id].uid] == Vote.No)
+        .reduce((prev, curr) =>
+          comments[prev].likes > comments[curr].likes ? prev : curr
+        );
+    } catch (err) {}
+
+    return {
+      yes: topYes ? comments[topYes] : undefined,
+      no: topNo ? comments[topNo] : undefined,
     };
   }
 }

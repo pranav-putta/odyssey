@@ -1,60 +1,100 @@
+import dateFormat from 'dateformat';
 import React from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
+import { colors } from '../assets';
 import { Images } from '../assets/images';
+import { Representative } from '../models';
 import {
   Bill,
   BillAction,
   BillActionTag,
-  classifyBillProgress,
+  BillHandler,
+  BillProgressAction,
 } from '../models/Bill';
+import store from '../redux/store';
 import Space from './Space';
 interface Props {
   bill: Bill;
 }
 interface State {}
-class BillProgressBar extends React.Component<Props, State> {
-  private progressElements: string[] = [];
+
+class BillProgressBar extends React.PureComponent<Props, State> {
+  private progressElements: BillProgressAction[] = [];
 
   constructor(props: Props) {
     super(props);
 
     // construct actions
-    this.progressElements = classifyBillProgress(props.bill);
+    this.progressElements = BillHandler.constructTimeline(props.bill);
   }
   render() {
     return (
       <View style={styles.container}>
-        <Item icon={Images.chamber} text={this.progressElements[0]} />
-        <Item icon={Images.chamber} text={this.progressElements[1]} />
-        <Item icon={Images.law} text={this.progressElements[2]} />
-        <View style={styles.progress}>
-          <View style={styles.progressHighlight} />
-        </View>
+        {this.progressElements.map((item) => (
+          <>
+            <Item
+              action={item.action}
+              text={item.text}
+              image={item.image}
+            />
+          </>
+        ))}
       </View>
     );
   }
 }
 
-function Item(props: { icon: any; text: string }) {
-  if (!props.text) {
-    return null;
-  }
+function Item(props: {
+  action: BillAction;
+  text: string;
+  image: any;
+}) {
+  const { action, text, image } = props;
+  let date = dateFormat(action.Date, 'mmm dS, yyyy');
+  let space = 10;
+
   return (
-    <>
-      <View style={styles.item}>
-        <View style={styles.imageContainer}>
-          <Image source={props.icon} style={styles.itemImage} />
-        </View>
-        <Space height={5} />
-        <Text style={styles.itemText}>{props.text}</Text>
+    <View style={{ flexDirection: 'row' }}>
+      <Text
+        style={{
+          marginTop: space,
+          fontFamily: 'Futura',
+          color: colors.darkGray,
+          width: '22.5%',
+        }}
+      >
+        {date}
+      </Text>
+      <View
+        style={{
+          width: 0.25,
+          backgroundColor: colors.darkGray,
+          transform: [{ translateY: 5 }],
+        }}
+      />
+      <Space width={10} />
+      <Image
+        source={image}
+        style={{ width: 30, height: 30, marginTop: space }}
+      />
+      <View style={{ flex: 1, marginLeft: '10%' }}>
+        <Text
+          style={{
+            fontFamily: 'Futura',
+            fontSize: 16,
+            marginTop: space,
+          }}
+        >
+          {text}
+        </Text>
       </View>
-    </>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     width: '100%',
     justifyContent: 'space-between',
   },

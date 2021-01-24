@@ -15,10 +15,10 @@
       "display": true
     },
     "Economy": {
-      "bgColor": "#03192E",
-      "categoryColor": "#03192E50",
-      "categoryTextColor": "#03192E",
-      "image": "https://static.vecteezy.com/system/resources/previews/000/172/083/original/the-investor-hand-vector.jpg",
+      "bgColor": "#18272e",
+      "categoryColor": "#18272e50",
+      "categoryTextColor": "#18272e",
+      "image": "https://odyssey-images-assets.s3.us-east-2.amazonaws.com/economy.jpg",
       "display": true
     },
     "K-12": {
@@ -43,10 +43,10 @@
       "display": true
     },
     "Healthcare": {
-      "bgColor": "#FAFAFA",
-      "categoryColor": "#FAFAFA50",
-      "categoryTextColor": "#FAFAFA",
-      "image": "https://image.freepik.com/free-vector/medical-workers-analyzing-electronic-record_1262-19834.jpg",
+      "bgColor": "#051b57",
+      "categoryColor": "#051b5750",
+      "categoryTextColor": "#051b57",
+      "image": "https://odyssey-images-assets.s3.us-east-2.amazonaws.com/healthcare.jpg",
       "display": true
     },
     "Infrastructure": {
@@ -255,5 +255,11 @@
       "image": "https://cdn3.iconfinder.com/data/icons/avatar-55/64/Soldier-avatar-occupation-profession-man-human-512.png",
       "display": false
     }
+  },
+
+  "committeeConfig": {},
+
+  "iconConfig": {
+    
   }
 }

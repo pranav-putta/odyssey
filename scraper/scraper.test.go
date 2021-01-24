@@ -7,9 +7,10 @@ import (
 )
 
 func refresh() {
-	ody.RefreshBills(ody.SenateBillsURL, "101")
-	//ody.RefreshBills(ody.HouseBillsURL, "101")
+	//ody.RefreshBills(ody.HouseBillsURL, "102", "110")
+	//ody.RefreshBills(ody.HouseBillsURL, "102")
 	//ody.RefreshMembers("101")
+	ody.RefreshCommittees("101")
 
 }
 

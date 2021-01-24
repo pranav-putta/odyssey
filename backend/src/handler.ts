@@ -7,6 +7,7 @@ import awsconfig from "./aws.config";
 import { DocumentClient } from "aws-sdk/clients/dynamodb";
 import busboy from "busboy";
 import admin from "firebase-admin";
+import { v4 as uuidv4 } from "uuid";
 
 const current_version = 1;
 
@@ -353,6 +354,7 @@ enum SearchBy {
 }
 
 export const search = async (event: any = {}): Promise<any> => {
+  // todo: when returning data, only return actions 0 and len - 1
   let pgPool = new pg.Pool(pgConfig);
   let data = JSON.parse(event.body);
 
@@ -481,7 +483,7 @@ export const vote = async (event: any = {}): Promise<any> => {
       },
       ExpressionAttributeValues: {
         ":vote": input,
-        ":comments": [],
+        ":comments": {},
       },
     };
     response = await client.update(params).promise();
@@ -524,16 +526,19 @@ export const add_comment = async (event: any = {}): Promise<any> => {
       Key: {
         bill_id: billID.toString(),
       },
-      UpdateExpression: "set #comments = list_append(#comments, :comment)",
+      UpdateExpression: "set #comments.#uid = :comment",
       ExpressionAttributeNames: {
         "#comments": "comments",
+        "#uid": comment.cid,
       },
       ExpressionAttributeValues: {
-        ":comment": [comment],
+        ":comment": comment,
       },
     };
     response = await client.update(params).promise();
   } else {
+    let input: { [key: string]: Comment } = {};
+    input[comment.cid] = comment;
     // bill doesn't exist, so create
     const params: DocumentClient.UpdateItemInput = {
       TableName: awsconfig.aws_voting_table_name,
@@ -547,7 +552,7 @@ export const add_comment = async (event: any = {}): Promise<any> => {
       },
       ExpressionAttributeValues: {
         ":vote": {},
-        ":comments": [comment],
+        ":comments": input,
       },
     };
     response = await client.update(params).promise();
@@ -596,7 +601,6 @@ export const get_bill_data = async (event: any = {}): Promise<any> => {
 export const like_comment = async (event: any = {}): Promise<any> => {
   let data = JSON.parse(event.body);
   let billID: number = data.bill_id;
-  let commentIndex: number = data.comment_index;
   let uid: string = data.uid;
   let liked: boolean = data.liked;
 
@@ -609,9 +613,10 @@ export const like_comment = async (event: any = {}): Promise<any> => {
     Key: {
       bill_id: billID.toString(),
     },
-    UpdateExpression: "set #comments[" + commentIndex + "].likes.#uid = :value",
+    UpdateExpression: "set #comments.#cid.likes.#uid = :value",
     ExpressionAttributeNames: {
       "#comments": "comments",
+      "#cid": data.cid,
       "#uid": uid,
     },
     ExpressionAttributeValues: {
@@ -628,7 +633,7 @@ export const like_comment = async (event: any = {}): Promise<any> => {
 
 export const delete_comment = async (event: any = {}): Promise<any> => {
   let data = JSON.parse(event.body);
-  let commentIndex: number = data.comment_index;
+  let cid: string = data.cid;
   let billID: number = data.bill_id;
 
   // set up dynamodb client
@@ -640,9 +645,10 @@ export const delete_comment = async (event: any = {}): Promise<any> => {
     Key: {
       bill_id: billID.toString(),
     },
-    UpdateExpression: "remove #comments[" + commentIndex + "]",
+    UpdateExpression: "remove #comments.#cid",
     ExpressionAttributeNames: {
       "#comments": "comments",
+      "#cid": cid,
     },
   };
   let response = await client.update(params).promise();
@@ -811,6 +817,22 @@ export const fetch_bill = async (event: any = {}): Promise<any> => {
 
   return createSuccess(response);
 };
+
+/**
+ * generates committees
+ * @param event
+ */
+export const fetch_committees = async (event: any = {}): Promise<any> => {
+  let pgPool = new pg.Pool(pgConfig);
+  let committees = await pgPool.query(`select * from public.committees`);
+  await pgPool.end();
+
+  const response = {
+    committees: committees.rows,
+  };
+  return { statusCode: 200, body: JSON.stringify(response) };
+};
+
 export const delete_user = async (event: any = {}): Promise<any> => {};
 export const email_rep = async (event: any = {}): Promise<any> => {};
 

@@ -16,7 +16,7 @@ const (
 
 	// SenateBillsURL is the url to access the list of senate bills,
 	// formatted by general assembly number
-	HouseBillsURL string = "http://www.ilga.gov/legislation/grplist.asp?num1=1&num2=10000&DocTypeID=HB&GA=%s&SessionId=108"
+	HouseBillsURL string = "http://www.ilga.gov/legislation/grplist.asp?num1=1&num2=10000&DocTypeID=HB&GA=%s&SessionId=%s"
 
 	// RootURL is the base url of illinois general assembly website
 	RootURL string = "http://ilga.gov"
@@ -24,4 +24,7 @@ const (
 	// NotificationURL is used to communicate new notifications
 	NotificationURL    string = "https://tde26c6cp5.execute-api.us-east-2.amazonaws.com/prod/send-notifications"
 	DevNotificationURL string = "http://localhost:3000/prod/send-notifications"
+
+	HouseCommitteeURL string = "https://www.ilga.gov/senate/committees/default.asp?GA=%s"
+	SenateCommitteeURL string = "https://www.ilga.gov/house/committees/default.asp?GA=%s"
 )

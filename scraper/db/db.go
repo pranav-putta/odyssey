@@ -103,6 +103,30 @@ func InsertMember(p models.Person) {
 		panic(err)
 	}
 }
+func InsertCommittee(c models.Committee) {
+	// send to postgresql table
+	query := `INSERT INTO committees (name, chamber, assembly, id, category, code)
+				VALUES ($1, $2, $3, $4, $5, $6)
+				ON CONFLICT (id, chamber, assembly) DO UPDATE
+					SET name = $1,
+						chamber = $2,
+						assembly = $3,
+						id = $4,
+						category = $5,
+						code = $6;`
+
+	args := []interface{}{
+		c.Name,
+		c.Chamber,
+		c.Assembly,
+		c.Id,
+		c.Category,
+		c.Code}
+	_, err := postgreSQLClient().Exec(query, args...)
+	if err != nil {
+		panic(err)
+	}
+}
 
 // InsertBill inserts bill into postgresql
 func InsertBill(b models.Bill) {

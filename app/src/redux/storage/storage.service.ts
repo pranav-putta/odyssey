@@ -32,6 +32,10 @@ module StorageService {
   export const logout = (): AppThunk => async (dispatch) => {
     dispatch(storageActions.updateStorage(initialState));
   };
+
+  export const tutorialSeen = (): AppThunk => async (dispatch) => {
+    dispatch(storageActions.updateStorage({ tutorialSeen: true }));
+  };
 }
 
 export default StorageService;

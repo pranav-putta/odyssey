@@ -74,7 +74,7 @@ func getCategoriesJson() map[string]string {
 type BillCallback func(models.Bill, models.Notification, bool, error)
 
 // RefreshBills
-func RefreshBills(url string, ga string) {
+func RefreshBills(url string, ga string, sessionID string) {
 	// initialize systems
 	db.Initialize()
 	getCategoriesJson()
@@ -84,7 +84,7 @@ func RefreshBills(url string, ga string) {
 	handler.bills = make([]models.Bill, 0)
 	handler.notifications = make([]models.Notification, 0)
 
-	err := ScrapeBills(url, ga, func(b models.Bill, n models.Notification, shouldNotify bool, err error) {
+	err := ScrapeBills(url, ga, sessionID, func(b models.Bill, n models.Notification, shouldNotify bool, err error) {
 		handler.mu.Lock()
 		defer handler.mu.Unlock()
 
@@ -112,7 +112,6 @@ func RefreshBills(url string, ga string) {
 	fmt.Println("sending notifications...")
 	notificationMap := map[string][]models.Notification{"notifications": handler.notifications}
 	val, _ := json.MarshalIndent(notificationMap, "", "\t")
-	fmt.Println(len(notificationMap))
 	fmt.Println(notificationMap)
 
 	resp, err := http.Post(NotificationURL, "application/json", bytes.NewBuffer(val))
@@ -127,7 +126,7 @@ func RefreshBills(url string, ga string) {
 }
 
 // ScrapeBills retrieves all bill data given the url of a list of bills from http://ilga.gov/
-func ScrapeBills(url string, ga string, callback BillCallback) error {
+func ScrapeBills(url string, ga string, sessionID string, callback BillCallback) error {
 	// bill details collector
 	billCollector := colly.NewCollector(colly.Async(true), colly.DetectCharset(), colly.AllowURLRevisit())
 	billCollector.SetRequestTimeout(20 * time.Second)
@@ -148,7 +147,7 @@ func ScrapeBills(url string, ga string, callback BillCallback) error {
 	})
 
 	// get bills document from provided url
-	url = fmt.Sprintf(url, ga)
+	url = fmt.Sprintf(url, ga, sessionID)
 	billsDoc, err := goquery.NewDocument(url)
 	if err != nil {
 		return errors.New("couldn't scrape")
@@ -167,11 +166,10 @@ func ScrapeBills(url string, ga string, callback BillCallback) error {
 		// get absolute url
 		link, err := absoluteURL(link)
 		if err != nil {
+			panic(err)
 			return
 		}
-		if i == 0 {
-			q.AddURL(link)
-		}
+		q.AddURL(link)
 	})
 	q.Run(billCollector)
 	billCollector.Wait()
@@ -239,8 +237,8 @@ func onBillDetailsResponse(e *colly.HTMLElement, callback BillCallback) {
 
 		if updateText || shouldUpdateAll {
 			// create the url for full text
-			fullTextURL := fmt.Sprintf("http://www.ilga.gov/legislation/%d/%s/10100%s%04d.htm",
-				bill.Metadata.Assembly, bill.Metadata.Chamber, bill.Metadata.Chamber, bill.Metadata.Number)
+			fullTextURL := fmt.Sprintf("http://www.ilga.gov/legislation/%d/%s/%d00%s%04d.htm",
+				bill.Metadata.Assembly, bill.Metadata.Chamber, bill.Metadata.Assembly, bill.Metadata.Chamber, bill.Metadata.Number)
 
 			newDoc, err := goquery.NewDocument(fullTextURL)
 			fullText := ""

@@ -9,6 +9,8 @@ import {
   ActionSheetIOS,
   Image,
   Dimensions,
+  Alert,
+  StatusBar,
 } from 'react-native';
 import { Icon } from 'react-native-elements';
 import { colors } from '../../../assets';
@@ -23,8 +25,14 @@ import {
 import Clipboard from '@react-native-community/clipboard';
 import { Analytics } from '../../../util/services/AnalyticsHandler';
 import { User } from '../../../redux/models/user';
-import { BillHandler } from '../../../models/Bill';
+import { Bill, BillHandler } from '../../../models/Bill';
 import { StorageService } from '../../../redux/storage';
+import store from '../../../redux/store';
+import { UIScreenCode } from '../../../redux/ui/ui.types';
+import { connect } from 'react-redux';
+import { UIService } from '../../../redux/ui/ui';
+import Skeleton, { Skeletons } from '../../../components/Skeleton';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 enum Vote {
   None = -1,
@@ -33,13 +41,13 @@ enum Vote {
 }
 type Props = {
   navigation: BillDetailsVoteScreenProps;
-  route: BillDetailVoteScreenRouteProps;
+  bill?: Bill;
+  billData?: BillData;
+  vote: Vote;
+  user: User;
 };
 type State = {
-  vote: Vote;
-  billData: BillData;
   progress: boolean;
-  user?: User;
 };
 
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(
@@ -209,18 +217,31 @@ function ButtonGroup(props: {
   );
 }
 
-export default class VoteScreen extends React.Component<Props, State> {
+function mapStoreToProps() {
+  let { ui, storage } = store.getState();
+  let bill = ui.screen.code == UIScreenCode.bill ? ui.screen.bill : undefined;
+  let billData =
+    ui.screen.code == UIScreenCode.bill ? ui.screen.billData : undefined;
+  let vote = Vote.None;
+
+  if (billData) {
+    vote = billData.votes[storage.user.uid] ?? Vote.None;
+  }
+
+  return {
+    bill,
+    billData,
+    vote,
+    user: storage.user,
+  };
+}
+
+class VoteScreen extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
+    let id = props.bill ? BillHandler.id(props.bill) : '';
     this.state = {
-      vote: Vote.None,
-      billData: {
-        bill_id: BillHandler.id(props.route.params.bill),
-        comments: [],
-        votes: {},
-      },
       progress: false,
-      user: undefined,
     };
   }
 
@@ -229,21 +250,22 @@ export default class VoteScreen extends React.Component<Props, State> {
     this.props.navigation.addListener('focus', this.reload);
   }
 
-  reload = () => {
-    this.setState({ progress: true });
-    Network.getBillData(this.props.route.params.bill).then(async (val) => {
-      this.setState({ billData: val, progress: false });
+  componentDidUpdate() {}
 
-      let user = StorageService.user();
-      this.setState({ user: user });
-      if (user && Object.keys(val.votes).includes(user.uid)) {
-        this.setState({ vote: val.votes[user.uid] });
-      }
-    });
-  };
+  reload = () => {};
 
   render() {
-    let comments = this.state.billData.comments;
+    let { billData, bill, vote, user } = this.props;
+
+    if (!bill || !billData) {
+      return (
+        <View>
+          <Skeleton loading={true} skeleton={Skeletons.RepCard} />
+        </View>
+      );
+    }
+
+    let comments = Object.values(billData.comments);
     let top = undefined;
     let max = -1;
     for (const comment of comments) {
@@ -252,15 +274,13 @@ export default class VoteScreen extends React.Component<Props, State> {
         max = Object.keys(comment.likes).length;
       }
     }
-    let yesVotes = Object.values(this.state.billData.votes).filter(
+    let yesVotes = Object.values(billData.votes).filter(
       (val) => val == Vote.Yes
     ).length;
-    let noVotes = Object.values(this.state.billData.votes).filter(
-      (val) => val == Vote.No
-    ).length;
-    let votes = Object.values(this.state.billData.votes).filter(
-      (val) => val != Vote.None
-    ).length;
+    let noVotes = Object.values(billData.votes).filter((val) => val == Vote.No)
+      .length;
+    let votes = Object.values(billData.votes).filter((val) => val != Vote.None)
+      .length;
     if (votes > 0) {
       yesVotes = yesVotes / votes;
       noVotes = noVotes / votes;
@@ -270,6 +290,7 @@ export default class VoteScreen extends React.Component<Props, State> {
     }
     return (
       <View style={styles.container}>
+        <StatusBar barStyle={'dark-content'} />
         <ProgressHUD visible={this.state.progress} />
         <View style={styles.header}>
           {this.closeButton()}
@@ -279,30 +300,16 @@ export default class VoteScreen extends React.Component<Props, State> {
           buttons={['Yes', 'No']}
           activeColors={['#69f0ae', '#ff8a80']}
           inactiveColor={'#fff'}
-          activeIndex={this.state.vote}
+          activeIndex={vote}
           percentages={[yesVotes, noVotes]}
           onPress={async (index) => {
-            return new Promise<void>((resolve, reject) =>
-              this.setState({ vote: index }, () => {
-                Analytics.voteEvent(this.props.route.params.bill, index);
-                Network.setBillVote(
-                  this.props.route.params.bill,
-                  this.state.vote
-                );
-                if (this.state.user) {
-                  let billData = this.state.billData;
-                  billData.votes[this.state.user.uid] = index;
-                  this.setState({ billData: billData });
-                }
-                resolve();
-              })
-            );
+            UIService.billVote(index);
           }}
         />
         {top ? (
           <ScrollView style={{ marginTop: '10%' }} nestedScrollEnabled={true}>
-            {this.topComment(top)}
-            {this.comments(comments)}
+            {this.topComment(top, bill, billData)}
+            {this.comments(comments, user, bill, billData)}
           </ScrollView>
         ) : (
           <View
@@ -314,13 +321,13 @@ export default class VoteScreen extends React.Component<Props, State> {
           </View>
         )}
 
-        {this.newComment()}
+        {this.newComment(bill)}
       </View>
     );
   }
 
-  topComment = (top: Comment) => {
-    let vote = this.state.billData.votes[top.uid];
+  topComment = (top: Comment, bill: Bill, billData: BillData) => {
+    let vote = billData.votes[top.uid];
     let formattedDate = dateformat(new Date(top.date), 'mmm dd, yyyy');
 
     let picture = `https://odyssey-user-pfp.s3.us-east-2.amazonaws.com/${top.uid}_pfp.jpg`;
@@ -328,7 +335,7 @@ export default class VoteScreen extends React.Component<Props, State> {
       <TouchableOpacity
         style={styles.topComment}
         onPress={() => {
-          Analytics.commentClicked(this.props.route.params.bill, top);
+          Analytics.commentClicked(bill, top);
           this.props.navigation.push('CommentFullScreen', {
             comment: top,
             formattedDate: formattedDate,
@@ -452,23 +459,28 @@ export default class VoteScreen extends React.Component<Props, State> {
     }
   };
 
-  comment = (comment: Comment, index: number) => {
+  comment = (
+    comment: Comment,
+    index: number,
+    user: User,
+    bill: Bill,
+    billData: BillData
+  ) => {
     let formattedDate = dateformat(new Date(comment.date), 'mmm dd, yyyy');
-    let isLiked = this.state.user
-      ? comment.likes[this.state.user.uid] !== undefined &&
-        comment.likes[this.state.user.uid]
+    let isLiked = user
+      ? comment.likes[user.uid] !== undefined && comment.likes[user.uid]
       : false;
     let picture = `https://odyssey-user-pfp.s3.us-east-2.amazonaws.com/${comment.uid}_pfp.jpg`;
 
     // search for position of comment user
-    let vote = this.state.billData.votes[comment.uid];
+    let vote = billData.votes[comment.uid];
 
     return (
       <TouchableOpacity
         key={comment.name + comment.text}
         activeOpacity={0.6}
         onPress={() => {
-          Analytics.commentClicked(this.props.route.params.bill, comment);
+          Analytics.commentClicked(bill, comment);
           this.props.navigation.push('CommentFullScreen', {
             comment: comment,
             formattedDate: formattedDate,
@@ -478,7 +490,7 @@ export default class VoteScreen extends React.Component<Props, State> {
         }}
         onLongPress={() => {
           let options = ['Copy', 'Cancel'];
-          if (this.state.user && this.state.user.uid == comment.uid) {
+          if (user && user.uid == comment.uid) {
             options = ['Copy', 'Delete', 'Cancel'];
           }
 
@@ -490,21 +502,10 @@ export default class VoteScreen extends React.Component<Props, State> {
             },
             (btn) => {
               if (btn == 0) {
-                Analytics.commentCopied(this.props.route.params.bill, comment);
+                Analytics.commentCopied(bill, comment);
                 Clipboard.setString(comment.text);
-              } else if (
-                btn == 1 &&
-                this.state.user &&
-                this.state.user.uid == comment.uid
-              ) {
-                Analytics.commentDeleted(this.props.route.params.bill, comment);
-                Network.deleteComment(
-                  this.props.route.params.bill,
-                  index
-                ).then();
-                let billData = this.state.billData;
-                billData.comments.splice(index, 1);
-                this.setState({ billData: billData });
+              } else if (btn == 1 && user && user.uid == comment.uid) {
+                // todo: add delete functionality
               }
             }
           );
@@ -598,27 +599,7 @@ export default class VoteScreen extends React.Component<Props, State> {
                   alignItems: 'center',
                 }}
                 onPress={() => {
-                  if (this.state.user) {
-                    let billData = this.state.billData;
-                    let like = !billData.comments[index].likes[
-                      this.state.user.uid
-                    ];
-                    Analytics.commentLikeChange(
-                      this.props.route.params.bill,
-                      comment,
-                      like
-                    );
-
-                    billData.comments[index].likes[
-                      this.state.user.uid
-                    ] = !billData.comments[index].likes[this.state.user.uid];
-                    this.setState({ billData: billData });
-                    Network.likeComment(
-                      this.props.route.params.bill,
-                      index,
-                      billData.comments[index].likes[this.state.user.uid]
-                    );
-                  }
+                  // todo: like comment system
                 }}
               >
                 <Icon
@@ -644,23 +625,27 @@ export default class VoteScreen extends React.Component<Props, State> {
     );
   };
 
-  comments = (comments: Comment[]) => {
+  comments = (
+    comments: Comment[],
+    user: User,
+    bill: Bill,
+    billData: BillData
+  ) => {
     return (
       <View style={styles.commentBox}>
-        {comments.map((val, i) => this.comment(val, i))}
+        {comments.map((val, i) => this.comment(val, i, user, bill, billData))}
       </View>
     );
   };
 
-  newComment = () => {
+  newComment = (bill: Bill) => {
     return (
-      <View
+      <SafeAreaView
+        edges={['bottom']}
         style={{
           width: '100%',
-          height: '10%',
+          height: '14%',
           backgroundColor: 'white',
-          padding: '2.5%',
-          paddingHorizontal: '7.5%',
           shadowColor: 'black',
           shadowOpacity: 0.25,
           shadowOffset: { width: 0, height: 1 },
@@ -674,11 +659,15 @@ export default class VoteScreen extends React.Component<Props, State> {
             backgroundColor: colors.textInputBackground,
             borderRadius: 10,
             flexDirection: 'row',
+            alignItems: 'center',
+            margin: 5,
+            marginVertical: 10,
+            flex: 1,
           }}
           onPress={() => {
-            Analytics.createCommentButtonClicked(this.props.route.params.bill);
+            Analytics.createCommentButtonClicked(bill);
             this.props.navigation.push('Comment', {
-              bill: this.props.route.params.bill,
+              bill: bill,
             });
           }}
         >
@@ -692,14 +681,15 @@ export default class VoteScreen extends React.Component<Props, State> {
               backgroundColor: '#448aff',
               justifyContent: 'center',
               alignItems: 'center',
-              flex: 1,
-              borderRadius: 10,
+              borderRadius: 5,
+              margin: 10,
+              padding: 10,
             }}
           >
-            <Icon type="feather" name="send" size={24} color={'white'} />
+            <Icon type="feather" name="send" size={18} color={'white'} />
           </View>
         </TouchableOpacity>
-      </View>
+      </SafeAreaView>
     );
   };
 
@@ -750,7 +740,7 @@ const styles = StyleSheet.create({
     width: '85%',
     height: '12.5%',
     marginHorizontal: '7.5%',
-
+    overflow: 'hidden',
     flexDirection: 'row',
     marginTop: '5%',
     shadowColor: 'black',
@@ -761,6 +751,7 @@ const styles = StyleSheet.create({
   button: {
     justifyContent: 'center',
     alignItems: 'center',
+    overflow: 'hidden',
   },
   buttonText: {
     fontWeight: '600',
@@ -814,3 +805,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 });
+
+export default connect(mapStoreToProps)(VoteScreen);

@@ -143,6 +143,13 @@ functions:
           path: fetch-bill
           method: post
           cors: true
+  fetch-committees:
+    handler: dist/handler.fetch_committees
+    events:
+      - http:
+          path: fetch-committees
+          method: post
+          cors: true
 
 plugins:
   - serverless-offline

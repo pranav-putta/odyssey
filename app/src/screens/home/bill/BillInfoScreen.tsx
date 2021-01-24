@@ -1,13 +1,18 @@
 import React, { ReactNode, ReactNodeArray } from 'react';
 import {
+  Alert,
   Animated,
   Dimensions,
   ScrollView,
   StatusBar,
   StyleSheet,
   Text,
+  Image,
   TouchableOpacity,
   View,
+  StyleProp,
+  ViewStyle,
+  TextStyle,
 } from 'react-native';
 import { Icon } from 'react-native-elements';
 import FastImage from 'react-native-fast-image';
@@ -15,7 +20,9 @@ import { colors } from '../../../assets';
 import {
   Bill,
   BillActionTag,
+  BillHandler,
   BillMetadata,
+  BillVotingEvent,
   formatBillNumber,
 } from '../../../models/Bill';
 //@ts-ignore
@@ -35,20 +42,31 @@ import store from '../../../redux/store';
 import BillProgressBar from '../../../components/BillProgressBar';
 import { StorageService } from '../../../redux/storage';
 import { connect } from 'react-redux';
-import { UIStatus } from '../../../redux/ui/ui.types';
-import { FeedService } from '../../../redux/feed';
+import {
+  UIScreenCode,
+  UIStatus,
+  UIStatusCode,
+} from '../../../redux/ui/ui.types';
 import { voteButtonAnimation } from '../../../components/Animations';
-import { BillStatusCode } from '../../../redux/bill/bill.types';
-import { BillService } from '../../../redux/bill';
 import tinycolor from 'tinycolor2';
 import Skeleton, { Skeletons } from '../../../components/Skeleton';
 import { Odyssey } from '../../Navigator';
-import { StackActions } from 'react-navigation';
+import { UIService } from '../../../redux/ui/ui';
+import Space from '../../../components/Space';
+import { Representative } from '../../../models';
+// @ts-ignore
+import Slider from 'react-native-slider';
+import RaisedButton from '../../login/components/RaisedButton';
+import Button from '../../../components/Button';
+import { BillData, Comment } from '../../../models/BillData';
 
 interface Props {
   bill?: Bill;
   user: User;
   navigation: BillDetailsInfoScreenProps;
+  category: Category;
+  blurType: 'light' | 'ultraThinMaterial';
+  error?: string;
 }
 
 enum ScrollDirection {
@@ -74,20 +92,45 @@ const AnimatedSharedElement = Animated.createAnimatedComponent(SharedElement);
 const AnimatedFastImage = Animated.createAnimatedComponent(FastImage);
 const { height } = Dimensions.get('screen');
 
+const coverHeight = 0.325 * height;
+const minimizedCoverHeight = 0.125 * height;
+
 function mapStoreToProps() {
-  let { ui, storage, bill } = store.getState();
+  let { ui, storage } = store.getState();
   let user = storage.user;
 
-  let b = bill.status.bill;
+  let b = ui.screen.code == UIScreenCode.bill ? ui.screen.bill : undefined;
+  let data =
+    ui.screen.code == UIScreenCode.bill ? ui.screen.billData : undefined;
+
+  // set up category and blur type
+  let category = DefaultCategory;
+  if (b) {
+    category = Config.getTopics()[b.category];
+    if (!category) {
+      category = DefaultCategory;
+
+      Config.alertUpdateConfig().then(() => {
+        store.dispatch(
+          UIService.setError('Something went wrong! Try reloading the app')
+        );
+      });
+    }
+  }
+  let isDark = tinycolor(category.bgColor).isDark();
+  let blurType: 'light' | 'ultraThinMaterial' = isDark
+    ? 'light'
+    : 'ultraThinMaterial';
   return {
     user,
     bill: b,
+    category,
+    blurType,
+    error: ui.status.code == UIStatusCode.error ? ui.status.message : undefined,
   };
 }
 
 class BillInfoScreen extends React.PureComponent<Props, State> {
-  private category: Category;
-  private blurType: 'light' | 'ultraThinMaterial';
   constructor(props: Props) {
     super(props);
     this.state = {
@@ -103,21 +146,6 @@ class BillInfoScreen extends React.PureComponent<Props, State> {
       scrollDirection: ScrollDirection.down,
       scrollAnimating: false,
     };
-    if (this.props.bill) {
-      this.category = Config.getTopics()[this.props.bill.category];
-      if (!this.category) {
-        this.category = DefaultCategory;
-
-        Config.alertUpdateConfig().then(() => {
-          this.forceUpdate();
-        });
-      }
-    } else {
-      this.category = DefaultCategory;
-    }
-
-    let isDark = tinycolor(this.category.bgColor).isDark();
-    this.blurType = isDark ? 'light' : 'ultraThinMaterial';
   }
   componentDidMount() {
     this.props.navigation.addListener('transitionStart', (e) => {
@@ -139,8 +167,15 @@ class BillInfoScreen extends React.PureComponent<Props, State> {
     });
   }
 
+  componentDidUpdate() {
+    if (this.props.error) {
+      Alert.alert('Error', this.props.error);
+      store.dispatch(UIService.setStableState());
+    }
+  }
+
   render() {
-    const { bill } = this.props;
+    const { bill, category } = this.props;
 
     if (bill) {
       return (
@@ -173,40 +208,18 @@ class BillInfoScreen extends React.PureComponent<Props, State> {
             onScrollBeginDrag={() => {
               this.setState({ scrollAnimating: false });
             }}
-            onMomentumScrollEnd={(e: any) => {
-              if (!this.state.scrollAnimating) {
-                let y = e.nativeEvent.contentOffset.y;
-                let isDown = this.state.scrollDirection == ScrollDirection.down;
-                if (y > 0.05 * height && y < 0.3 * height && isDown) {
-                  this.state.contentRef.current?.scrollTo({
-                    y: 0.275 * height,
-                  });
-                  this.setState({ scrollAnimating: true });
-                } else if (y <= 0.05 * height && isDown) {
-                  this.state.contentRef.current?.scrollTo({ y: 0 });
-                  this.setState({ scrollAnimating: true });
-                } else if (y <= 0.35 * height && !isDown) {
-                  this.state.contentRef.current?.scrollTo({ y: 0 });
-                  this.setState({ scrollAnimating: true });
-                } else {
-                  this.state.contentRef.current?.scrollTo({ y: y });
-                }
-              }
-            }}
             onScrollEndDrag={(e: any) => {
               if (!this.state.scrollAnimating) {
                 let y = e.nativeEvent.contentOffset.y;
                 let isDown = this.state.scrollDirection == ScrollDirection.down;
-                if (y > 0.05 * height && y < 0.3 * height && isDown) {
+                if (
+                  y > 0.05 * height &&
+                  y < coverHeight - minimizedCoverHeight &&
+                  isDown
+                ) {
                   this.state.contentRef.current?.scrollTo({
-                    y: 0.275 * height,
+                    y: coverHeight - minimizedCoverHeight,
                   });
-                  this.setState({ scrollAnimating: true });
-                } else if (y <= 0.05 * height && isDown) {
-                  this.state.contentRef.current?.scrollTo({ y: 0 });
-                  this.setState({ scrollAnimating: true });
-                } else if (y <= 0.35 * height && !isDown) {
-                  this.state.contentRef.current?.scrollTo({ y: 0 });
                   this.setState({ scrollAnimating: true });
                 }
               }
@@ -216,133 +229,41 @@ class BillInfoScreen extends React.PureComponent<Props, State> {
           >
             <Cover
               bill={bill}
-              category={this.category}
+              category={category}
               scroll={this.state.scroll}
+              blurType={this.props.blurType}
             />
+            <VoteCard bill={bill} scroll={this.state.scroll} />
             <Body bill={bill} />
           </Animated.ScrollView>
           {this.closeButton()}
           {this.likeButton()}
-          {this.footer()}
         </View>
       );
     } else {
-      return (
-        <View>
-          <Skeleton loading={true} skeleton={Skeletons.RepCard} />
-        </View>
-      );
+      return <Skeleton loading={true} skeleton={Skeletons.BillInfo} />;
     }
   }
 
-  footer = () => {
-    const { height } = Dimensions.get('screen');
-    const { bill } = this.props;
-    if (bill) {
-      return (
-        <View
-          style={{
-            height: height * 0.07,
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'flex-start',
-            marginBottom: '7%',
-            marginHorizontal: '7.5%',
-            backgroundColor: 'transparent',
-          }}
-        >
-          <Animatable.View
-            animation={voteButtonAnimation}
-            iterationCount={'infinite'}
-            duration={2000}
-            iterationDelay={3000}
-            style={styles.voteButton}
-          >
-            <TouchableOpacity
-              style={{
-                flex: 1,
-                alignItems: 'center',
-                flexDirection: 'row',
-                justifyContent: 'center',
-              }}
-              onPress={() => {
-                // @ts-ignore
-                this.props.navigation.push('Vote', this.props.route.params);
-              }}
-            >
-              <Icon
-                type="material-community"
-                name="vote-outline"
-                size={30}
-                color="white"
-              />
-              <Text
-                style={{
-                  fontSize: 18,
-                  fontWeight: '600',
-                  fontFamily: 'Futura',
-                  marginLeft: '10%',
-                  color: 'white',
-                }}
-              >
-                Share your thoughts!
-              </Text>
-            </TouchableOpacity>
-          </Animatable.View>
-          <View style={styles.fullBill}>
-            <TouchableScale
-              style={{
-                flex: 1,
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-              onPress={() => {
-                Analytics.billFullPage(bill);
-                Browser.openURL(bill.url, true, true);
-              }}
-            >
-              <Icon
-                type="feather"
-                name="external-link"
-                size={30}
-                color="black"
-              />
-            </TouchableScale>
-          </View>
-        </View>
-      );
-    } else {
-      return null;
-    }
-  };
-
   likeButton = () => {
-    const { bill, user } = this.props;
+    const { bill, user, blurType } = this.props;
     if (bill) {
       let liked = UserHandler.hasLikedBill(user, bill);
 
       return (
-        <Animated.View
+        <View
           style={{
             position: 'absolute',
             width: 40,
             height: 40,
-            top: '23%',
+            top: '6%',
             right: '6%',
             zIndex: 100,
-            transform: [
-              {
-                translateY: this.state.scroll.interpolate({
-                  inputRange: [-1, 0, height * 0.25, height * 0.3],
-                  outputRange: [0, 0, -0.17 * height, -0.17 * height],
-                }),
-              },
-            ],
           }}
         >
           <BlurView
             style={[styles.likeButton]}
-            blurType={this.blurType}
+            blurType={blurType}
             blurAmount={15}
             overlayColor={'black'}
           >
@@ -364,15 +285,15 @@ class BillInfoScreen extends React.PureComponent<Props, State> {
                 }}
               >
                 <Icon
-                  size={26}
-                  name={liked ? 'heart-sharp' : 'heart-outline'}
+                  size={22}
+                  name={liked ? 'bookmarks' : 'bookmark-outline'}
                   type="ionicon"
-                  color={liked ? colors.republican : 'white'}
+                  color={liked ? colors.bookmark : 'white'}
                 />
               </Animatable.View>
             </TouchableOpacity>
           </BlurView>
-        </Animated.View>
+        </View>
       );
     } else {
       return null;
@@ -381,8 +302,9 @@ class BillInfoScreen extends React.PureComponent<Props, State> {
 
   // generate the close button
   closeButton = () => {
+    let { blurType } = this.props;
     return (
-      <BlurView style={styles.closeButton} blurType={this.blurType}>
+      <BlurView style={styles.closeButton} blurType={blurType}>
         <TouchableOpacity
           style={{
             width: '100%',
@@ -401,13 +323,83 @@ class BillInfoScreen extends React.PureComponent<Props, State> {
   };
 }
 
+function Title(props: {
+  bill: Bill;
+  category: Category;
+  blurType: any;
+  scroll: Animated.Value;
+  opacity: Animated.AnimatedInterpolation;
+  translateY: Animated.AnimatedInterpolation;
+}) {
+  const { bill, category, blurType, opacity } = props;
+
+  return (
+    <Animated.View
+      style={{
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 10,
+        borderTopEndRadius: 10,
+        borderTopStartRadius: 10,
+        overflow: 'hidden',
+        opacity: opacity,
+        transform: [{ translateY: props.translateY }],
+      }}
+    >
+      <BlurView
+        style={{
+          padding: 10,
+          paddingHorizontal: '6%',
+        }}
+        blurType={'regular'}
+        blurAmount={20}
+      >
+        <View style={styles.categoriesContainer}>
+          <Text style={styles.number}>{formatBillNumber(bill)}</Text>
+          <SharedElement
+            id={`bill.${bill.number}.category`}
+            style={[
+              styles.category,
+              { backgroundColor: category.categoryColor },
+            ]}
+          >
+            <Text
+              style={[
+                styles.categoryText,
+                { color: category.categoryTextColor },
+              ]}
+            >
+              {bill.category}
+            </Text>
+          </SharedElement>
+        </View>
+        <Space height={5} />
+        <Text
+          numberOfLines={1}
+          adjustsFontSizeToFit={true}
+          style={styles.title}
+        >
+          {bill.title}
+        </Text>
+      </BlurView>
+    </Animated.View>
+  );
+}
+
 function Cover(props: {
   bill: Bill;
   scroll: Animated.Value;
   category: Category;
+  blurType: any;
 }) {
   const { bill, scroll, category } = props;
   let isDark = tinycolor(category.bgColor).isDark();
+  let titleOpacity = scroll.interpolate({
+    inputRange: [0, coverHeight / 3],
+    outputRange: [1, 0],
+  });
   return (
     <>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
@@ -417,21 +409,16 @@ function Cover(props: {
           style={[
             styles.imageContainer,
             {
-              minHeight: 0.125 * height,
-              maxHeight: 0.35 * height,
-              height: 0.3 * height,
-              zIndex: 100,
+              minHeight: minimizedCoverHeight,
+              maxHeight: coverHeight,
+              height: coverHeight,
+              zIndex: 1,
+              overflow: 'hidden',
               transform: [
                 {
-                  scale: scroll.interpolate({
-                    inputRange: [-0.3 * height, -0.2 * height, 0, 0.3 * height],
-                    outputRange: [1.2, 1.2, 1, 1],
-                  }),
-                },
-                {
                   translateY: scroll.interpolate({
-                    inputRange: [-1, 0, 1],
-                    outputRange: [-0.5, 0, 0],
+                    inputRange: [-coverHeight, 0, 1],
+                    outputRange: [-coverHeight, 0, 0],
                   }),
                 },
               ],
@@ -445,9 +432,9 @@ function Cover(props: {
               {
                 transform: [
                   {
-                    translateY: scroll.interpolate({
-                      inputRange: [0, 0.3 * height],
-                      outputRange: [0, 0.1 * height],
+                    scale: scroll.interpolate({
+                      inputRange: [-coverHeight, 0, coverHeight],
+                      outputRange: [1.4, 1, 1],
                     }),
                   },
                 ],
@@ -456,41 +443,17 @@ function Cover(props: {
             source={{ uri: category.image }}
           />
         </AnimatedSharedElement>
-        <Animated.View
-          style={{
-            marginHorizontal: '7.5%',
-            marginTop: '3.5%',
-            transform: [
-              {
-                translateY: scroll.interpolate({
-                  inputRange: [-1, 0, 0.3 * height],
-                  outputRange: [0, 0, -0.1 * height],
-                }),
-              },
-            ],
-          }}
-        >
-          <View style={styles.categoriesContainer}>
-            <Text style={styles.number}>{formatBillNumber(bill)}</Text>
-            <SharedElement
-              id={`bill.${bill.number}.category`}
-              style={[
-                styles.category,
-                { backgroundColor: category.categoryColor },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.categoryText,
-                  { color: category.categoryTextColor },
-                ]}
-              >
-                {bill.category}
-              </Text>
-            </SharedElement>
-          </View>
-          <Text style={styles.title}>{bill.title}</Text>
-        </Animated.View>
+        <Title
+          bill={bill}
+          category={category}
+          blurType={props.blurType}
+          scroll={scroll}
+          opacity={titleOpacity}
+          translateY={scroll.interpolate({
+            inputRange: [-coverHeight, 0, 1],
+            outputRange: [-coverHeight, 0, 0],
+          })}
+        />
       </View>
     </>
   );
@@ -504,19 +467,23 @@ function Header(props: { bill: Bill; scroll: Animated.Value }) {
         {
           position: 'absolute',
           width: '100%',
-          height: 0.125 * height,
+          height: minimizedCoverHeight,
           zIndex: 100,
           shadowRadius: 10,
           shadowOpacity: 0.35,
           shadowColor: 'black',
           shadowOffset: { width: 0, height: 2 },
-          borderBottomLeftRadius: 15,
-          borderBottomRightRadius: 15,
+          borderBottomLeftRadius: 0,
+          borderBottomRightRadius: 0,
           overflow: 'hidden',
         },
         {
           opacity: scroll.interpolate({
-            inputRange: [0, 0.15 * height, 0.25 * height],
+            inputRange: [
+              0,
+              minimizedCoverHeight,
+              coverHeight - minimizedCoverHeight,
+            ],
             outputRange: [0, 0, 1],
             extrapolate: 'clamp',
           }),
@@ -557,11 +524,370 @@ function Body(props: { bill: Bill }) {
   const { bill } = props;
   return (
     <View style={[styles.content]}>
-      <BillProgressBar bill={bill} />
-      <Text ellipsizeMode="tail" style={styles.synopsis}>
-        {bill.short_summary + bill.full_summary}
-      </Text>
+      <Summary bill={bill} />
+      <Space height={20} />
+      <Comments bill={bill} />
+      <Space height={20} />
+      <BillStatus bill={bill} />
+      <Space height={20} />
+      <RepVote bill={bill} />
+      <Space height={50} />
     </View>
+  );
+}
+
+function VoteCard(props: { bill: Bill; scroll: Animated.Value }) {
+  return (
+    <Card
+      style={{
+        zIndex: 100,
+        shadowColor: 'black',
+        shadowRadius: 5,
+        shadowOpacity: 0.15,
+        shadowOffset: { width: 0, height: 3 },
+        padding: '4%',
+        transform: [
+          {
+            translateY: props.scroll.interpolate({
+              inputRange: [
+                -1,
+                0,
+                coverHeight - minimizedCoverHeight,
+                coverHeight - minimizedCoverHeight + 1,
+              ],
+              outputRange: [-1, 0, 0, 1],
+            }),
+          },
+        ],
+      }}
+      textStyle={{ fontSize: 20 }}
+      label={'Vote'}
+    >
+      <Slider />
+    </Card>
+  );
+}
+
+class Comments extends React.Component<{ bill: Bill }, { data?: BillData }> {
+  private unsubscribeStore;
+
+  constructor(props: any) {
+    super(props);
+
+    this.state = {
+      data: this.getBillDataFromStore(),
+    };
+
+    this.unsubscribeStore = store.subscribe(() => {
+      let data = this.getBillDataFromStore();
+      if (data != this.state.data) {
+        this.setState({ data });
+      }
+    });
+  }
+
+  getBillDataFromStore() {
+    const { ui } = store.getState();
+    return ui.screen.code == UIScreenCode.bill ? ui.screen.billData : undefined;
+  }
+
+  shouldComponentUpdate(props: any, state: any) {
+    return this.state.data != state.data;
+  }
+
+  componentWillUnmount() {
+    this.unsubscribeStore();
+  }
+
+  render() {
+    if (!this.state.data) {
+      return (
+        <Card label={'Top Comments'}>
+          <Skeleton loading={true} skeleton={Skeletons.Comment}></Skeleton>
+        </Card>
+      );
+    }
+
+    const { bill } = this.props;
+    const { yes, no } = BillHandler.extractTopComment(this.state.data);
+    return (
+      <Card label={'Top Comments'}>
+        <View style={{ padding: 10 }}>
+          <TopComment
+            comment={{
+              cid: '',
+              date: 0,
+              likes: {},
+              name: '',
+              text: `This bill is really good, but like also I like to suck your cock HEHEH.ur a fucking n word but i can't say it ad this iss so sad`,
+              uid: '',
+            }}
+            position={'for'}
+          />
+          <Space height={10} />
+          <TopComment
+            comment={{
+              cid: '',
+              date: 0,
+              likes: {},
+              name: '',
+              text: `This bill is really good, but like also I like to suck your cock HEHEH.ur a fucking n word but i can't say it ad this iss so sad`,
+              uid: '',
+            }}
+            position={'against'}
+          />
+        </View>
+        <Space height={15} />
+        <View style={{ flexDirection: 'row' }}>
+          <Button
+            label="View All"
+            color={'white'}
+            textStyle={{ color: 'black' }}
+          />
+          <Space width={10} />
+          <Button
+            icon={{
+              name: 'plus-square',
+              type: 'feather',
+              color: 'white',
+              size: 18,
+            }}
+            label="Comment"
+            color={colors.democrat}
+          />
+        </View>
+      </Card>
+    );
+  }
+}
+
+function TopComment(props: { position: 'for' | 'against'; comment?: Comment }) {
+  const { position, comment } = props;
+  return (
+    <View style={{ alignItems: 'flex-start' }}>
+      <View
+        style={{
+          paddingVertical: 5,
+          paddingHorizontal: 10,
+          backgroundColor:
+            position == 'for' ? colors.finishButtonColor : colors.republican,
+          borderRadius: 5,
+        }}
+      >
+        <Text style={{ color: 'white', fontFamily: 'Futura', fontSize: 15 }}>
+          {position == 'for' ? 'For' : 'Against'}
+        </Text>
+      </View>
+      <Space height={5} />
+      <View>
+        <Text>{comment ? comment.text : 'Be the first to comment!'}</Text>
+      </View>
+    </View>
+  );
+}
+
+function Summary(props: { bill: Bill }) {
+  const { bill } = props;
+  return (
+    <Card clickable label={'Summary'}>
+      <Space height={10} />
+      <Text
+        numberOfLines={8}
+        style={{ fontFamily: 'Futura', fontSize: 16, flex: 1 }}
+      >
+        {bill.short_summary.trim() + bill.full_summary.trim()}
+      </Text>
+    </Card>
+  );
+}
+
+function BillStatus(props: { bill: Bill }) {
+  const { bill } = props;
+  return (
+    <Card label={'Status'}>
+      <Space height={10} />
+      <BillProgressBar bill={bill} />
+      <Space height={10} />
+      <TouchableOpacity
+        style={{
+          backgroundColor: colors.democrat,
+          padding: 10,
+          justifyContent: 'center',
+          alignItems: 'center',
+          borderRadius: 5,
+          alignSelf: 'center',
+        }}
+      >
+        <Text
+          style={{ fontFamily: 'Futura', color: 'white', fontWeight: 'bold' }}
+        >
+          More Details
+        </Text>
+      </TouchableOpacity>
+    </Card>
+  );
+}
+
+class RepVote extends React.PureComponent<{ bill: Bill }, {}> {
+  render() {
+    const reps = store.getState().storage.representatives;
+    const { bill } = this.props;
+    let votesAndReps: [BillVotingEvent, Representative][] = [];
+
+    if (!bill.voting_events) {
+      return null;
+    }
+
+    reps.forEach((rep) => {
+      let votes = undefined;
+      bill.voting_events.forEach((v) => {
+        if (v.Chamber == rep.chamber) {
+          votes = v;
+        }
+      });
+
+      if (votes) {
+        votesAndReps.push([votes, rep]);
+      }
+    });
+
+    if (votesAndReps.length == 0) {
+      return null;
+    }
+    return (
+      <Card label={'Your Officials Voted'}>
+        <View
+          style={{
+            flexDirection: 'row',
+            padding: 10,
+            justifyContent: 'space-evenly',
+          }}
+        >
+          {votesAndReps.map((item, i) => {
+            let rep = item[1];
+            let votes = item[0];
+
+            let names = Object.keys(votes.Votes);
+            let vote: any = undefined;
+
+            names.forEach((name) => {
+              let parts = name.split(',');
+              let match = true;
+
+              parts.forEach((part) => {
+                if (!rep.name.includes(part)) {
+                  match = false;
+                }
+              });
+
+              if (match) {
+                vote = votes.Votes[name];
+              }
+            });
+            let color;
+            let text;
+            switch (vote) {
+              case 'Y':
+                color = '#00e676E0';
+                text = 'For';
+                break;
+              case 'N':
+                color = '#ff5252E0';
+                text = 'Against';
+                break;
+              default:
+                color = '#9e9e9eE0';
+                text = 'None';
+            }
+
+            return (
+              <View
+                style={{
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <View
+                  style={{
+                    width: 75,
+                    height: 75,
+                    overflow: 'hidden',
+                    borderRadius: 5,
+                  }}
+                >
+                  <Image
+                    source={{ uri: rep.picture_url }}
+                    style={{ width: '100%', height: '100%', borderRadius: 5 }}
+                  />
+
+                  <View
+                    style={{
+                      position: 'absolute',
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      backgroundColor: color,
+                      padding: 5,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontFamily: 'Futura',
+                        fontWeight: 'bold',
+                        color: 'white',
+                        fontSize: 12,
+                      }}
+                    >
+                      {text}
+                    </Text>
+                  </View>
+                </View>
+                <Space height={7.5} />
+                <Text style={{ fontFamily: 'Futura', fontSize: 16 }}>
+                  {rep.name}
+                </Text>
+              </View>
+            );
+          })}
+        </View>
+      </Card>
+    );
+  }
+}
+
+function Card(props: {
+  children?: React.ReactNode;
+  clickable?: boolean;
+  onPress?: () => void;
+  style?: any;
+  textStyle?: StyleProp<TextStyle>;
+  label: string;
+}) {
+  return (
+    <Animated.View style={[styles.card, props.style]}>
+      <TouchableOpacity
+        activeOpacity={props.clickable ? 0.35 : 1}
+        onPress={props.onPress}
+      >
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
+          <Text style={[styles.section, props.textStyle]}>{props.label}</Text>
+          {props.clickable ? (
+            <View style={{}}>
+              <Icon name={'chevron-right'} type={'feather'} color={'black'} />
+            </View>
+          ) : null}
+        </View>
+        {props.children}
+      </TouchableOpacity>
+    </Animated.View>
   );
 }
 
@@ -587,28 +913,24 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     height: '100%',
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
     flex: 1,
   },
   content: {
-    borderRadius: 20,
-    marginTop: '2.5%',
-    marginBottom: '10%',
-    paddingHorizontal: '7.5%',
     zIndex: 0,
+    padding: '5%',
   },
   number: {
     fontFamily: 'Roboto-Light',
     fontWeight: '400',
     fontSize: 16,
-    color: colors.blueGray,
+    color: colors.white,
   },
   title: {
     fontSize: 20,
     fontFamily: 'Futura',
-    fontWeight: '700',
+    fontWeight: '500',
     marginTop: '1%',
+    color: 'white',
   },
   categoriesContainer: {
     flexDirection: 'row',
@@ -621,7 +943,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: '2%',
     paddingHorizontal: '4%',
-    borderRadius: 20,
+    borderRadius: 10,
   },
   categoryText: { color: 'white', fontWeight: 'bold' },
   header: {
@@ -696,6 +1018,17 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 24,
     fontWeight: 'bold',
+  },
+  section: {
+    color: 'black',
+    fontSize: 24,
+    fontFamily: 'Roboto',
+    fontWeight: '500',
+  },
+  card: {
+    padding: '5%',
+    backgroundColor: colors.textInputBackground,
+    borderRadius: 5,
   },
 });
 

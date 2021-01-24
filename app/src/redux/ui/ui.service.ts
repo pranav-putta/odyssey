@@ -1,9 +1,15 @@
 import { Bill, BillHandler, BillMetadata } from '../../models/Bill';
+import { BillData, BillVotes, Comment, Vote } from '../../models/BillData';
 import { Network } from '../../util';
-import { billActions } from '../bill/bill.slice';
 import store, { AppThunk } from '../store';
 import { uiActions } from './ui.slice';
-import { UIScreen, UIScreenCode, UIState, UIStatusCode } from './ui.types';
+import {
+  UIEvent,
+  UIScreen,
+  UIScreenCode,
+  UIState,
+  UIStatusCode,
+} from './ui.types';
 
 module UIService {
   export const setProgress = (visible: boolean) => {
@@ -30,6 +36,14 @@ module UIService {
     return uiActions.setState({ screen: screen });
   };
 
+  export const closeBill = (): AppThunk => async (dispatch) => {
+    dispatch(
+      UIService.setScreen({
+        code: UIScreenCode.home,
+      })
+    );
+  };
+
   export const launchBill = (meta: BillMetadata): AppThunk => async (
     dispatch
   ) => {
@@ -43,34 +57,137 @@ module UIService {
           val.number == meta.number
       );
 
-    dispatch(billActions.billRefreshing({ meta, bill }));
-    dispatch(UIService.setScreen({ code: UIScreenCode.bill, meta: meta }));
+    dispatch(
+      uiActions.setState({
+        screen: { code: UIScreenCode.bill, meta, bill },
+        status: { code: UIStatusCode.loading },
+      })
+    );
 
     // if bill was not in feed, pull from online
     if (!bill) {
       let result = await Network.getBill(meta);
-      console.log('yep ' + result);
       if (result) {
         dispatch(
-          billActions.billRefreshed({ meta, bill: result[0], data: result[1] })
+          UIService.setState({
+            status: { code: UIStatusCode.stable },
+            screen: {
+              code: UIScreenCode.bill,
+              meta,
+              bill: result[0],
+              billData: result[1],
+            },
+          })
         );
       } else {
-        dispatch(uiActions.stable());
-        dispatch(billActions.billClear());
-        dispatch(uiActions.error({ error: "Couldn't fetch bill data" }));
+        dispatch(
+          UIService.setState({
+            screen: {
+              code: UIScreenCode.home,
+            },
+            status: {
+              code: UIStatusCode.error,
+              message: "Couldn't fetch bill data",
+            },
+          })
+        );
       }
     } else {
       // just pull bill data
       let result = await Network.getBillData(bill);
+
       if (result) {
-        dispatch(billActions.billRefreshed({ meta, bill, data: result }));
+        dispatch(
+          UIService.setState({
+            status: { code: UIStatusCode.stable },
+            screen: {
+              code: UIScreenCode.bill,
+              meta,
+              bill,
+              billData: result,
+            },
+          })
+        );
       } else {
-        dispatch(uiActions.stable());
-        dispatch(billActions.billClear());
-        dispatch(uiActions.error({ error: "Couldn't fetch bill data" }));
+        dispatch(
+          UIService.setState({
+            screen: {
+              code: UIScreenCode.home,
+            },
+            status: {
+              code: UIStatusCode.error,
+              message: "Couldn't fetch bill data",
+            },
+          })
+        );
       }
     }
   };
+
+  export function currentBill(): Bill | undefined {
+    let { ui } = store.getState();
+    return ui.screen.code == UIScreenCode.bill ? ui.screen.bill : undefined;
+  }
+
+  export function billVote(vote: Vote) {
+    let { ui, storage } = store.getState();
+
+    let bill = ui.screen.code == UIScreenCode.bill ? ui.screen.bill : undefined;
+    let data =
+      ui.screen.code == UIScreenCode.bill ? ui.screen.billData : undefined;
+    let uid = storage.user.uid;
+
+    if (bill && data && ui.screen.code == UIScreenCode.bill) {
+      Network.setBillVote(bill, vote);
+      let updatedVotes = { ...data.votes };
+
+      updatedVotes[uid] = vote == updatedVotes[uid] ? Vote.None : vote;
+      store.dispatch(
+        UIService.setState({
+          screen: { ...ui.screen, billData: { ...data, votes: updatedVotes } },
+        })
+      );
+    }
+  }
+
+  export function billComment(comment: Comment, shouldSendReps: boolean) {
+    let { ui, storage } = store.getState();
+
+    let bill = ui.screen.code == UIScreenCode.bill ? ui.screen.bill : undefined;
+    let data =
+      ui.screen.code == UIScreenCode.bill ? ui.screen.billData : undefined;
+
+    store.dispatch(
+      UIService.setState({ status: { code: UIStatusCode.loading } })
+    );
+
+    if (bill && data && ui.screen.code == UIScreenCode.bill) {
+      Network.addComment(bill, comment, shouldSendReps)
+        .then(() => {
+          // successful upload, push changes
+          if (ui.screen.code != UIScreenCode.bill || !data) {
+            return;
+          }
+
+          let updatedComments = { ...data.comments };
+          updatedComments[comment.cid] = comment;
+
+          store.dispatch(
+            UIService.setState({
+              status: { code: UIStatusCode.stable },
+              lastEvent: UIEvent.created_comment,
+              screen: {
+                ...ui.screen,
+                billData: { ...data, comments: updatedComments },
+              },
+            })
+          );
+        })
+        .catch(() => {
+          store.dispatch(UIService.setError("Couldn't add a comment!"));
+        });
+    }
+  }
 }
 
 export default UIService;

@@ -57,14 +57,6 @@ export default class BillTab extends React.Component<Props, State> {
           options={{ headerShown: false }}
           component={BillDiscoverScreen}
         />
-        <Stack.Screen
-          name="Rep"
-          component={RepScreen}
-          sharedElements={(route) => {
-            const { rep } = route.params;
-            return [{ id: `rep.${rep.member_url}.photo`, align: 'left-top' }];
-          }}
-        />
       </Stack.Navigator>
     );
   }

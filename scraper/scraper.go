@@ -10,8 +10,8 @@ import (
 func RefreshDatabase(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()
 
-	ody.RefreshBills(ody.SenateBillsURL, "101")
-	ody.RefreshBills(ody.HouseBillsURL, "101")
+	ody.RefreshBills(ody.SenateBillsURL, "101", "110")
+	ody.RefreshBills(ody.HouseBillsURL, "101", "110")
 	ody.RefreshMembers(ody.SenateBillsURL)
 	ody.RefreshMembers(ody.HouseBillsURL)
 

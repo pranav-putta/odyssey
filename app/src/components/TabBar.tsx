@@ -3,6 +3,7 @@ import { StyleSheet, Alert, Animated, Dimensions } from 'react-native';
 import TabBarItem from './TabBarItem';
 import { colors } from '../assets';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { BlurView } from '@react-native-community/blur';
 // key enum for each tab
 export enum TabKey {
   bills = 'Bills',
@@ -37,6 +38,7 @@ type Props = {
 };
 
 const screenWidth = Dimensions.get('screen').width;
+const tickerLength = screenWidth * 0.1;
 
 class TabBar extends React.Component<Props, State> {
   bottomVal: Animated.AnimatedInterpolation;
@@ -55,18 +57,20 @@ class TabBar extends React.Component<Props, State> {
 
     this.animation = new Animated.Value(0);
     this.tickerAnimation = new Animated.Value(0);
+
+    let l = props.tabs.length;
+    let input = Array.from({ length: l }, (_, i) => i);
+    let output = Array.from(
+      { length: l },
+      (_, i) => (i / l) * screenWidth + screenWidth / (2 * l) - tickerLength / 2
+    );
     this.tickerLocation = this.tickerAnimation.interpolate({
-      inputRange: [0, 3],
-      outputRange: [0, (3 / 4) * screenWidth],
+      inputRange: input,
+      outputRange: output,
     });
     this.tickerColor = this.tickerAnimation.interpolate({
-      inputRange: [0, 1, 2, 3],
-      outputRange: [
-        colors.votingBackgroundColor,
-        '#9c27b0',
-        '#ff5252',
-        'black',
-      ],
+      inputRange: input,
+      outputRange: [colors.votingBackgroundColor, '#9c27b0', 'black'],
     });
     this.bottomVal = this.animation.interpolate({
       inputRange: [0, 1],
@@ -107,15 +111,7 @@ class TabBar extends React.Component<Props, State> {
 
   render() {
     return (
-      <Animated.View
-        style={[
-          styles.container,
-          {
-            zIndex: this.props.zIndex || 1,
-            bottom: this.bottomVal,
-          },
-        ]}
-      >
+      <BlurView style={[styles.container]} blurType={'materialLight'}>
         <Animated.View
           style={[
             styles.ticker,
@@ -135,25 +131,12 @@ class TabBar extends React.Component<Props, State> {
                 tkey={tkey}
                 active={this.state.active == tkey}
                 onPress={() => {
+                  console.log(index);
                   this.setState({ active: tkey });
                   this.props.tabPressed(tkey);
 
                   // start animation
-                  let multiplier = 0;
-                  switch (tkey) {
-                    case TabKey.bills:
-                      multiplier = 0;
-                      break;
-                    case TabKey.search:
-                      multiplier = 1;
-                      break;
-                    case TabKey.liked:
-                      multiplier = 2;
-                      break;
-                    case TabKey.profile:
-                      multiplier = 3;
-                      break;
-                  }
+                  let multiplier = index;
                   Animated.spring(this.tickerAnimation, {
                     toValue: multiplier,
                     useNativeDriver: false,
@@ -167,7 +150,7 @@ class TabBar extends React.Component<Props, State> {
             );
           })}
         </SafeAreaView>
-      </Animated.View>
+      </BlurView>
     );
   }
 }
@@ -177,21 +160,20 @@ const styles = StyleSheet.create({
     width: '100%',
     alignSelf: 'center',
     shadowRadius: 0,
-    backgroundColor: '#eceff1',
     flexDirection: 'row',
     justifyContent: 'space-evenly',
     position: 'absolute',
     alignItems: 'center',
-    maxHeight: Dimensions.get('screen').height * 0.12,
+    maxHeight: Dimensions.get('screen').height * 0.11,
+    bottom: 0,
   },
   ticker: {
     height: 4,
-    width: '10%',
+    width: tickerLength,
     position: 'absolute',
     top: 0,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
-    left: '7.5%',
   },
 });
 

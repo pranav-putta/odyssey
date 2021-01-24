@@ -23,15 +23,15 @@ import {
   UIScreenCode,
 } from '../../redux/ui/ui.types';
 import { BillMetadata } from '../../models/Bill';
-import { BillStatusCode } from '../../redux/bill/bill.types';
 import { AppState } from '../../redux/reducer';
-import { BillService } from '../../redux/bill';
 import {
   NavigationContainer,
   StackActions,
   useNavigation,
 } from '@react-navigation/native';
 import { Odyssey } from '../Navigator';
+import RepScreen from './bill/RepScreen';
+import { UIService } from '../../redux/ui/ui';
 
 type State = {
   showTabs: boolean;
@@ -58,13 +58,6 @@ const tabs: TabModel[] = [
     width: 70,
   },
   {
-    icon: { name: 'heart', type: 'feather' },
-    label: 'Liked',
-    tkey: TabKey.liked,
-    color: '#ff5252',
-    width: 50,
-  },
-  {
     icon: { name: 'user', type: 'feather' },
     label: 'Me',
     color: 'black',
@@ -83,6 +76,7 @@ type HomeScreenTabParams = {
 type HomeScreenStackParams = {
   Home: undefined;
   Bill: undefined;
+  Rep: undefined;
 };
 
 const Tab = createBottomTabNavigator<HomeScreenTabParams>();
@@ -122,11 +116,15 @@ class HomeScreen extends React.PureComponent<Props, State> {
     if (this.screen.code != screen.code) {
       switch (screen.code) {
         case UIScreenCode.bill:
-          Odyssey.navigationRef.current?.dispatch(StackActions.push('Bill'));
+          Odyssey.push('Bill');
+          break;
+        case UIScreenCode.rep:
+          Odyssey.push('Rep');
           break;
         default:
-          return;
+          break;
       }
+      this.screen = screen;
     }
   }
 
@@ -154,25 +152,38 @@ class HomeScreen extends React.PureComponent<Props, State> {
           <Stack.Navigator headerMode="none">
             <Stack.Screen
               component={HomeScreenTabs}
+              listeners={{
+                focus: () => {
+                  store.dispatch(
+                    UIService.setScreen({ code: UIScreenCode.home })
+                  );
+                },
+              }}
               name={'Home'}
               options={{ animationTypeForReplace: 'pop' }}
             />
             <Stack.Screen
-              listeners={{
-                blur: () => {
-                  store.dispatch(BillService.closeBill());
-                },
-              }}
               name="Bill"
               sharedElements={(_, other, showing) => {
                 if (other.name === 'Discover' && showing) {
-                  const bill = store.getState().bill.status.bill;
+                  const bill = UIService.currentBill();
                   if (bill) {
                     return [{ id: `bill.${bill.number}.photo` }];
                   }
                 }
               }}
               component={BillDetailStack}
+            />
+            <Stack.Screen
+              name="Rep"
+              component={RepScreen}
+              listeners={{
+                blur: () => {
+                  store.dispatch(
+                    UIService.setScreen({ code: UIScreenCode.home })
+                  );
+                },
+              }}
             />
           </Stack.Navigator>
         </NavigationContainer>
